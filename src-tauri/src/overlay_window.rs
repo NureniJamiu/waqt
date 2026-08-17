@@ -187,7 +187,37 @@ fn harden_macos(win: &tauri::WebviewWindow) {
         let app = NSApplication::sharedApplication(mtm);
         app.activate();
         app.hideOtherApplications(None);
+
+        minimize_and_hide_all_apps();
     }
+}
+
+#[cfg(target_os = "macos")]
+fn minimize_and_hide_all_apps() {
+    let script = r#"
+        tell application "System Events"
+            repeat with p in (every process whose background only is false and name is not "waqt")
+                try
+                    repeat with w in (every window of p)
+                        try
+                            if value of attribute "AXFullScreen" of w is true then
+                                set value of attribute "AXFullScreen" of w to false
+                            end if
+                        end try
+                        try
+                            set value of attribute "AXMinimized" of w to true
+                        end try
+                    end repeat
+                    set visible of p to false
+                end try
+            end repeat
+        end tell
+    "#;
+
+    let _ = std::process::Command::new("osascript")
+        .arg("-e")
+        .arg(script)
+        .spawn();
 }
 
 pub fn close_all_overlays(app: &AppHandle) {
