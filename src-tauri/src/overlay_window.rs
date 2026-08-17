@@ -23,6 +23,9 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str) -> Result<(), S
 
         let pos = monitor.position();
         let size = monitor.size();
+        let scale_factor = monitor.scale_factor();
+        let logical_pos = pos.to_logical::<f64>(scale_factor);
+        let logical_size = size.to_logical::<f64>(scale_factor);
 
         let window_result = WebviewWindowBuilder::new(
             app,
@@ -30,11 +33,11 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str) -> Result<(), S
             WebviewUrl::App(format!("index.html?screen=overlay&prayer={}", prayer_name).into()),
         )
         .title("Waqt Overlay")
-        .inner_size(size.width as f64, size.height as f64)
-        .position(pos.x as f64, pos.y as f64)
+        .position(logical_pos.x, logical_pos.y)
+        .inner_size(logical_size.width, logical_size.height)
         .decorations(false)
         .always_on_top(true)
-        .fullscreen(true)
+        .fullscreen(false)
         .minimizable(false)
         .maximizable(false)
         .closable(false)
@@ -64,7 +67,7 @@ fn spawn_single_overlay(app: &AppHandle, label: &str, prayer_name: &str) -> Resu
         return Ok(());
     }
 
-    let win = WebviewWindowBuilder::new(
+    let mut builder = WebviewWindowBuilder::new(
         app,
         label,
         WebviewUrl::App(format!("index.html?screen=overlay&prayer={}", prayer_name).into()),
@@ -72,14 +75,21 @@ fn spawn_single_overlay(app: &AppHandle, label: &str, prayer_name: &str) -> Resu
     .title("Waqt Overlay")
     .decorations(false)
     .always_on_top(true)
-    .fullscreen(true)
+    .fullscreen(false)
     .minimizable(false)
     .maximizable(false)
     .closable(false)
     .resizable(false)
-    .shadow(false)
-    .build()
-    .map_err(|e| e.to_string())?;
+    .shadow(false);
+
+    if let Ok(Some(primary)) = app.primary_monitor() {
+        let scale_factor = primary.scale_factor();
+        let pos = primary.position().to_logical::<f64>(scale_factor);
+        let size = primary.size().to_logical::<f64>(scale_factor);
+        builder = builder.position(pos.x, pos.y).inner_size(size.width, size.height);
+    }
+
+    let win = builder.build().map_err(|e| e.to_string())?;
 
     harden_window(&win);
 
@@ -121,8 +131,8 @@ fn harden_macos(win: &tauri::WebviewWindow) {
     // CanJoinAllSpaces    = 1 << 0 = 1   → visible on every Space
     // Stationary         = 1 << 4 = 16  → pinned; doesn't move in Mission Control
     // IgnoresCycle       = 1 << 6 = 64  → excluded from ⌘+Tab switcher
-    // FullScreenPrimary  = 1 << 7 = 128 → claims full-screen space
-    const COLLECTION_BEHAVIOR: usize = 1 | 16 | 64 | 128;
+    // FullScreenAuxiliary = 1 << 8 = 256 → floats above fullscreen spaces without entering a separate space
+    const COLLECTION_BEHAVIOR: usize = 1 | 16 | 64 | 256;
 
     // NSWindowStyleMask bits to strip:
     // Miniaturizable = 1 << 2 = 4  → ⌘+M becomes a no-op
@@ -164,10 +174,14 @@ fn harden_macos(win: &tauri::WebviewWindow) {
         );
         ns_win_ref.setStyleMask(new_mask);
 
-        // 4. Bring to front unconditionally (works even when app is not active).
+        // 4. Prevent hiding on app switch or ⌘+H
+        ns_win_ref.setCanHide(false);
+        ns_win_ref.setHidesOnDeactivate(false);
+
+        // 5. Bring to front unconditionally (works even when app is not active).
         ns_win_ref.orderFrontRegardless();
 
-        // 5. Activate our app so keyboard events route here.
+        // 6. Activate our app so keyboard events route here.
         //    MainThreadMarker::new_unchecked() is safe: we are on the main thread.
         let mtm = objc2::MainThreadMarker::new_unchecked();
         let app = NSApplication::sharedApplication(mtm);
