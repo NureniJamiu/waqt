@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { AppSettings, PrayerTime } from "../../types";
-import { calculateDailyPrayerTimes } from "../../lib/adhanCalc";
+import { calculateDailyPrayerTimes, getUpcomingPrayer } from "../../lib/adhanCalc";
 import {
   MapPin,
   Settings as SettingsIcon,
@@ -38,14 +38,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, []);
 
   useEffect(() => {
-    setPrayers(calculateDailyPrayerTimes(settings, currentTime));
+    setPrayers(calculateDailyPrayerTimes(settings, currentTime, currentTime));
     // Recalculate on every minute boundary (and hour, so we don't miss midnight rollover).
     // The countdown display is handled by the 1s timer above; this effect only needs
     // to update isPassed/isNext which change at prayer-time boundaries.
   }, [settings, currentTime.getHours(), currentTime.getMinutes()]);
 
 
-  const nextPrayer = prayers.find((p) => p.isNext) || prayers[0];
+  const nextPrayer = getUpcomingPrayer(settings, currentTime);
 
   const getTimeRemainingMs = (target: Date) => {
     return Math.max(0, target.getTime() - currentTime.getTime());

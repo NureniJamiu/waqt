@@ -238,29 +238,31 @@ export const Overlay: React.FC<OverlayProps> = ({
 
       {/* Emergency Dismiss Modal */}
       {showEmergencyConfirm && (
-        <div className="fixed inset-0 z-60 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="glass-panel max-w-md w-full p-6 md:p-8 rounded-3xl border border-amber-500/40 space-y-5 text-left shadow-glow-amber">
+        <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4">
+          <div className="bg-[#0b0f19] max-w-md w-full p-6 md:p-8 rounded-3xl border border-amber-500/50 space-y-5 text-left shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative z-[101]">
             <div className="flex items-center gap-2.5 text-amber-400 font-extrabold text-lg font-display">
-              <ShieldAlert className="w-6 h-6" />
+              <ShieldAlert className="w-6 h-6 text-amber-400 shrink-0" />
               <span>Emergency Dismiss</span>
             </div>
-            <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
+            <p className="text-slate-200 text-xs md:text-sm leading-relaxed">
               Dismiss the overlay without confirming prayer? This action immediately unlocks your desktop and logs an
-              <code className="text-amber-400 bg-amber-950/60 border border-amber-500/30 px-1.5 py-0.5 rounded font-mono text-xs ml-1">
+              <code className="text-amber-400 bg-amber-950/80 border border-amber-500/40 px-1.5 py-0.5 rounded font-mono text-xs ml-1 font-semibold">
                 emergency_dismissed
               </code> entry to your local log.
             </p>
 
             <div className="flex gap-3 pt-2">
               <button
+                type="button"
                 onClick={() => setShowEmergencyConfirm(false)}
-                className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold rounded-2xl text-xs transition-colors cursor-pointer border border-slate-700"
+                className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold rounded-2xl text-xs transition-all cursor-pointer border border-slate-700 active:scale-95 shadow-md"
               >
                 Cancel (Keep Paused)
               </button>
               <button
+                type="button"
                 onClick={onEmergencyDismiss}
-                className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-2xl text-xs transition-colors shadow-glow-amber cursor-pointer"
+                className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-2xl text-xs transition-all shadow-glow-amber cursor-pointer active:scale-95"
               >
                 Yes, Dismiss Immediately
               </button>

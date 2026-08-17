@@ -5,6 +5,7 @@ import {
   formatTime,
   getPrayerTimeByDateAndName,
   getFireableWindow,
+  getUpcomingPrayer,
 } from "../adhanCalc";
 import { AppSettings } from "../../types";
 
@@ -123,6 +124,32 @@ describe("adhanCalc Engine", () => {
     expect(window!.startTime.getTime()).toBeLessThan(window!.fireableUntil.getTime());
   });
 
+  it("should not mutate the input targetDate or referenceTime Date objects", () => {
+    const targetDate = new Date(2026, 7, 17, 18, 57, 3);
+    const referenceTime = new Date(2026, 7, 17, 18, 57, 3);
+    const targetTimestamp = targetDate.getTime();
+    const refTimestamp = referenceTime.getTime();
+
+    calculateDailyPrayerTimes(mockSettings, targetDate, referenceTime);
+
+    expect(targetDate.getTime()).toBe(targetTimestamp);
+    expect(referenceTime.getTime()).toBe(refTimestamp);
+  });
+
+  it("should return the correct upcoming prayer during evening and late night", () => {
+    // 18:57:03 - Maghrib is upcoming (19:00:00)
+    const eveningTime = new Date(2026, 7, 17, 18, 57, 3);
+    const eveningUpcoming = getUpcomingPrayer(mockSettings, eveningTime);
+    expect(eveningUpcoming.name).toBe("Maghrib");
+    expect(eveningUpcoming.time.getTime()).toBeGreaterThan(eveningTime.getTime());
+
+    // 22:30:00 - All 5 prayers today passed -> Tomorrow Fajr is upcoming
+    const lateNightTime = new Date(2026, 7, 17, 22, 30, 0);
+    const lateNightUpcoming = getUpcomingPrayer(mockSettings, lateNightTime);
+    expect(lateNightUpcoming.name).toBe("Fajr");
+    expect(lateNightUpcoming.time.getTime()).toBeGreaterThan(lateNightTime.getTime());
+  });
+
   it("should calculate prayer times 100% offline for global coordinates without network requests", () => {
     const testCities = [
       { name: "London, UK", lat: 51.5074, lng: -0.1278, method: "MuslimWorldLeague" as const },
@@ -151,3 +178,4 @@ describe("adhanCalc Engine", () => {
     });
   });
 });
+

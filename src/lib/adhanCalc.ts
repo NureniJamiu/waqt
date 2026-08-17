@@ -73,10 +73,14 @@ export function calculateDailyPrayerTimes(
     params.madhab = Madhab.Shafi;
   }
 
-  const prayerTimes = new PrayerTimes(coordinates, targetDate, params);
+  // Clone date objects to prevent adhan-js internal date mutations
+  const calcTargetDate = new Date(targetDate.getTime());
+  const calcReferenceTime = new Date(referenceTime.getTime());
+
+  const prayerTimes = new PrayerTimes(coordinates, calcTargetDate, params);
 
   // Tomorrow's Fajr for Isha's fireableUntil boundary
-  const tomorrow = new Date(targetDate);
+  const tomorrow = new Date(targetDate.getTime());
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowPrayerTimes = new PrayerTimes(coordinates, tomorrow, params);
 
@@ -91,7 +95,7 @@ export function calculateDailyPrayerTimes(
   let nextFound = false;
 
   return rawList.map((item) => {
-    const isPassed = referenceTime > item.time;
+    const isPassed = calcReferenceTime > item.time;
     let isNext = false;
     if (!isPassed && !nextFound) {
       isNext = true;
@@ -107,6 +111,30 @@ export function calculateDailyPrayerTimes(
       fireableUntil: item.nextTime,
     };
   });
+}
+
+export function getUpcomingPrayer(
+  settings: AppSettings,
+  currentTime: Date = new Date()
+): PrayerTime {
+  const daily = calculateDailyPrayerTimes(settings, currentTime, currentTime);
+  const next = daily.find((p) => p.isNext);
+  if (next) return next;
+
+  // If all 5 prayers today have passed (e.g. late night after Isha), upcoming prayer is Tomorrow's Fajr
+  const tomorrow = new Date(currentTime.getTime());
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDaily = calculateDailyPrayerTimes(settings, tomorrow, currentTime);
+  const tomorrowFajr = tomorrowDaily.find((p) => p.name === "Fajr");
+  if (tomorrowFajr) {
+    return {
+      ...tomorrowFajr,
+      isNext: true,
+      isPassed: false,
+    };
+  }
+
+  return daily[0];
 }
 
 export function getPrayerTimeByDateAndName(
@@ -132,3 +160,4 @@ export function getFireableWindow(
     fireableUntil: found.fireableUntil,
   };
 }
+
