@@ -122,14 +122,14 @@ fn harden_window(win: &tauri::WebviewWindow) {
 fn harden_macos(win: &tauri::WebviewWindow) {
     use objc2_app_kit::{NSApplication, NSWindow};
 
-    // NSWindowLevel: kCGScreenSaverWindowLevel = 2001
-    // Sits above Dock (20), Spotlight (101), menu bar (25),
-    // notification banners (500), and all normal app windows.
-    const SCREEN_SAVER_WINDOW_LEVEL: isize = 2001;
+    // NSWindowLevel: i32::MAX (2147483647) = Maximum Window Level (CGShieldingWindowLevel)
+    // Sits above Dock, Spotlight, menu bar, notification banners, Mission Control,
+    // Space transition animations, and all Fullscreen Spaces.
+    const MAXIMUM_WINDOW_LEVEL: isize = i32::MAX as isize;
 
     // NSWindowCollectionBehavior flags (values are NSUInteger / usize):
     // CanJoinAllSpaces    = 1 << 0 = 1   → visible on every Space
-    // Stationary         = 1 << 4 = 16  → pinned; doesn't move in Mission Control
+    // Stationary         = 1 << 4 = 16  → pinned; doesn't move in Mission Control or Space transitions
     // IgnoresCycle       = 1 << 6 = 64  → excluded from ⌘+Tab switcher
     // FullScreenAuxiliary = 1 << 8 = 256 → floats above fullscreen spaces without entering a separate space
     const COLLECTION_BEHAVIOR: usize = 1 | 16 | 64 | 256;
@@ -158,9 +158,9 @@ fn harden_macos(win: &tauri::WebviewWindow) {
         }
         let ns_win_ref = &*ns_win;
 
-        // 1. Elevate to screen-saver window level — above everything the user
-        //    can interact with including Dock, Spotlight, and notification banners.
-        ns_win_ref.setLevel(SCREEN_SAVER_WINDOW_LEVEL);
+        // 1. Elevate to Maximum Window Level (2147483647) — sits above everything in macOS
+        //    including Fullscreen Spaces, Space transitions, Dock, and Mission Control.
+        ns_win_ref.setLevel(MAXIMUM_WINDOW_LEVEL);
 
         // 2. Exclude from Mission Control / Exposé / ⌘+Tab; appear on all Spaces.
         ns_win_ref.setCollectionBehavior(
@@ -182,42 +182,26 @@ fn harden_macos(win: &tauri::WebviewWindow) {
         ns_win_ref.orderFrontRegardless();
 
         // 6. Activate our app so keyboard events route here.
-        //    MainThreadMarker::new_unchecked() is safe: we are on the main thread.
         let mtm = objc2::MainThreadMarker::new_unchecked();
         let app = NSApplication::sharedApplication(mtm);
         app.activate();
         app.hideOtherApplications(None);
 
-        minimize_and_hide_all_apps();
+        hide_all_other_apps();
     }
 }
 
 #[cfg(target_os = "macos")]
-fn minimize_and_hide_all_apps() {
-    let script = r#"
-        tell application "System Events"
-            repeat with p in (every process whose background only is false and name is not "waqt")
-                try
-                    repeat with w in (every window of p)
-                        try
-                            if value of attribute "AXFullScreen" of w is true then
-                                set value of attribute "AXFullScreen" of w to false
-                            end if
-                        end try
-                        try
-                            set value of attribute "AXMinimized" of w to true
-                        end try
-                    end repeat
-                    set visible of p to false
-                end try
-            end repeat
-        end tell
-    "#;
-
-    let _ = std::process::Command::new("osascript")
-        .arg("-e")
-        .arg(script)
-        .spawn();
+fn hide_all_other_apps() {
+    use objc2_app_kit::NSWorkspace;
+    let workspace = NSWorkspace::sharedWorkspace();
+    let current_pid = std::process::id() as i32;
+    let running_apps = workspace.runningApplications();
+    for running_app in running_apps {
+        if running_app.processIdentifier() != current_pid {
+            let _ = running_app.hide();
+        }
+    }
 }
 
 pub fn close_all_overlays(app: &AppHandle) {
