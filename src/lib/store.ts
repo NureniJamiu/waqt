@@ -89,9 +89,18 @@ export function clearLogsFromStorage(): void {
   }
 }
 
-// Unified async Store API (works seamlessly with Tauri Store & fallback)
+// Unified async Store API (works seamlessly with Tauri IPC, Store & fallback)
 
 export async function loadSettings(): Promise<AppSettings> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const res = await invoke<AppSettings>("get_settings");
+      if (res) return { ...DEFAULT_SETTINGS, ...res };
+    } catch {
+      // fallback to store plugin / localStorage below
+    }
+  }
   const store = await getTauriStore();
   if (store) {
     try {
@@ -109,6 +118,14 @@ export async function loadSettings(): Promise<AppSettings> {
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
   saveSettingsToStorage(settings);
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("save_settings", { settings });
+    } catch {
+      // fallback to store plugin below
+    }
+  }
   const store = await getTauriStore();
   if (store) {
     try {
@@ -121,6 +138,15 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 }
 
 export async function loadLogs(): Promise<PrayerLogItem[]> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const res = await invoke<PrayerLogItem[]>("get_logs");
+      if (res) return res;
+    } catch {
+      // fallback
+    }
+  }
   const store = await getTauriStore();
   if (store) {
     try {
@@ -137,6 +163,15 @@ export async function loadLogs(): Promise<PrayerLogItem[]> {
 
 export async function addLogEntry(entry: PrayerLogItem): Promise<PrayerLogItem[]> {
   const updated = addLogEntryToStorage(entry);
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const res = await invoke<PrayerLogItem[]>("add_log_entry", { entry });
+      if (res) return res;
+    } catch {
+      // fallback
+    }
+  }
   const store = await getTauriStore();
   if (store) {
     try {
@@ -147,4 +182,26 @@ export async function addLogEntry(entry: PrayerLogItem): Promise<PrayerLogItem[]
     }
   }
   return updated;
+}
+
+export async function triggerOverlayCommand(prayerName: string): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("trigger_overlay", { prayerName });
+    } catch (err) {
+      console.error("Failed to trigger overlay IPC:", err);
+    }
+  }
+}
+
+export async function dismissOverlayCommand(): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("dismiss_overlay");
+    } catch (err) {
+      console.error("Failed to dismiss overlay IPC:", err);
+    }
+  }
 }

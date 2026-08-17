@@ -4,7 +4,6 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str) -> Result<(), S
     let monitors = app.available_monitors().map_err(|e| e.to_string())?;
 
     if monitors.is_empty() {
-        // Fallback: spawn single overlay on primary window target
         spawn_single_overlay(app, "overlay-primary", prayer_name)?;
     } else {
         for (idx, monitor) in monitors.iter().enumerate() {
