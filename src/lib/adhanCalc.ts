@@ -6,6 +6,7 @@ import {
 } from "adhan";
 import { AppSettings, CalculationMethodName, PrayerName, PrayerTime } from "../types";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getCalculationMethodParams(methodName: CalculationMethodName): any {
   switch (methodName) {
     case "Egyptian":
@@ -26,13 +27,27 @@ export function getCalculationMethodParams(methodName: CalculationMethodName): a
       return CalculationMethod.Qatar();
     case "Singapore":
       return CalculationMethod.Singapore();
-    case "Turkey":
-    case "Tehran":
+    case "Turkey": {
+      // Diyanet İşleri Başkanlığı: Fajr 18°, Isha 17°
+      // adhan has no dedicated Turkey() method — construct manually.
+      const p = CalculationMethod.MuslimWorldLeague();
+      p.fajrAngle = 18;
+      p.ishaAngle = 17;
+      return p;
+    }
+    case "Tehran": {
+      // Institute of Geophysics, Tehran: Fajr 17.7°, Isha 14°
+      const p = CalculationMethod.MuslimWorldLeague();
+      p.fajrAngle = 17.7;
+      p.ishaAngle = 14;
+      return p;
+    }
     case "MuslimWorldLeague":
     default:
       return CalculationMethod.MuslimWorldLeague();
   }
 }
+
 
 export function formatTime(date: Date, is24Hour: boolean = false): string {
   return date.toLocaleTimeString([], {

@@ -18,6 +18,52 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
     let mut last_tick_instant = Instant::now();
     let mut notified_events: HashSet<String> = HashSet::new();
 
+    // ── Startup initialization pass ────────────────────────────────────────
+    // Pre-mark any prayer whose overlay window is currently active or already
+    // past so the scheduler never fires a phantom overlay the moment the app
+    // launches. Only prayers whose T-0 crosses zero *while the scheduler is
+    // running* will produce an overlay.
+    {
+        let config_dir = get_config_dir(&app_handle);
+        let store_mgr = StoreManager::new(config_dir);
+        let settings = store_mgr.load_settings();
+        let now = Local::now();
+        let today_str = now.format("%Y-%m-%d").to_string();
+        let now_ts = now.timestamp();
+
+        let prayers = prayer_calc::get_today_prayer_items(
+            settings.latitude,
+            settings.longitude,
+            &settings.calculation_method,
+            &settings.asr_school,
+            now,
+        );
+
+        for item in &prayers {
+            // If we're currently inside a fireable window OR past it,
+            // pre-seed the key so we won't fire an overlay for it.
+            if now_ts >= item.timestamp {
+                let overlay_key = format!("{}:{}:overlay", today_str, item.name);
+                notified_events.insert(overlay_key);
+                println!(
+                    "[Waqt Scheduler] Startup: pre-seeding overlay key for {} (already at or past T-0)",
+                    item.name
+                );
+            }
+            // Also pre-seed pre-notification keys for the past so we don't
+            // fire stale T-30m/T-15m/T-5m notifications on startup.
+            for (label, seconds_before) in [("30m", 30 * 60i64), ("15m", 15 * 60), ("5m", 5 * 60)] {
+                let pre_ts = item.timestamp - seconds_before;
+                if now_ts >= pre_ts {
+                    let key = format!("{}:{}:pre:{}", today_str, item.name, label);
+                    notified_events.insert(key);
+                }
+            }
+        }
+        println!("[Waqt Scheduler] Startup initialization complete. Pre-seeded {} event keys.", notified_events.len());
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     loop {
         // Sleep 30s between ticks
         sleep(Duration::from_secs(30)).await;

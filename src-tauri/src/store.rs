@@ -48,22 +48,13 @@ pub struct PrayerLogItem {
     pub confirmed_at: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct WaqtStore {
     #[serde(default)]
     pub settings: AppSettings,
     #[serde(default)]
     pub log: Vec<PrayerLogItem>,
-}
-
-impl Default for WaqtStore {
-    fn default() -> Self {
-        Self {
-            settings: AppSettings::default(),
-            log: Vec::new(),
-        }
-    }
 }
 
 pub struct StoreManager {

@@ -32,7 +32,7 @@ pub fn get_method_angles(method: &str) -> (f64, f64, Option<f64>) {
         "Singapore" => (20.0, 18.0, None),
         "Turkey" => (18.0, 17.0, None),
         "Tehran" => (17.7, 14.0, None),
-        "MuslimWorldLeague" | _ => (18.0, 17.0, None),
+        _ => (18.0, 17.0, None),
     }
 }
 
@@ -68,7 +68,7 @@ fn hour_angle(lat: f64, decl: f64, angle: f64) -> Option<f64> {
     let lat_rad = lat.to_radians();
     let angle_rad = angle.to_radians();
     let cos_h = (angle_rad.sin() - lat_rad.sin() * decl.sin()) / (lat_rad.cos() * decl.cos());
-    if cos_h < -1.0 || cos_h > 1.0 {
+    if !(-1.0..=1.0).contains(&cos_h) {
         None
     } else {
         Some(cos_h.acos() * 180.0 / PI / 15.0)
@@ -80,7 +80,7 @@ fn asr_hour_angle(lat: f64, decl: f64, shadow_ratio: f64) -> Option<f64> {
     let diff = (lat_rad - decl).abs();
     let angle_rad = (1.0 / (shadow_ratio + diff.tan())).atan();
     let cos_h = (angle_rad.sin() - lat_rad.sin() * decl.sin()) / (lat_rad.cos() * decl.cos());
-    if cos_h < -1.0 || cos_h > 1.0 {
+    if !(-1.0..=1.0).contains(&cos_h) {
         None
     } else {
         Some(cos_h.acos() * 180.0 / PI / 15.0)

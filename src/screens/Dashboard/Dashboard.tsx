@@ -39,7 +39,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   useEffect(() => {
     setPrayers(calculateDailyPrayerTimes(settings, currentTime));
-  }, [settings, currentTime.getMinutes()]);
+    // Recalculate on every minute boundary (and hour, so we don't miss midnight rollover).
+    // The countdown display is handled by the 1s timer above; this effect only needs
+    // to update isPassed/isNext which change at prayer-time boundaries.
+  }, [settings, currentTime.getHours(), currentTime.getMinutes()]);
+
 
   const nextPrayer = prayers.find((p) => p.isNext) || prayers[0];
 
