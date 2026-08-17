@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { AppSettings, PrayerName } from "../../types";
-import { CheckCircle2, AlertTriangle, Moon, ShieldAlert, AlarmClock, Clock } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Moon, ShieldAlert, AlarmClock, Clock, Lock } from "lucide-react";
 
 interface OverlayProps {
   prayerName: PrayerName;
@@ -37,6 +37,59 @@ export const Overlay: React.FC<OverlayProps> = ({
     return () => clearInterval(timer);
   }, [secondsRemaining]);
 
+  // ─── Keyboard bypass interceptor ───────────────────────────────────────────
+  // This is a defence-in-depth layer on top of the OS-level NSWindow hardening.
+  // Even if a shortcut somehow reaches the webview, we swallow it here so it
+  // never propagates further into macOS's event chain.
+  useEffect(() => {
+    const BLOCKED_KEYS = new Set(["h", "m", "w", "q", "Tab", " "]);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const meta = e.metaKey; // ⌘ on macOS
+      const alt = e.altKey;
+
+      // Block ⌘+H (hide), ⌘+M (minimize), ⌘+W (close), ⌘+Q (quit),
+      // ⌘+Tab (app switch), ⌘+Space (Spotlight)
+      if (meta && BLOCKED_KEYS.has(e.key)) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+
+      // Block Alt+Tab (also used on some keyboards/remappings)
+      if (alt && e.key === "Tab") {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+
+      // Block Escape (could be mapped to window hide on some setups)
+      if (e.key === "Escape" && !showEmergencyConfirm) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+
+      // Block Mission Control shortcuts (F3, Ctrl+Up, Ctrl+Down)
+      if (e.key === "F3" || (e.ctrlKey && (e.key === "ArrowUp" || e.key === "ArrowDown"))) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+
+      // Block F11 (fullscreen toggle in some configs)
+      if (e.key === "F11") {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => window.removeEventListener("keydown", handleKeyDown, { capture: true });
+  }, [showEmergencyConfirm]);
+  // ───────────────────────────────────────────────────────────────────────────
+
   const isPauseElapsed = secondsRemaining === 0;
 
   const formatCountdown = (totalSec: number) => {
@@ -55,17 +108,26 @@ export const Overlay: React.FC<OverlayProps> = ({
     if (onSnooze) onSnooze();
   };
 
+  // SVG Circular Ring Calculation
+  const strokeWidth = 8;
+  const radius = 70;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
+
   return (
-    <div className="fixed inset-0 z-50 bg-[#070a0f] text-slate-100 flex flex-col justify-between p-8 select-none overflow-hidden">
-      {/* Top Emergency Bar */}
-      <div className="flex justify-between items-center w-full max-w-5xl mx-auto">
+    <div className="fixed inset-0 z-50 bg-[#05080e] text-slate-100 flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* Top Bar */}
+      <div className="flex justify-between items-center w-full max-w-5xl mx-auto relative z-10">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800">
-            <Moon className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-300 bg-slate-900/90 px-4 py-2 rounded-2xl border border-white/10 shadow-lg">
+            <Moon className="w-4 h-4 text-emerald-400" />
             <span>Waqt Forced Pause</span>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-800/80">
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/60 px-4 py-2 rounded-2xl border border-white/5">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             <span>{currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
           </div>
@@ -74,66 +136,95 @@ export const Overlay: React.FC<OverlayProps> = ({
         {/* Emergency Dismiss Button - ALWAYS CLICKABLE */}
         <button
           onClick={() => setShowEmergencyConfirm(true)}
-          className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-full border border-amber-500/30 transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-xs font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-2xl border border-amber-500/30 transition-all shadow-glow-amber cursor-pointer"
         >
-          <AlertTriangle className="w-3.5 h-3.5" />
+          <AlertTriangle className="w-4 h-4" />
           <span>Emergency Dismiss</span>
         </button>
       </div>
 
-      {/* Main Center Content */}
-      <div className="flex flex-col items-center justify-center text-center max-w-lg mx-auto space-y-6">
-        {/* Calm Icon */}
-        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shadow-2xl shadow-emerald-500/10">
-          <Moon className="w-10 h-10 animate-pulse-subtle" />
+      {/* Main Center Stack */}
+      <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto space-y-6 relative z-10">
+        {/* SVG Circular Ring Countdown */}
+        <div className="relative flex items-center justify-center">
+          <svg className="w-44 h-44 -rotate-90 transform">
+            <circle
+              cx="88"
+              cy="88"
+              r={radius}
+              stroke="rgba(255, 255, 255, 0.08)"
+              strokeWidth={strokeWidth}
+              fill="transparent"
+            />
+            <circle
+              cx="88"
+              cy="88"
+              r={radius}
+              stroke="#10b981"
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="transparent"
+              className="transition-all duration-1000 ease-linear shadow-glow-emerald"
+            />
+          </svg>
+
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="font-mono text-3xl font-black text-white tracking-tight">
+              {formatCountdown(secondsRemaining)}
+            </span>
+            <span className="text-[10px] uppercase tracking-widest font-extrabold text-slate-400 mt-1">
+              {isPauseElapsed ? "Pause Complete" : "Forced Pause"}
+            </span>
+          </div>
         </div>
 
-        {/* Non-shaming copy */}
-        <div>
-          <span className="text-xs uppercase font-bold tracking-widest text-emerald-400">Time to step away</span>
-          <h1 className="text-4xl font-extrabold tracking-tight mt-1 text-white">It's time for {prayerName}</h1>
-          <p className="text-slate-400 text-sm mt-2 max-w-md">
-            Take a moment to pause work, perform wudu, and prepare for prayer.
+        {/* Messaging */}
+        <div className="space-y-2">
+          <span className="text-xs uppercase font-extrabold tracking-widest text-emerald-400 bg-emerald-500/10 px-3.5 py-1 rounded-full border border-emerald-500/20">
+            Time to step away
+          </span>
+          <h1 className="text-4xl md:text-5xl font-black font-display tracking-tight text-white">
+            It's time for {prayerName}
+          </h1>
+          <p className="text-slate-400 text-xs md:text-sm max-w-sm leading-relaxed">
+            Take a respectful pause from your screen, perform wudu, and prepare for prayer.
           </p>
         </div>
 
-        {/* Forced Pause Progress Ring / Bar */}
-        <div className="w-full space-y-2 pt-2">
-          <div className="flex justify-between items-center text-xs font-mono text-slate-400">
-            <span>Forced Pause</span>
-            <span className="font-bold text-emerald-400">{formatCountdown(secondsRemaining)} remaining</span>
-          </div>
-          <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-            <div
-              className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-full transition-all duration-1000 ease-linear"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-
         {/* Action Buttons */}
-        <div className="pt-4 flex flex-col items-center gap-3 w-full">
-          {/* I've Prayed Button - DISABLED until forced pause elapses */}
+        <div className="pt-2 flex flex-col items-center gap-3 w-full">
+          {/* Confirm Button - Disabled until forced pause elapses */}
           <button
             onClick={onConfirmPrayed}
             disabled={!isPauseElapsed}
-            className={`w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition-all shadow-xl ${
+            className={`w-full py-4 px-6 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-2xl ${
               isPauseElapsed
-                ? "bg-emerald-500 hover:bg-emerald-600 text-slate-950 shadow-emerald-500/25 active:scale-98 cursor-pointer"
-                : "bg-slate-800 text-slate-500 border border-slate-700/60 cursor-not-allowed opacity-60"
+                ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-glow-emerald cursor-pointer active:scale-98"
+                : "bg-slate-900/90 text-slate-500 border border-slate-800 cursor-not-allowed opacity-75"
             }`}
           >
-            <CheckCircle2 className="w-5 h-5" />
-            <span>{isPauseElapsed ? "I've Prayed" : `Button unlocks in ${formatCountdown(secondsRemaining)}`}</span>
+            {isPauseElapsed ? (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                <span>I've Prayed</span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4 text-slate-500" />
+                <span>Unlocks in {formatCountdown(secondsRemaining)}</span>
+              </>
+            )}
           </button>
 
-          {/* Optional Snooze Button */}
+          {/* Snooze Button */}
           {settings.snoozeEnabled && !snoozed && (
             <button
               onClick={handleSnoozeClick}
-              className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1.5 pt-1 transition-colors cursor-pointer"
+              className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-2 pt-1 transition-colors cursor-pointer"
             >
-              <AlarmClock className="w-3.5 h-3.5 text-slate-400" />
+              <AlarmClock className="w-4 h-4 text-emerald-400" />
               <span>Snooze 5 minutes (1 use)</span>
             </button>
           )}
@@ -141,21 +232,21 @@ export const Overlay: React.FC<OverlayProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="text-center text-xs text-slate-600">
-        Waqt • Respectful Accountability Overlay
+      <div className="text-center text-[11px] font-mono text-slate-600 relative z-10">
+        Waqt • Personal Accountability Overlay
       </div>
 
-      {/* Emergency Modal Confirmation */}
+      {/* Emergency Dismiss Modal */}
       {showEmergencyConfirm && (
-        <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel max-w-md w-full p-6 rounded-2xl border border-amber-500/30 space-y-4 text-left">
-            <div className="flex items-center gap-2 text-amber-400 font-bold text-base">
-              <ShieldAlert className="w-5 h-5" />
+        <div className="fixed inset-0 z-60 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="glass-panel max-w-md w-full p-6 md:p-8 rounded-3xl border border-amber-500/40 space-y-5 text-left shadow-glow-amber">
+            <div className="flex items-center gap-2.5 text-amber-400 font-extrabold text-lg font-display">
+              <ShieldAlert className="w-6 h-6" />
               <span>Emergency Dismiss</span>
             </div>
-            <p className="text-slate-300 text-sm leading-relaxed">
-              Dismiss without confirming prayer? This action will immediately close the overlay and write an
-              <code className="text-amber-400 bg-amber-950/40 px-1 py-0.5 rounded text-xs ml-1 font-mono">
+            <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
+              Dismiss the overlay without confirming prayer? This action immediately unlocks your desktop and logs an
+              <code className="text-amber-400 bg-amber-950/60 border border-amber-500/30 px-1.5 py-0.5 rounded font-mono text-xs ml-1">
                 emergency_dismissed
               </code> entry to your local log.
             </p>
@@ -163,13 +254,13 @@ export const Overlay: React.FC<OverlayProps> = ({
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowEmergencyConfirm(false)}
-                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold rounded-2xl text-xs transition-colors cursor-pointer border border-slate-700"
               >
                 Cancel (Keep Paused)
               </button>
               <button
                 onClick={onEmergencyDismiss}
-                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-md shadow-amber-500/20 cursor-pointer"
+                className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-2xl text-xs transition-colors shadow-glow-amber cursor-pointer"
               >
                 Yes, Dismiss Immediately
               </button>
@@ -180,4 +271,3 @@ export const Overlay: React.FC<OverlayProps> = ({
     </div>
   );
 };
-

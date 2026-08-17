@@ -72,50 +72,55 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 max-w-xl mx-auto text-slate-100">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 mb-4 border border-emerald-500/20">
-          <Clock className="w-8 h-8" />
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 md:p-8 max-w-xl mx-auto text-slate-100">
+      {/* Header Badge */}
+      <div className="text-center mb-8 flex flex-col items-center">
+        <div className="relative group mb-4">
+          <div className="absolute -inset-1 rounded-3xl bg-emerald-500/30 blur-md group-hover:bg-emerald-500/50 transition" />
+          <div className="relative w-20 h-20 rounded-3xl glass-panel p-2 flex items-center justify-center bg-slate-900 border border-white/10 shadow-2xl">
+            <img src="/logo.png" alt="Waqt Logo" className="w-full h-full object-contain rounded-2xl animate-float" />
+          </div>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome to Waqt</h1>
-        <p className="text-slate-400 mt-2 text-sm">
-          A respectful, offline prayer-time accountability tool.
+        <h1 className="text-3xl md:text-4xl font-black font-display tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+          Welcome to Waqt
+        </h1>
+        <p className="text-slate-400 mt-2 text-xs md:text-sm max-w-sm font-medium">
+          Personal accountability desktop app for daily prayer timing.
         </p>
       </div>
 
-      {/* Progress Indicators */}
+      {/* Progress Dots */}
       <div className="flex items-center gap-2 mb-8 w-full">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-              i <= step ? "bg-emerald-500" : "bg-slate-800"
+            className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+              i <= step ? "bg-gradient-to-r from-emerald-500 to-teal-400 shadow-glow-emerald" : "bg-slate-800"
             }`}
           />
         ))}
       </div>
 
-      {/* Step Content */}
-      <div className="w-full glass-panel rounded-2xl p-6 shadow-2xl border border-slate-800">
+      {/* Step Container Card */}
+      <div className="w-full glass-panel rounded-3xl p-6 md:p-8 shadow-2xl border border-white/10 backdrop-blur-2xl">
         {step === 1 && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+          <div className="space-y-5">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest">
               <MapPin className="w-4 h-4" />
-              <span>Step 1: Your Location</span>
+              <span>Step 1 of 3: Location</span>
             </div>
-            <h2 className="text-xl font-bold">Set Prayer Location</h2>
-            <p className="text-slate-400 text-sm">
-              Select a major city preset or enter your custom city name and coordinates for offline calculations.
+            <h2 className="text-2xl font-black font-display text-white">Set Your Prayer Location</h2>
+            <p className="text-slate-400 text-xs md:text-sm leading-relaxed">
+              Select a major city preset or enter your custom city name and geographic coordinates.
             </p>
 
-            <div className="space-y-3 pt-2">
+            <div className="space-y-4 pt-2">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">City Preset</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">City Preset</label>
                 <select
                   value={selectedPreset}
                   onChange={(e) => handleCityPresetChange(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
                 >
                   {CITY_PRESETS.map((p) => (
                     <option key={p.name} value={p.name}>
@@ -126,7 +131,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">City Display Name</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Display City Name</label>
                 <input
                   type="text"
                   value={cityName}
@@ -134,14 +139,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                     setCityName(e.target.value);
                     setSelectedPreset("Custom / Manual Input");
                   }}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
                   placeholder="e.g. London, UK"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">Latitude</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Latitude</label>
                   <input
                     type="number"
                     step="any"
@@ -150,11 +155,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                       setLatitude(e.target.value);
                       setSelectedPreset("Custom / Manual Input");
                     }}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:border-emerald-500 text-slate-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">Longitude</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Longitude</label>
                   <input
                     type="number"
                     step="any"
@@ -163,7 +168,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                       setLongitude(e.target.value);
                       setSelectedPreset("Custom / Manual Input");
                     }}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:border-emerald-500 text-slate-100"
                   />
                 </div>
               </div>
@@ -172,23 +177,23 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
         )}
 
         {step === 2 && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+          <div className="space-y-5">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest">
               <Sliders className="w-4 h-4" />
-              <span>Step 2: Calculation Method</span>
+              <span>Step 2 of 3: Calculation</span>
             </div>
-            <h2 className="text-xl font-bold">Prayer Authority & School</h2>
-            <p className="text-slate-400 text-sm">
-              Choose your preferred calculation authority and Asr jurisprudence school.
+            <h2 className="text-2xl font-black font-display text-white">Prayer Calculation Authority</h2>
+            <p className="text-slate-400 text-xs md:text-sm leading-relaxed">
+              Choose your preferred calculation method and Asr jurisprudence school.
             </p>
 
-            <div className="space-y-3 pt-2">
+            <div className="space-y-4 pt-2">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Calculation Method</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Calculation Method</label>
                 <select
                   value={method}
                   onChange={(e) => setMethod(e.target.value as CalculationMethodName)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
                 >
                   <option value="MuslimWorldLeague">Muslim World League (Default)</option>
                   <option value="Egyptian">Egyptian General Authority</option>
@@ -206,11 +211,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Asr School</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Asr School</label>
                 <select
                   value={asrSchool}
                   onChange={(e) => setAsrSchool(e.target.value as AsrSchool)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
                 >
                   <option value="Standard">Standard (Shafi, Maliki, Hanbali)</option>
                   <option value="Hanafi">Hanafi</option>
@@ -221,21 +226,23 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
         )}
 
         {step === 3 && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+          <div className="space-y-5">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest">
               <Clock className="w-4 h-4" />
-              <span>Step 3: Forced Pause Duration & Permissions</span>
+              <span>Step 3 of 3: Friction & Notifications</span>
             </div>
-            <h2 className="text-xl font-bold">Overlay Friction & Pre-Notifications</h2>
-            <p className="text-slate-400 text-sm">
-              Set how long the full-screen overlay disables the "I've prayed" button to give you time to step away.
+            <h2 className="text-2xl font-black font-display text-white">Forced Pause Duration</h2>
+            <p className="text-slate-400 text-xs md:text-sm leading-relaxed">
+              Configure how long the full-screen overlay locks the confirm button to give you focused step-away time.
             </p>
 
-            <div className="space-y-4 pt-2">
+            <div className="space-y-5 pt-2">
               <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-slate-400">Duration:</span>
-                  <span className="font-bold text-emerald-400">{pauseMinutes} Minutes</span>
+                <div className="flex justify-between items-center text-sm mb-2">
+                  <span className="text-slate-400 font-medium">Pause Friction Duration:</span>
+                  <span className="font-extrabold font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                    {pauseMinutes} Minutes
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -243,42 +250,32 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                   max="20"
                   value={pauseMinutes}
                   onChange={(e) => setPauseMinutes(parseInt(e.target.value))}
-                  className="w-full accent-emerald-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-500 bg-slate-800 h-2.5 rounded-lg cursor-pointer"
                 />
-                <div className="flex justify-between text-xs text-slate-500 mt-1">
-                  <span>1 min</span>
-                  <span>7 min (default)</span>
-                  <span>20 min</span>
-                </div>
               </div>
 
-              <div className="p-4 bg-slate-900/80 rounded-xl border border-slate-800 flex items-center justify-between gap-4">
+              <div className="p-4 bg-slate-900/80 rounded-2xl border border-white/5 flex items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                    <Bell className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Desktop Notifications</span>
+                    <Bell className="w-4 h-4 text-emerald-400" />
+                    <span>Desktop Pre-Notifications</span>
                   </div>
                   <div className="text-[11px] text-slate-400">
-                    Receive pre-notifications at T-30m, T-15m, and T-5m.
+                    Receive gentle alerts at T-30m, T-15m, and T-5m before prayer time.
                   </div>
                 </div>
 
                 <button
                   onClick={handleRequestNotificationPermission}
                   type="button"
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                     notifGranted
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                      : "bg-slate-800 hover:bg-slate-700 text-slate-200"
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-glow-emerald"
+                      : "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
                   }`}
                 >
-                  {notifGranted ? "✓ Enabled" : "Enable Prompt"}
+                  {notifGranted ? "✓ Enabled" : "Enable Alerts"}
                 </button>
-              </div>
-
-              <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs text-slate-400 leading-relaxed">
-                ℹ️ <strong>Emergency Escape:</strong> The overlay will always include an immediately clickable 
-                <em> Emergency Dismiss</em> button for real work emergencies.
               </div>
             </div>
           </div>
@@ -288,7 +285,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleNext}
-            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-semibold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black px-6 py-3 rounded-2xl transition-all shadow-glow-emerald active:scale-95 text-xs uppercase tracking-wider"
           >
             <span>{step === 3 ? "Complete Setup" : "Continue"}</span>
             {step === 3 ? <CheckCircle2 className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -298,4 +295,3 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
     </div>
   );
 };
-
