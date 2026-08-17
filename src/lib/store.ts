@@ -116,8 +116,36 @@ export async function loadSettings(): Promise<AppSettings> {
   return loadSettingsFromStorage();
 }
 
+export async function syncAutostart(launchAtLogin: boolean): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { enable, disable } = await import("@tauri-apps/plugin-autostart");
+      if (launchAtLogin) {
+        await enable();
+      } else {
+        await disable();
+      }
+    } catch (err) {
+      console.warn("Failed to sync autostart setting via Tauri autostart plugin:", err);
+    }
+  }
+}
+
+export async function isAutostartEnabled(): Promise<boolean> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { isEnabled } = await import("@tauri-apps/plugin-autostart");
+      return await isEnabled();
+    } catch (err) {
+      console.warn("Failed to check autostart status:", err);
+    }
+  }
+  return false;
+}
+
 export async function saveSettings(settings: AppSettings): Promise<void> {
   saveSettingsToStorage(settings);
+  syncAutostart(settings.launchAtLogin);
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     try {
       const { invoke } = await import("@tauri-apps/api/core");

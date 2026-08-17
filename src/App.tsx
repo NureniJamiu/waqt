@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { AppSettings, PrayerLogItem, PrayerName } from "./types";
-import { loadSettingsFromStorage, saveSettingsToStorage, loadLogsFromStorage, addLogEntryToStorage } from "./lib/store";
+import {
+  loadSettingsFromStorage,
+  saveSettingsToStorage,
+  loadLogsFromStorage,
+  addLogEntryToStorage,
+  dismissOverlayCommand,
+  syncAutostart,
+} from "./lib/store";
 import { Onboarding } from "./screens/Onboarding/Onboarding";
 import { Dashboard } from "./screens/Dashboard/Dashboard";
 import { Settings } from "./screens/Settings/Settings";
@@ -13,12 +20,15 @@ export function App() {
   const [logs, setLogs] = useState<PrayerLogItem[]>(() => loadLogsFromStorage());
   const [currentScreen, setCurrentScreen] = useState<"dashboard" | "settings" | "log" | "onboarding" | "toast" | "overlay">("dashboard");
   const [activePrayer, setActivePrayer] = useState<PrayerName>("Dhuhr");
+  const [snoozedPrayers, setSnoozedPrayers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!settings.onboardingCompleted) {
       setCurrentScreen("onboarding");
+    } else {
+      syncAutostart(settings.launchAtLogin);
     }
-  }, [settings.onboardingCompleted]);
+  }, [settings.onboardingCompleted, settings.launchAtLogin]);
 
   const handleSaveSettings = (updated: AppSettings) => {
     setSettings(updated);
@@ -29,6 +39,7 @@ export function App() {
   };
 
   const handleConfirmPrayed = () => {
+    dismissOverlayCommand();
     const newEntry: PrayerLogItem = {
       id: Date.now().toString(),
       date: new Date().toISOString().split("T")[0],
@@ -43,6 +54,7 @@ export function App() {
   };
 
   const handleEmergencyDismiss = () => {
+    dismissOverlayCommand();
     const newEntry: PrayerLogItem = {
       id: Date.now().toString(),
       date: new Date().toISOString().split("T")[0],
@@ -68,9 +80,28 @@ export function App() {
   };
 
   const handleSnooze = () => {
-    // Return to dashboard for 5 mins
+    dismissOverlayCommand();
+    const todayStr = new Date().toISOString().split("T")[0];
+    const snoozeKey = `${todayStr}:${activePrayer}`;
+
+    setSnoozedPrayers((prev) => new Set(prev).add(snoozeKey));
     setCurrentScreen("dashboard");
+
+    // Re-trigger overlay after 5 minutes (300,000 ms) if not already logged/confirmed
+    setTimeout(() => {
+      const currentLogs = loadLogsFromStorage();
+      const isAlreadyLogged = currentLogs.some(
+        (entry) => entry.date === todayStr && entry.prayer === activePrayer
+      );
+      if (!isAlreadyLogged) {
+        setCurrentScreen("overlay");
+      }
+    }, 5 * 60 * 1000);
   };
+
+  const todayStr = new Date().toISOString().split("T")[0];
+  const activeSnoozeKey = `${todayStr}:${activePrayer}`;
+  const hasSnoozedForCurrentPrayer = snoozedPrayers.has(activeSnoozeKey);
 
   return (
     <div className="w-full min-h-screen bg-background text-slate-100">
@@ -114,6 +145,7 @@ export function App() {
           onConfirmPrayed={handleConfirmPrayed}
           onEmergencyDismiss={handleEmergencyDismiss}
           onSnooze={handleSnooze}
+          hasSnoozed={hasSnoozedForCurrentPrayer}
         />
       )}
     </div>

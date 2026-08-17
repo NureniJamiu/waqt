@@ -118,4 +118,25 @@ impl StoreManager {
         self.save_store(&store)?;
         Ok(store.log)
     }
+
+    pub fn has_logged_prayer(&self, date: &str, prayer: &str) -> bool {
+        let logs = self.load_logs();
+        logs.iter().any(|item| item.date == date && item.prayer == prayer)
+    }
+
+    pub fn mark_missed_prayer(&self, date: &str, prayer: &str, scheduled_time: &str) -> Result<(), String> {
+        if self.has_logged_prayer(date, prayer) {
+            return Ok(());
+        }
+        let entry = PrayerLogItem {
+            id: format!("missed-{}-{}", date, prayer),
+            date: date.to_string(),
+            prayer: prayer.to_string(),
+            scheduled_time: scheduled_time.to_string(),
+            status: "missed".to_string(),
+            confirmed_at: None,
+        };
+        self.add_log_entry(entry)?;
+        Ok(())
+    }
 }

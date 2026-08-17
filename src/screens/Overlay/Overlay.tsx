@@ -8,6 +8,7 @@ interface OverlayProps {
   onConfirmPrayed: () => void;
   onEmergencyDismiss: () => void;
   onSnooze?: () => void;
+  hasSnoozed?: boolean;
 }
 
 export const Overlay: React.FC<OverlayProps> = ({
@@ -16,10 +17,11 @@ export const Overlay: React.FC<OverlayProps> = ({
   onConfirmPrayed,
   onEmergencyDismiss,
   onSnooze,
+  hasSnoozed = false,
 }) => {
   const [secondsRemaining, setSecondsRemaining] = useState<number>(settings.forcedPauseSeconds);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState<boolean>(false);
-  const [snoozed, setSnoozed] = useState<boolean>(false);
+  const [snoozed, setSnoozed] = useState<boolean>(hasSnoozed);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   useEffect(() => {

@@ -34,3 +34,6 @@ Thumbs.db
 *.swo
 .gemini/
 
+# Tauri generated schemas
+src-tauri/gen/
+
