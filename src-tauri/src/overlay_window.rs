@@ -1,39 +1,49 @@
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
 pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str) -> Result<(), String> {
-    let monitors = app.available_monitors().map_err(|e| e.to_string())?;
+    let monitors_res = app.available_monitors();
 
-    if monitors.is_empty() {
-        spawn_single_overlay(app, "overlay-primary", prayer_name)?;
-    } else {
-        for (idx, monitor) in monitors.iter().enumerate() {
-            let label = format!("overlay-monitor-{}", idx);
-            if let Some(existing) = app.get_webview_window(&label) {
-                let _ = existing.show();
-                let _ = existing.set_focus();
-                continue;
-            }
-
-            let pos = monitor.position();
-            let size = monitor.size();
-
-            let window_result = WebviewWindowBuilder::new(
-                app,
-                &label,
-                WebviewUrl::App(format!("index.html?screen=overlay&prayer={}", prayer_name).into()),
-            )
-            .title("Waqt Overlay")
-            .inner_size(size.width as f64, size.height as f64)
-            .position(pos.x as f64, pos.y as f64)
-            .decorations(false)
-            .always_on_top(true)
-            .fullscreen(true)
-            .build();
-
-            if let Ok(win) = window_result {
-                let _ = win.set_focus();
-            }
+    let monitors = match monitors_res {
+        Ok(m) if !m.is_empty() => m,
+        _ => {
+            return spawn_single_overlay(app, "overlay-primary", prayer_name);
         }
+    };
+
+    let mut spawned_any = false;
+    for (idx, monitor) in monitors.iter().enumerate() {
+        let label = format!("overlay-monitor-{}", idx);
+        if let Some(existing) = app.get_webview_window(&label) {
+            let _ = existing.show();
+            let _ = existing.set_focus();
+            spawned_any = true;
+            continue;
+        }
+
+        let pos = monitor.position();
+        let size = monitor.size();
+
+        let window_result = WebviewWindowBuilder::new(
+            app,
+            &label,
+            WebviewUrl::App(format!("index.html?screen=overlay&prayer={}", prayer_name).into()),
+        )
+        .title("Waqt Overlay")
+        .inner_size(size.width as f64, size.height as f64)
+        .position(pos.x as f64, pos.y as f64)
+        .decorations(false)
+        .always_on_top(true)
+        .fullscreen(true)
+        .build();
+
+        if let Ok(win) = window_result {
+            let _ = win.set_focus();
+            spawned_any = true;
+        }
+    }
+
+    if !spawned_any {
+        return spawn_single_overlay(app, "overlay-primary", prayer_name);
     }
 
     Ok(())

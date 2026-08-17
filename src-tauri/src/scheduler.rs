@@ -38,6 +38,11 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
         let today_str = now.format("%Y-%m-%d").to_string();
         let now_ts = now.timestamp();
 
+        // Prune old date notification keys to prevent unbounded set growth over long uptimes
+        if notified_events.len() > 100 {
+            notified_events.retain(|k| k.starts_with(&today_str));
+        }
+
         let prayers = prayer_calc::get_today_prayer_items(
             settings.latitude,
             settings.longitude,
@@ -78,26 +83,42 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                 }
             }
 
-            // 2. Overlay / Forced Pause at T-0 (or Sleep/Wake Recovery)
+            // 2. Overlay / Forced Pause at T-0 & fireableUntil Window Rule
             let overlay_key = format!("{}:{}:overlay", today_str, p_name);
+            let is_past_fireable_window = now_ts >= item.next_timestamp;
             let in_fireable_window = now_ts >= item.timestamp && now_ts < item.next_timestamp;
 
-            if in_fireable_window && !notified_events.contains(&overlay_key) {
-                notified_events.insert(overlay_key);
-                println!("[Waqt Scheduler] Triggering overlay for {}", p_name);
-
-                // Send T-0 notification if enabled
-                if settings.notifications_enabled {
-                    let _ = app_handle
-                        .notification()
-                        .builder()
-                        .title(format!("Time for {}", p_name))
-                        .body(format!("It is now time for {}. Take a pause for prayer.", p_name))
-                        .show();
+            if is_past_fireable_window {
+                // If prayer window has elapsed and was never logged, mark as missed
+                if !store_mgr.has_logged_prayer(&today_str, p_name) {
+                    let sched_iso = chrono::DateTime::from_timestamp(item.timestamp, 0)
+                        .map(|dt| dt.to_rfc3339())
+                        .unwrap_or_else(|| today_str.clone());
+                    let _ = store_mgr.mark_missed_prayer(&today_str, p_name, &sched_iso);
+                    println!("[Waqt Scheduler] Prayer {} for {} window elapsed -> marked as missed", p_name, today_str);
                 }
+                notified_events.insert(overlay_key);
+            } else if in_fireable_window && !notified_events.contains(&overlay_key) {
+                // Check if user already logged this prayer today
+                if store_mgr.has_logged_prayer(&today_str, p_name) {
+                    notified_events.insert(overlay_key);
+                } else {
+                    notified_events.insert(overlay_key);
+                    println!("[Waqt Scheduler] Triggering overlay for {}", p_name);
 
-                // Spawn borderless overlay windows across monitors
-                let _ = overlay_window::spawn_overlay_windows(&app_handle, p_name);
+                    // Send T-0 notification if enabled
+                    if settings.notifications_enabled {
+                        let _ = app_handle
+                            .notification()
+                            .builder()
+                            .title(format!("Time for {}", p_name))
+                            .body(format!("It is now time for {}. Take a pause for prayer.", p_name))
+                            .show();
+                    }
+
+                    // Spawn borderless overlay windows across monitors
+                    let _ = overlay_window::spawn_overlay_windows(&app_handle, p_name);
+                }
             }
         }
     }
