@@ -47,6 +47,22 @@ fn dismiss_overlay(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn send_test_notification(app: AppHandle, prayer_name: Option<String>, minutes: Option<u32>) -> Result<(), String> {
+    use tauri_plugin_notification::NotificationExt;
+    let p_name = prayer_name.unwrap_or_else(|| "Dhuhr".to_string());
+    let mins = minutes.unwrap_or(15);
+    let title = format!("Upcoming Prayer: {}", p_name);
+    let body = format!("{} is in {} minutes.", p_name, mins);
+
+    app.notification()
+        .builder()
+        .title(title)
+        .body(body)
+        .show()
+        .map_err(|e| format!("Notification error: {:?}", e))
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
@@ -61,7 +77,8 @@ pub fn run() {
             get_logs,
             add_log_entry,
             trigger_overlay,
-            dismiss_overlay
+            dismiss_overlay,
+            send_test_notification
         ])
         .setup(|app| {
             let handle = app.handle().clone();

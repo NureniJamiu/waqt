@@ -186,6 +186,7 @@ fn harden_macos(win: &tauri::WebviewWindow) {
         let mtm = objc2::MainThreadMarker::new_unchecked();
         let app = NSApplication::sharedApplication(mtm);
         app.activate();
+        app.hideOtherApplications(None);
     }
 }
 
@@ -194,6 +195,16 @@ pub fn close_all_overlays(app: &AppHandle) {
     for (label, win) in windows {
         if label.starts_with("overlay-") {
             let _ = win.close();
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        use objc2_app_kit::NSWorkspace;
+        let workspace = NSWorkspace::sharedWorkspace();
+        let running_apps = workspace.runningApplications();
+        for running_app in running_apps {
+            let _ = running_app.unhide();
         }
     }
 }

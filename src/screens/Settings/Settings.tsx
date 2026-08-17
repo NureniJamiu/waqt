@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { AppSettings, CalculationMethodName, AsrSchool } from "../../types";
 import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock, Sparkles, CheckCircle2 } from "lucide-react";
+import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
+import { sendTestNotificationCommand } from "../../lib/store";
 
 interface SettingsProps {
   settings: AppSettings;
@@ -28,9 +30,85 @@ const CITY_PRESETS = [
 export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, onPreviewSplash }) => {
   const [form, setForm] = useState<AppSettings>({ ...settings });
   const [savedToast, setSavedToast] = useState(false);
+  const [testNotifToast, setTestNotifToast] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<{ title: string; body: string } | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<string>("Custom / Manual Input");
 
-  const handleFormChange = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+  const playChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
+
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start();
+        osc2.start();
+        osc1.stop(ctx.currentTime + 1.2);
+        osc2.stop(ctx.currentTime + 1.2);
+
+        setTimeout(() => {
+          ctx.close().catch(() => {});
+        }, 1500);
+      }
+    } catch {
+      // Ignore audio errors
+    }
+  };
+
+  const handleSendTestNotif = async (mins: number) => {
+    if (form.soundEnabled) {
+      playChime();
+    }
+    const title = "Upcoming Prayer: Dhuhr";
+    const body = `Dhuhr is in ${mins} minutes.`;
+    setBannerPreview({ title, body });
+    setTimeout(() => setBannerPreview(null), 4500);
+
+    try {
+      let granted = await isPermissionGranted();
+      if (!granted) {
+        const perm = await requestPermission();
+        granted = perm === "granted";
+      }
+      if (!granted) {
+        setTestNotifToast("macOS permission not granted");
+        setTimeout(() => setTestNotifToast(null), 4000);
+        return;
+      }
+      await sendTestNotificationCommand("Dhuhr", mins);
+      setTestNotifToast(`Sent T-${mins}m test notification!`);
+      setTimeout(() => setTestNotifToast(null), 3000);
+    } catch {
+      setTestNotifToast("Error triggering notification");
+      setTimeout(() => setTestNotifToast(null), 3000);
+    }
+  };
+
+  const handleFormChange = async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+    if (key === "notificationsEnabled" && value === true) {
+      try {
+        let granted = await isPermissionGranted();
+        if (!granted) {
+          await requestPermission();
+        }
+      } catch (err) {
+        console.warn("Could not request notification permission:", err);
+      }
+    }
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -80,6 +158,21 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
         <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3.5 rounded-2xl text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-glow-emerald">
           <CheckCircle2 className="w-4 h-4" />
           <span>Settings saved successfully!</span>
+        </div>
+      )}
+
+      {bannerPreview && (
+        <div className="fixed top-6 right-6 z-50 animate-float">
+          <div className="glass-panel p-4 rounded-2xl shadow-2xl border border-emerald-500/40 bg-slate-950/95 max-w-sm flex items-start gap-3.5 shadow-glow-emerald">
+            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+              <Bell className="w-5 h-5 animate-pulse" />
+            </div>
+            <div className="flex-1">
+              <div className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest">Notification Banner Sent</div>
+              <div className="text-sm font-bold text-white mt-0.5">{bannerPreview.title}</div>
+              <div className="text-xs text-slate-300 mt-0.5 font-medium">{bannerPreview.body}</div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -225,20 +318,59 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
           <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">System Preferences</h3>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Bell className="w-4 h-4 text-emerald-400" />
-                <div>
-                  <div className="text-sm font-bold">Desktop Notifications</div>
-                  <div className="text-xs text-slate-400">Send pre-notifications at T-30, T-15, and T-5 min</div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-4 h-4 text-emerald-400" />
+                  <div>
+                    <div className="text-sm font-bold">Desktop Notifications</div>
+                    <div className="text-xs text-slate-400">Send pre-notifications at T-30, T-15, and T-5 min</div>
+                  </div>
                 </div>
+                <input
+                  type="checkbox"
+                  checked={form.notificationsEnabled}
+                  onChange={(e) => handleFormChange("notificationsEnabled", e.target.checked)}
+                  className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
+                />
               </div>
-              <input
-                type="checkbox"
-                checked={form.notificationsEnabled}
-                onChange={(e) => handleFormChange("notificationsEnabled", e.target.checked)}
-                className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
-              />
+
+              {form.notificationsEnabled && (
+                <div className="pl-7 pt-1 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-slate-400 mr-1">Test Reminders:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleSendTestNotif(30)}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-emerald-400 border border-emerald-500/20 transition active:scale-95 flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3 h-3" /> Test 30m
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendTestNotif(15)}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-emerald-400 border border-emerald-500/20 transition active:scale-95 flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3 h-3" /> Test 15m
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendTestNotif(5)}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-emerald-400 border border-emerald-500/20 transition active:scale-95 flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3 h-3" /> Test 5m
+                    </button>
+                    {testNotifToast && (
+                      <span className="text-xs text-emerald-400 font-semibold animate-fade-in ml-1">
+                        {testNotifToast}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400/90 leading-relaxed italic">
+                    💡 macOS Note: When Waqt is focused, macOS routes system banners to Notification Center (top-right date/time). Switch to another app or check Notification Center to view native system popups.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between border-t border-slate-800/80 pt-3.5">

@@ -233,3 +233,34 @@ export async function dismissOverlayCommand(): Promise<void> {
     }
   }
 }
+
+export async function sendTestNotificationCommand(prayerName?: string, minutes?: number): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("send_test_notification", { prayerName, minutes });
+      return;
+    } catch (err) {
+      console.warn("Failed to invoke send_test_notification IPC, falling back to plugin API:", err);
+    }
+  }
+  try {
+    const { sendNotification, isPermissionGranted, requestPermission } = await import("@tauri-apps/plugin-notification");
+    let granted = await isPermissionGranted();
+    if (!granted) {
+      const perm = await requestPermission();
+      granted = perm === "granted";
+    }
+    if (granted) {
+      const pName = prayerName || "Dhuhr";
+      const mins = minutes || 15;
+      sendNotification({
+        title: `Upcoming Prayer: ${pName}`,
+        body: `${pName} is in ${mins} minutes.`,
+      });
+    }
+  } catch (err) {
+    console.error("Failed to send test notification:", err);
+  }
+}
+

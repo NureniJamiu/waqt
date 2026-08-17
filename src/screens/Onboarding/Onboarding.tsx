@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { AppSettings, CalculationMethodName, AsrSchool } from "../../types";
 import { MapPin, Sliders, Clock, CheckCircle2, ChevronRight, Bell } from "lucide-react";
+import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
 
 interface OnboardingProps {
   settings: AppSettings;
   onComplete: (updatedSettings: AppSettings) => void;
 }
+
 
 const CITY_PRESETS = [
   { name: "Custom / Manual Input", lat: "", lng: "", method: "MuslimWorldLeague" as CalculationMethodName },
@@ -46,9 +48,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
   };
 
   const handleRequestNotificationPermission = async () => {
-    if ("Notification" in window) {
-      const permission = await Notification.requestPermission();
-      setNotifGranted(permission === "granted");
+    try {
+      let granted = await isPermissionGranted();
+      if (!granted) {
+        const permission = await requestPermission();
+        granted = permission === "granted";
+      }
+      setNotifGranted(granted);
+    } catch {
+      if ("Notification" in window) {
+        const permission = await Notification.requestPermission();
+        setNotifGranted(permission === "granted");
+      }
     }
   };
 
