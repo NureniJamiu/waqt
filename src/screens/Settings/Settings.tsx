@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AppSettings, CalculationMethodName, AsrSchool } from "../../types";
-import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power } from "lucide-react";
+import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock } from "lucide-react";
 
 interface SettingsProps {
   settings: AppSettings;
@@ -8,12 +8,43 @@ interface SettingsProps {
   onBack: () => void;
 }
 
+const CITY_PRESETS = [
+  { name: "Custom / Manual Input", lat: "", lng: "", method: "MuslimWorldLeague" as CalculationMethodName },
+  { name: "Makkah, Saudi Arabia", lat: "21.3891", lng: "39.8579", method: "UmmAlQura" as CalculationMethodName },
+  { name: "Medina, Saudi Arabia", lat: "24.5247", lng: "39.5692", method: "UmmAlQura" as CalculationMethodName },
+  { name: "Lagos, Nigeria", lat: "6.5244", lng: "3.3792", method: "MuslimWorldLeague" as CalculationMethodName },
+  { name: "London, UK", lat: "51.5074", lng: "-0.1278", method: "MuslimWorldLeague" as CalculationMethodName },
+  { name: "New York, USA", lat: "40.7128", lng: "-74.0060", method: "NorthAmerica" as CalculationMethodName },
+  { name: "Cairo, Egypt", lat: "30.0444", lng: "31.2357", method: "Egyptian" as CalculationMethodName },
+  { name: "Istanbul, Turkey", lat: "41.0082", lng: "28.9784", method: "Turkey" as CalculationMethodName },
+  { name: "Jakarta, Indonesia", lat: "-6.2088", lng: "106.8456", method: "Singapore" as CalculationMethodName },
+  { name: "Kuala Lumpur, Malaysia", lat: "3.1390", lng: "101.6869", method: "Singapore" as CalculationMethodName },
+  { name: "Dubai, UAE", lat: "25.2048", lng: "55.2708", method: "Dubai" as CalculationMethodName },
+  { name: "Karachi, Pakistan", lat: "24.8607", lng: "67.0011", method: "Karachi" as CalculationMethodName },
+  { name: "Toronto, Canada", lat: "43.6532", lng: "-79.3832", method: "NorthAmerica" as CalculationMethodName },
+];
+
 export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) => {
   const [form, setForm] = useState<AppSettings>({ ...settings });
   const [savedToast, setSavedToast] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<string>("Custom / Manual Input");
 
   const handleFormChange = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleCityPresetChange = (presetName: string) => {
+    setSelectedPreset(presetName);
+    const found = CITY_PRESETS.find((p) => p.name === presetName);
+    if (found && found.lat) {
+      setForm((prev) => ({
+        ...prev,
+        cityName: found.name,
+        latitude: parseFloat(found.lat),
+        longitude: parseFloat(found.lng),
+        calculationMethod: found.method,
+      }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,11 +91,29 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
 
           <div className="space-y-3">
             <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1">City Preset</label>
+              <select
+                value={selectedPreset}
+                onChange={(e) => handleCityPresetChange(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+              >
+                {CITY_PRESETS.map((p) => (
+                  <option key={p.name} value={p.name}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
               <label className="block text-xs font-medium text-slate-400 mb-1">City Name</label>
               <input
                 type="text"
                 value={form.cityName}
-                onChange={(e) => handleFormChange("cityName", e.target.value)}
+                onChange={(e) => {
+                  handleFormChange("cityName", e.target.value);
+                  setSelectedPreset("Custom / Manual Input");
+                }}
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
               />
             </div>
@@ -76,7 +125,10 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
                   type="number"
                   step="any"
                   value={form.latitude}
-                  onChange={(e) => handleFormChange("latitude", parseFloat(e.target.value) || 0)}
+                  onChange={(e) => {
+                    handleFormChange("latitude", parseFloat(e.target.value) || 0);
+                    setSelectedPreset("Custom / Manual Input");
+                  }}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
                 />
               </div>
@@ -86,7 +138,10 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
                   type="number"
                   step="any"
                   value={form.longitude}
-                  onChange={(e) => handleFormChange("longitude", parseFloat(e.target.value) || 0)}
+                  onChange={(e) => {
+                    handleFormChange("longitude", parseFloat(e.target.value) || 0);
+                    setSelectedPreset("Custom / Manual Input");
+                  }}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
                 />
               </div>
@@ -199,6 +254,22 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
 
             <div className="flex items-center justify-between border-t border-slate-800/80 pt-3">
               <div className="flex items-center gap-3">
+                <AlarmClock className="w-4 h-4 text-slate-400" />
+                <div>
+                  <div className="text-sm font-medium">Snooze Option</div>
+                  <div className="text-xs text-slate-500">Allow 5-minute overlay snooze (max 1 use per prayer)</div>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={form.snoozeEnabled}
+                onChange={(e) => handleFormChange("snoozeEnabled", e.target.checked)}
+                className="w-4 h-4 accent-emerald-500 rounded"
+              />
+            </div>
+
+            <div className="flex items-center justify-between border-t border-slate-800/80 pt-3">
+              <div className="flex items-center gap-3">
                 <Power className="w-4 h-4 text-slate-400" />
                 <div>
                   <div className="text-sm font-medium">Launch at Login</div>
@@ -218,3 +289,4 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
     </div>
   );
 };
+
