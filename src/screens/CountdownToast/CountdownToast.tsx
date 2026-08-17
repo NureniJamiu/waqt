@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { PrayerName } from "../../types";
-import { Bell } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 interface CountdownToastProps {
   prayerName: PrayerName;
@@ -26,9 +26,9 @@ export const CountdownToast: React.FC<CountdownToastProps> = ({
           const gain = ctx.createGain();
 
           osc1.type = "sine";
-          osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+          osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
           osc2.type = "sine";
-          osc2.frequency.setValueAtTime(659.25, ctx.currentTime); // E5
+          osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
 
           gain.gain.setValueAtTime(0.15, ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
@@ -63,22 +63,36 @@ export const CountdownToast: React.FC<CountdownToastProps> = ({
   }, [seconds, onComplete]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-bounce-subtle">
-      <div className="glass-panel p-4 rounded-2xl shadow-2xl border border-emerald-500/40 bg-slate-950/90 max-w-xs flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex flex-col items-center justify-center font-mono font-bold text-lg shadow-inner">
-          {seconds}s
+    <div className="fixed bottom-6 right-6 z-50 animate-float">
+      <div className="glass-panel-emerald p-4 rounded-3xl shadow-2xl border border-emerald-500/40 bg-slate-950/95 max-w-xs flex items-center gap-4 shadow-glow-emerald">
+        <div className="relative w-12 h-12 flex items-center justify-center">
+          <svg className="w-12 h-12 -rotate-90 transform">
+            <circle cx="24" cy="24" r="18" stroke="rgba(255,255,255,0.1)" strokeWidth="3" fill="transparent" />
+            <circle
+              cx="24"
+              cy="24"
+              r="18"
+              stroke="#10b981"
+              strokeWidth="3"
+              strokeDasharray={2 * Math.PI * 18}
+              strokeDashoffset={((10 - seconds) / 10) * 2 * Math.PI * 18}
+              strokeLinecap="round"
+              fill="transparent"
+              className="transition-all duration-1000 ease-linear"
+            />
+          </svg>
+          <span className="absolute font-mono font-black text-white text-base">{seconds}s</span>
         </div>
 
         <div className="flex-1">
-          <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold mb-0.5">
-            <Bell className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-extrabold uppercase tracking-wider mb-0.5">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-spin-slow" />
             <span>Time for Prayer</span>
           </div>
-          <h4 className="font-bold text-slate-100 text-sm">{prayerName}</h4>
-          <p className="text-[11px] text-slate-400">Lock overlay starting soon...</p>
+          <h4 className="font-black font-display text-white text-base">{prayerName}</h4>
+          <p className="text-[11px] text-slate-400 font-medium">Forced pause starting soon...</p>
         </div>
       </div>
     </div>
   );
 };
-

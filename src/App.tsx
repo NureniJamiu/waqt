@@ -6,8 +6,10 @@ import {
   loadLogsFromStorage,
   addLogEntryToStorage,
   dismissOverlayCommand,
+  triggerOverlayCommand,
   syncAutostart,
 } from "./lib/store";
+import { SplashScreen } from "./screens/SplashScreen/SplashScreen";
 import { Onboarding } from "./screens/Onboarding/Onboarding";
 import { Dashboard } from "./screens/Dashboard/Dashboard";
 import { Settings } from "./screens/Settings/Settings";
@@ -16,6 +18,7 @@ import { CountdownToast } from "./screens/CountdownToast/CountdownToast";
 import { Overlay } from "./screens/Overlay/Overlay";
 
 export function App() {
+  const [showSplash, setShowSplash] = useState<boolean>(true);
   const [settings, setSettings] = useState<AppSettings>(() => loadSettingsFromStorage());
   const [logs, setLogs] = useState<PrayerLogItem[]>(() => loadLogsFromStorage());
   const [currentScreen, setCurrentScreen] = useState<"dashboard" | "settings" | "log" | "onboarding" | "toast" | "overlay">("dashboard");
@@ -69,8 +72,9 @@ export function App() {
   };
 
   const handleTriggerTestOverlay = () => {
-    setActivePrayer("Dhuhr");
-    setCurrentScreen("toast");
+    // Spawn the real OS-level hardened window via Tauri IPC —
+    // identical to what the scheduler triggers at prayer time.
+    triggerOverlayCommand("Dhuhr");
   };
 
   const handleToggleNotifications = () => {
@@ -87,7 +91,6 @@ export function App() {
     setSnoozedPrayers((prev) => new Set(prev).add(snoozeKey));
     setCurrentScreen("dashboard");
 
-    // Re-trigger overlay after 5 minutes (300,000 ms) if not already logged/confirmed
     setTimeout(() => {
       const currentLogs = loadLogsFromStorage();
       const isAlreadyLogged = currentLogs.some(
@@ -104,49 +107,59 @@ export function App() {
   const hasSnoozedForCurrentPrayer = snoozedPrayers.has(activeSnoozeKey);
 
   return (
-    <div className="w-full min-h-screen bg-background text-slate-100">
-      {currentScreen === "onboarding" && (
-        <Onboarding settings={settings} onComplete={handleSaveSettings} />
+    <div className="w-full min-h-screen bg-[#070a11] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+      {showSplash && (
+        <SplashScreen durationMs={1800} onFinish={() => setShowSplash(false)} />
       )}
 
-      {currentScreen === "dashboard" && (
-        <Dashboard
-          settings={settings}
-          onNavigate={(screen) => setCurrentScreen(screen)}
-          onTriggerTestOverlay={handleTriggerTestOverlay}
-          onToggleNotifications={handleToggleNotifications}
-        />
-      )}
+      {!showSplash && (
+        <>
+          {currentScreen === "onboarding" && (
+            <Onboarding settings={settings} onComplete={handleSaveSettings} />
+          )}
 
-      {currentScreen === "settings" && (
-        <Settings
-          settings={settings}
-          onSave={handleSaveSettings}
-          onBack={() => setCurrentScreen("dashboard")}
-        />
-      )}
+          {currentScreen === "dashboard" && (
+            <Dashboard
+              settings={settings}
+              onNavigate={(screen) => setCurrentScreen(screen)}
+              onTriggerTestOverlay={handleTriggerTestOverlay}
+              onToggleNotifications={handleToggleNotifications}
+              onPreviewSplash={() => setShowSplash(true)}
+            />
+          )}
 
-      {currentScreen === "log" && (
-        <PrayerLog logs={logs} onBack={() => setCurrentScreen("dashboard")} />
-      )}
+          {currentScreen === "settings" && (
+            <Settings
+              settings={settings}
+              onSave={handleSaveSettings}
+              onBack={() => setCurrentScreen("dashboard")}
+              onPreviewSplash={() => setShowSplash(true)}
+            />
+          )}
 
-      {currentScreen === "toast" && (
-        <CountdownToast
-          prayerName={activePrayer}
-          soundEnabled={settings.soundEnabled}
-          onComplete={() => setCurrentScreen("overlay")}
-        />
-      )}
+          {currentScreen === "log" && (
+            <PrayerLog logs={logs} onBack={() => setCurrentScreen("dashboard")} />
+          )}
 
-      {currentScreen === "overlay" && (
-        <Overlay
-          prayerName={activePrayer}
-          settings={settings}
-          onConfirmPrayed={handleConfirmPrayed}
-          onEmergencyDismiss={handleEmergencyDismiss}
-          onSnooze={handleSnooze}
-          hasSnoozed={hasSnoozedForCurrentPrayer}
-        />
+          {currentScreen === "toast" && (
+            <CountdownToast
+              prayerName={activePrayer}
+              soundEnabled={settings.soundEnabled}
+              onComplete={() => setCurrentScreen("overlay")}
+            />
+          )}
+
+          {currentScreen === "overlay" && (
+            <Overlay
+              prayerName={activePrayer}
+              settings={settings}
+              onConfirmPrayed={handleConfirmPrayed}
+              onEmergencyDismiss={handleEmergencyDismiss}
+              onSnooze={handleSnooze}
+              hasSnoozed={hasSnoozedForCurrentPrayer}
+            />
+          )}
+        </>
       )}
     </div>
   );

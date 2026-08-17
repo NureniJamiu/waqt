@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { AppSettings, CalculationMethodName, AsrSchool } from "../../types";
-import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock } from "lucide-react";
+import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock, Sparkles, CheckCircle2 } from "lucide-react";
 
 interface SettingsProps {
   settings: AppSettings;
   onSave: (updated: AppSettings) => void;
   onBack: () => void;
+  onPreviewSplash?: () => void;
 }
 
 const CITY_PRESETS = [
@@ -24,7 +25,7 @@ const CITY_PRESETS = [
   { name: "Toronto, Canada", lat: "43.6532", lng: "-79.3832", method: "NorthAmerica" as CalculationMethodName },
 ];
 
-export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) => {
+export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, onPreviewSplash }) => {
   const [form, setForm] = useState<AppSettings>({ ...settings });
   const [savedToast, setSavedToast] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<string>("Custom / Manual Input");
@@ -55,20 +56,20 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
   };
 
   return (
-    <div className="min-h-screen bg-background text-slate-100 p-6 max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#070a11] text-slate-100 p-4 md:p-8 max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <header className="flex justify-between items-center glass-panel px-6 py-4 rounded-2xl">
+      <header className="flex justify-between items-center glass-panel px-6 py-4 rounded-3xl border border-white/10 shadow-2xl">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 text-emerald-400" />
           <span>Back to Dashboard</span>
         </button>
-        <h1 className="font-bold text-lg">Settings</h1>
+        <h1 className="font-extrabold font-display text-lg text-white">Settings</h1>
         <button
           onClick={handleSubmit}
-          className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md shadow-emerald-500/20"
+          className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-black transition-all active:scale-95 shadow-glow-emerald"
         >
           <Save className="w-4 h-4" />
           <span>Save Changes</span>
@@ -76,26 +77,27 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
       </header>
 
       {savedToast && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-xl text-xs font-medium text-center">
-          ✓ Settings saved successfully
+        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3.5 rounded-2xl text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-glow-emerald">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>Settings saved successfully!</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Location */}
-        <div className="glass-panel p-6 rounded-2xl space-y-4">
-          <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+        <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/5">
+          <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display">
             <MapPin className="w-4 h-4" />
-            <span>Location Settings</span>
+            <span>Location & Coordinates</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">City Preset</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">City Preset</label>
               <select
                 value={selectedPreset}
                 onChange={(e) => handleCityPresetChange(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
               >
                 {CITY_PRESETS.map((p) => (
                   <option key={p.name} value={p.name}>
@@ -106,7 +108,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">City Name</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">City Name</label>
               <input
                 type="text"
                 value={form.cityName}
@@ -114,13 +116,13 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
                   handleFormChange("cityName", e.target.value);
                   setSelectedPreset("Custom / Manual Input");
                 }}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Latitude</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Latitude</label>
                 <input
                   type="number"
                   step="any"
@@ -129,11 +131,11 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
                     handleFormChange("latitude", parseFloat(e.target.value) || 0);
                     setSelectedPreset("Custom / Manual Input");
                   }}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-mono text-slate-100"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Longitude</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Longitude</label>
                 <input
                   type="number"
                   step="any"
@@ -142,7 +144,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
                     handleFormChange("longitude", parseFloat(e.target.value) || 0);
                     setSelectedPreset("Custom / Manual Input");
                   }}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-mono text-slate-100"
                 />
               </div>
             </div>
@@ -150,19 +152,19 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
         </div>
 
         {/* Section 2: Calculation Method */}
-        <div className="glass-panel p-6 rounded-2xl space-y-4">
-          <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+        <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/5">
+          <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display">
             <Sliders className="w-4 h-4" />
             <span>Calculation Authority & Jurisprudence</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Calculation Method</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Calculation Method</label>
               <select
                 value={form.calculationMethod}
                 onChange={(e) => handleFormChange("calculationMethod", e.target.value as CalculationMethodName)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
               >
                 <option value="MuslimWorldLeague">Muslim World League (Default)</option>
                 <option value="Egyptian">Egyptian General Authority</option>
@@ -180,11 +182,11 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Asr School</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Asr School</label>
               <select
                 value={form.asrSchool}
                 onChange={(e) => handleFormChange("asrSchool", e.target.value as AsrSchool)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
               >
                 <option value="Standard">Standard (Shafi, Maliki, Hanbali)</option>
                 <option value="Hanafi">Hanafi</option>
@@ -194,13 +196,13 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
         </div>
 
         {/* Section 3: Overlay Pause Duration */}
-        <div className="glass-panel p-6 rounded-2xl space-y-4">
+        <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/5">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display">
               <Moon className="w-4 h-4" />
               <span>Forced Pause Duration</span>
             </div>
-            <span className="font-bold text-emerald-400 text-sm">
+            <span className="font-extrabold font-mono text-emerald-400 text-base bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
               {Math.round(form.forcedPauseSeconds / 60)} Minutes
             </span>
           </div>
@@ -211,82 +213,98 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack }) 
             max="20"
             value={Math.round(form.forcedPauseSeconds / 60)}
             onChange={(e) => handleFormChange("forcedPauseSeconds", parseInt(e.target.value) * 60)}
-            className="w-full accent-emerald-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
+            className="w-full accent-emerald-500 bg-slate-800 h-2.5 rounded-lg cursor-pointer"
           />
+          <p className="text-xs text-slate-400">
+            During this duration, the confirmation button is locked to guarantee focused friction.
+          </p>
         </div>
 
-        {/* Section 4: Toggles */}
-        <div className="glass-panel p-6 rounded-2xl space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Preferences</h3>
+        {/* Section 4: Preferences Toggles */}
+        <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/5">
+          <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">System Preferences</h3>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Bell className="w-4 h-4 text-slate-400" />
+                <Bell className="w-4 h-4 text-emerald-400" />
                 <div>
-                  <div className="text-sm font-medium">Desktop Notifications</div>
-                  <div className="text-xs text-slate-500">Send pre-notifications at T-30, T-15, and T-5 min</div>
+                  <div className="text-sm font-bold">Desktop Notifications</div>
+                  <div className="text-xs text-slate-400">Send pre-notifications at T-30, T-15, and T-5 min</div>
                 </div>
               </div>
               <input
                 type="checkbox"
                 checked={form.notificationsEnabled}
                 onChange={(e) => handleFormChange("notificationsEnabled", e.target.checked)}
-                className="w-4 h-4 accent-emerald-500 rounded"
+                className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
               />
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-800/80 pt-3">
+            <div className="flex items-center justify-between border-t border-slate-800/80 pt-3.5">
               <div className="flex items-center gap-3">
-                <Volume2 className="w-4 h-4 text-slate-400" />
+                <Volume2 className="w-4 h-4 text-emerald-400" />
                 <div>
-                  <div className="text-sm font-medium">Chime Audio</div>
-                  <div className="text-xs text-slate-500">Play subtle chime during T-0 countdown toast</div>
+                  <div className="text-sm font-bold">Chime Audio</div>
+                  <div className="text-xs text-slate-400">Play subtle chime during T-0 countdown toast</div>
                 </div>
               </div>
               <input
                 type="checkbox"
                 checked={form.soundEnabled}
                 onChange={(e) => handleFormChange("soundEnabled", e.target.checked)}
-                className="w-4 h-4 accent-emerald-500 rounded"
+                className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
               />
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-800/80 pt-3">
+            <div className="flex items-center justify-between border-t border-slate-800/80 pt-3.5">
               <div className="flex items-center gap-3">
-                <AlarmClock className="w-4 h-4 text-slate-400" />
+                <AlarmClock className="w-4 h-4 text-emerald-400" />
                 <div>
-                  <div className="text-sm font-medium">Snooze Option</div>
-                  <div className="text-xs text-slate-500">Allow 5-minute overlay snooze (max 1 use per prayer)</div>
+                  <div className="text-sm font-bold">Snooze Option</div>
+                  <div className="text-xs text-slate-400">Allow 5-minute overlay snooze (max 1 use per prayer)</div>
                 </div>
               </div>
               <input
                 type="checkbox"
                 checked={form.snoozeEnabled}
                 onChange={(e) => handleFormChange("snoozeEnabled", e.target.checked)}
-                className="w-4 h-4 accent-emerald-500 rounded"
+                className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
               />
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-800/80 pt-3">
+            <div className="flex items-center justify-between border-t border-slate-800/80 pt-3.5">
               <div className="flex items-center gap-3">
-                <Power className="w-4 h-4 text-slate-400" />
+                <Power className="w-4 h-4 text-emerald-400" />
                 <div>
-                  <div className="text-sm font-medium">Launch at Login</div>
-                  <div className="text-xs text-slate-500">Ensure background scheduler runs on startup</div>
+                  <div className="text-sm font-bold">Launch at Login</div>
+                  <div className="text-xs text-slate-400">Ensure background scheduler runs on startup</div>
                 </div>
               </div>
               <input
                 type="checkbox"
                 checked={form.launchAtLogin}
                 onChange={(e) => handleFormChange("launchAtLogin", e.target.checked)}
-                className="w-4 h-4 accent-emerald-500 rounded"
+                className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
               />
             </div>
           </div>
         </div>
+
+        {/* Section 5: Splash Screen Preview */}
+        {onPreviewSplash && (
+          <div className="pt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={onPreviewSplash}
+              className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-emerald-400 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 px-4 py-2.5 rounded-xl transition-colors"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-400" />
+              <span>Preview Splash Screen</span>
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
 };
-
