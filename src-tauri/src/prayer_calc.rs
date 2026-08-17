@@ -187,3 +187,45 @@ pub fn get_today_prayer_items(
         },
     ]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rust_offline_prayer_calculation() {
+        let now = Local::now();
+        let items = get_today_prayer_items(6.5244, 3.3792, "MuslimWorldLeague", "Standard", now);
+
+        assert_eq!(items.len(), 5);
+        assert_eq!(items[0].name, "Fajr");
+        assert_eq!(items[1].name, "Dhuhr");
+        assert_eq!(items[2].name, "Asr");
+        assert_eq!(items[3].name, "Maghrib");
+        assert_eq!(items[4].name, "Isha");
+
+        // Verify strictly ascending timestamps
+        assert!(items[0].timestamp < items[1].timestamp);
+        assert!(items[1].timestamp < items[2].timestamp);
+        assert!(items[2].timestamp < items[3].timestamp);
+        assert!(items[3].timestamp < items[4].timestamp);
+        assert!(items[4].timestamp < items[4].next_timestamp);
+    }
+
+    #[test]
+    fn test_hanafi_asr_delay_rust() {
+        let now = Local::now();
+        let standard_items = get_today_prayer_items(6.5244, 3.3792, "MuslimWorldLeague", "Standard", now);
+        let hanafi_items = get_today_prayer_items(6.5244, 3.3792, "MuslimWorldLeague", "Hanafi", now);
+
+        let std_asr = items_by_name(&standard_items, "Asr");
+        let hanafi_asr = items_by_name(&hanafi_items, "Asr");
+
+        assert!(hanafi_asr > std_asr);
+    }
+
+    fn items_by_name(items: &[PrayerTimeItem], name: &str) -> i64 {
+        items.iter().find(|i| i.name == name).unwrap().timestamp
+    }
+}
+

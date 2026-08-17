@@ -122,4 +122,32 @@ describe("adhanCalc Engine", () => {
     expect(window!.fireableUntil).toBeInstanceOf(Date);
     expect(window!.startTime.getTime()).toBeLessThan(window!.fireableUntil.getTime());
   });
+
+  it("should calculate prayer times 100% offline for global coordinates without network requests", () => {
+    const testCities = [
+      { name: "London, UK", lat: 51.5074, lng: -0.1278, method: "MuslimWorldLeague" as const },
+      { name: "Tokyo, Japan", lat: 35.6762, lng: 139.6503, method: "MoonsightingCommittee" as const },
+      { name: "New York, USA", lat: 40.7128, lng: -74.006, method: "NorthAmerica" as const },
+      { name: "Mecca, KSA", lat: 21.3891, lng: 39.8579, method: "UmmAlQura" as const },
+    ];
+
+    const date = new Date(2026, 7, 17);
+
+    testCities.forEach((city) => {
+      const citySettings: AppSettings = {
+        ...mockSettings,
+        cityName: city.name,
+        latitude: city.lat,
+        longitude: city.lng,
+        calculationMethod: city.method,
+      };
+
+      const prayers = calculateDailyPrayerTimes(citySettings, date, date);
+      expect(prayers).toHaveLength(5);
+      expect(prayers[0].time.getTime()).toBeLessThan(prayers[1].time.getTime());
+      expect(prayers[1].time.getTime()).toBeLessThan(prayers[2].time.getTime());
+      expect(prayers[2].time.getTime()).toBeLessThan(prayers[3].time.getTime());
+      expect(prayers[3].time.getTime()).toBeLessThan(prayers[4].time.getTime());
+    });
+  });
 });
