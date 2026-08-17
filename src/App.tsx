@@ -61,6 +61,17 @@ export function App() {
     setCurrentScreen("toast");
   };
 
+  const handleToggleNotifications = () => {
+    const updated = { ...settings, notificationsEnabled: !settings.notificationsEnabled };
+    setSettings(updated);
+    saveSettingsToStorage(updated);
+  };
+
+  const handleSnooze = () => {
+    // Return to dashboard for 5 mins
+    setCurrentScreen("dashboard");
+  };
+
   return (
     <div className="w-full min-h-screen bg-background text-slate-100">
       {currentScreen === "onboarding" && (
@@ -72,6 +83,7 @@ export function App() {
           settings={settings}
           onNavigate={(screen) => setCurrentScreen(screen)}
           onTriggerTestOverlay={handleTriggerTestOverlay}
+          onToggleNotifications={handleToggleNotifications}
         />
       )}
 
@@ -101,6 +113,7 @@ export function App() {
           settings={settings}
           onConfirmPrayed={handleConfirmPrayed}
           onEmergencyDismiss={handleEmergencyDismiss}
+          onSnooze={handleSnooze}
         />
       )}
     </div>

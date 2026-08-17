@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { AppSettings, PrayerName } from "../../types";
-import { CheckCircle2, AlertTriangle, Moon, ShieldAlert, AlarmClock } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Moon, ShieldAlert, AlarmClock, Clock } from "lucide-react";
 
 interface OverlayProps {
   prayerName: PrayerName;
@@ -20,6 +20,12 @@ export const Overlay: React.FC<OverlayProps> = ({
   const [secondsRemaining, setSecondsRemaining] = useState<number>(settings.forcedPauseSeconds);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState<boolean>(false);
   const [snoozed, setSnoozed] = useState<boolean>(false);
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(clockTimer);
+  }, []);
 
   useEffect(() => {
     if (secondsRemaining <= 0) return;
@@ -51,15 +57,22 @@ export const Overlay: React.FC<OverlayProps> = ({
     <div className="fixed inset-0 z-50 bg-[#070a0f] text-slate-100 flex flex-col justify-between p-8 select-none overflow-hidden">
       {/* Top Emergency Bar */}
       <div className="flex justify-between items-center w-full max-w-5xl mx-auto">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800">
-          <Moon className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Waqt Forced Pause</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800">
+            <Moon className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Waqt Forced Pause</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-800/80">
+            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <span>{currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+          </div>
         </div>
 
         {/* Emergency Dismiss Button - ALWAYS CLICKABLE */}
         <button
           onClick={() => setShowEmergencyConfirm(true)}
-          className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-full border border-amber-500/30 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-full border border-amber-500/30 transition-colors cursor-pointer"
         >
           <AlertTriangle className="w-3.5 h-3.5" />
           <span>Emergency Dismiss</span>
@@ -116,9 +129,9 @@ export const Overlay: React.FC<OverlayProps> = ({
           {settings.snoozeEnabled && !snoozed && (
             <button
               onClick={handleSnoozeClick}
-              className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1.5 pt-1 transition-colors"
+              className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1.5 pt-1 transition-colors cursor-pointer"
             >
-              <AlarmClock className="w-3.5 h-3.5" />
+              <AlarmClock className="w-3.5 h-3.5 text-slate-400" />
               <span>Snooze 5 minutes (1 use)</span>
             </button>
           )}
@@ -148,13 +161,13 @@ export const Overlay: React.FC<OverlayProps> = ({
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowEmergencyConfirm(false)}
-                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs transition-colors"
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
               >
                 Cancel (Keep Paused)
               </button>
               <button
                 onClick={onEmergencyDismiss}
-                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-md shadow-amber-500/20"
+                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-md shadow-amber-500/20 cursor-pointer"
               >
                 Yes, Dismiss Immediately
               </button>
@@ -165,3 +178,4 @@ export const Overlay: React.FC<OverlayProps> = ({
     </div>
   );
 };
+

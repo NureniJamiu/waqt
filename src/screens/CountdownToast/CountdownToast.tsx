@@ -11,8 +11,47 @@ interface CountdownToastProps {
 export const CountdownToast: React.FC<CountdownToastProps> = ({
   prayerName,
   onComplete,
+  soundEnabled = true,
 }) => {
   const [seconds, setSeconds] = useState<number>(10);
+
+  useEffect(() => {
+    if (soundEnabled) {
+      try {
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc1.type = "sine";
+          osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+          osc2.type = "sine";
+          osc2.frequency.setValueAtTime(659.25, ctx.currentTime); // E5
+
+          gain.gain.setValueAtTime(0.15, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc1.start();
+          osc2.start();
+          osc1.stop(ctx.currentTime + 1.2);
+          osc2.stop(ctx.currentTime + 1.2);
+
+          const closeTimer = setTimeout(() => {
+            ctx.close().catch(() => {});
+          }, 1500);
+          return () => clearTimeout(closeTimer);
+        }
+      } catch {
+        // Ignore audio context errors
+      }
+    }
+  }, [soundEnabled]);
 
   useEffect(() => {
     if (seconds <= 0) {
@@ -26,7 +65,7 @@ export const CountdownToast: React.FC<CountdownToastProps> = ({
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-bounce-subtle">
       <div className="glass-panel p-4 rounded-2xl shadow-2xl border border-emerald-500/40 bg-slate-950/90 max-w-xs flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex flex-col items-center justify-center font-mono font-bold text-lg">
+        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex flex-col items-center justify-center font-mono font-bold text-lg shadow-inner">
           {seconds}s
         </div>
 
@@ -42,3 +81,4 @@ export const CountdownToast: React.FC<CountdownToastProps> = ({
     </div>
   );
 };
+
