@@ -14,10 +14,10 @@ This document outlines the detailed breakdown of tasks for implementing **Waqt**
 - [x] Configure `tauri.conf.json` with multi-window capabilities, permissions, and app identity
 
 ## Phase 2: Core Data Engine & Calculation Utilities
-- [ ] Implement TypeScript interfaces in `src/types/index.ts` (`AppSettings`, `PrayerLogItem`, `PrayerTime`, `PrayerStatus`)
-- [ ] Build `src/lib/adhanCalc.ts` wrapper around `adhan-js` for calculation method mapping, Asr school, and daily 5-prayer generation
-- [ ] Build `src/lib/store.ts` for Tauri Store integration with local JSON persistence (`store.json`)
-- [ ] Write unit tests / verification for prayer time calculations against reference coordinates
+- [x] Implement TypeScript interfaces in `src/types/index.ts` (`AppSettings`, `PrayerLogItem`, `PrayerTime`, `PrayerStatus`)
+- [x] Build `src/lib/adhanCalc.ts` wrapper around `adhan-js` for calculation method mapping, Asr school, and daily 5-prayer generation
+- [x] Build `src/lib/store.ts` for Tauri Store integration with local JSON persistence (`store.json`)
+- [x] Write unit tests / verification for prayer time calculations against reference coordinates
 
 ## Phase 3: Tauri Backend & Rust Service Layer
 - [ ] Implement `src-tauri/src/store.rs` for Rust-side settings & log reading
