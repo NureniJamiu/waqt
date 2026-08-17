@@ -1,4 +1,4 @@
-# Salah Guard (waqt) 🕌
+# Waqt 🕌
 
 [![Tauri v2](https://img.shields.io/badge/Tauri-v2.2-blue?logo=tauri&logoColor=white)](https://tauri.app/)
 [![Rust](https://img.shields.io/badge/Rust-2021-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
@@ -7,18 +7,66 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v3.4-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **Salah Guard** is a minimalist, privacy-first personal accountability desktop application designed to interrupt work smoothly at prayer times, enforce a brief forced pause, and foster consistent prayer habits without trapping the user.
+> **Waqt** is a minimalist, privacy-first personal accountability desktop application designed to interrupt work smoothly at prayer times, enforce a brief forced pause, and foster consistent prayer habits without trapping the user.
 
 ---
 
 ## 🌟 Overview & Philosophy
 
-Salah Guard operates on a simple principle: **personal accountability, not surveillance or punishment**. 
+Waqt operates on a simple principle: **personal accountability, not surveillance or punishment**. 
 
-* **Honor System Only**: The application does not monitor your camera, log keypresses, block system inputs, or act as a OS-level lock screen.
+* **Honor System Only**: The application does not monitor your camera, log keypresses, block system inputs, or act as an OS-level lock screen.
 * **Forced Pause Friction**: At prayer time, a full-screen overlay appears with a configurable forced pause duration (default 7 minutes). During this window, the *"I've prayed"* confirmation button is present but disabled, giving you space to disengage from your computer screen.
 * **Mandatory Emergency Escape Hatch**: The overlay features an always-accessible emergency dismiss option. Clicking it presents a simple prompt and logs the event as `emergency_dismissed`, ensuring you are never locked out during urgent situations.
-* **100% Offline & Private**: All prayer times are calculated client-side using `adhan-js` based on your coordinates and preferred calculation method. All settings and history logs remain strictly local on your device (`~/Library/Application Support/salah-guard/store.json`). Zero cloud telemetry, tracking, or network calls.
+* **100% Offline & Private**: All prayer times are calculated client-side using `adhan-js` based on your coordinates and preferred calculation method. All settings and history logs remain strictly local on your device (`~/Library/Application Support/waqt/store.json`). Zero cloud telemetry, tracking, or network calls.
+
+---
+
+## 📐 System Design & Execution Flow
+
+Below is the architectural workflow showing how **Waqt** computes schedules, handles notifications, spawns multi-monitor overlays, and processes user responses:
+
+```mermaid
+flowchart TD
+    subgraph Launch["1. App Initialization & Local Sync"]
+        A["App Launch / Midnight Event"] --> B["Read Local Store (store.json)"]
+        B --> C["Compute Daily Prayer Times via adhan-js"]
+    end
+
+    subgraph Scheduling["2. Background Monitoring & Notifications"]
+        C --> D["Tokio Scheduler & OS Wake Listener"]
+        D --> E{"Check Prayer Timeline"}
+        E -- "T-30m / T-15m / T-5m" --> F["Send Native Desktop Notification"]
+        E -- "T-0 Reached" --> G["Trigger 10s Countdown Toast"]
+        E -- "Past fireableUntil" --> H["Log status: missed"]
+    end
+
+    subgraph OverlayFlow["3. Multi-Monitor Overlay & Friction Pause"]
+        G --> I["Query Available Displays"]
+        I --> J["Spawn Full-Screen Always-On-Top Window per Display"]
+        J --> K["Start Forced Pause Timer (Default 7 mins)"]
+        K --> L["'I've Prayed' Button Greyed Out & Disabled"]
+    end
+
+    subgraph UserResolution["4. User Action & Resolution"]
+        L -- "Timer Reaches Zero" --> M["Unlock 'I've Prayed' Button"]
+        M -- "User Clicks 'I've Prayed'" --> N["Close Overlays & Log status: confirmed"]
+        
+        L -- "User Clicks Emergency Dismiss" --> O["Prompt Confirmation Modal"]
+        O -- "Confirmed" --> P["Close Overlays & Log status: emergency_dismissed"]
+        O -- "Cancelled" --> L
+    end
+
+    classDef launchStyle fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#fff;
+    classDef schedStyle fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
+    classDef overlayStyle fill:#022c22,stroke:#34d399,stroke-width:2px,color:#fff;
+    classDef actionStyle fill:#451a03,stroke:#fbbf24,stroke-width:2px,color:#fff;
+
+    class A,B,C launchStyle;
+    class D,E,F,G,H schedStyle;
+    class I,J,K,L overlayStyle;
+    class M,N,O,P actionStyle;
+```
 
 ---
 
@@ -49,7 +97,7 @@ Salah Guard operates on a simple principle: **personal accountability, not surve
 ## 📁 Repository Structure
 
 ```
-salah-guard/
+waqt/
 ├── AGENTS.md                  # Developer & AI agent steering guidelines
 ├── PRD.md                     # Product Requirements Document
 ├── TASKS.md                   # Feature implementation roadmap
@@ -125,7 +173,7 @@ Ensure you have the following installed on your system:
 
 ## 🔒 Data & Privacy Model
 
-Salah Guard stores all configuration settings and logs in a single local JSON file (`~/Library/Application Support/salah-guard/store.json` on macOS).
+Waqt stores all configuration settings and logs in a single local JSON file (`~/Library/Application Support/waqt/store.json` on macOS).
 
 ```json
 {

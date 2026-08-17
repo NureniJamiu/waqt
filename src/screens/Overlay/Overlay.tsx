@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { AppSettings, PrayerName, PrayerStatus } from "../../types";
+import { AppSettings, PrayerName } from "../../types";
 import { CheckCircle2, AlertTriangle, Moon, ShieldAlert, AlarmClock } from "lucide-react";
 
 interface OverlayProps {
@@ -53,7 +53,7 @@ export const Overlay: React.FC<OverlayProps> = ({
       <div className="flex justify-between items-center w-full max-w-5xl mx-auto">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800">
           <Moon className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Salah Guard Forced Pause</span>
+          <span>Waqt Forced Pause</span>
         </div>
 
         {/* Emergency Dismiss Button - ALWAYS CLICKABLE */}
@@ -127,7 +127,7 @@ export const Overlay: React.FC<OverlayProps> = ({
 
       {/* Footer Info */}
       <div className="text-center text-xs text-slate-600">
-        Salah Guard • Respectful Accountability Overlay
+        Waqt • Respectful Accountability Overlay
       </div>
 
       {/* Emergency Modal Confirmation */}

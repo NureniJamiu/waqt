@@ -1,13 +1,12 @@
 import {
   Coordinates,
   CalculationMethod,
-  CalculationParameters,
   PrayerTimes,
   Madhab,
 } from "adhan";
 import { AppSettings, PrayerName, PrayerTime } from "../types";
 
-export function getCalculationMethodParams(methodName: string): CalculationParameters {
+export function getCalculationMethodParams(methodName: string): any {
   switch (methodName) {
     case "Egyptian":
       return CalculationMethod.Egyptian();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { AppSettings, PrayerLogItem, PrayerName } from "./types";
 import { loadSettingsFromStorage, saveSettingsToStorage, loadLogsFromStorage, addLogEntryToStorage } from "./lib/store";
 import { Onboarding } from "./screens/Onboarding/Onboarding";

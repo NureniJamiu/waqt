@@ -23,7 +23,7 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str) -> Result<(), S
                 &label,
                 WebviewUrl::App(format!("index.html?screen=overlay&prayer={}", prayer_name).into()),
             )
-            .title("Salah Guard Overlay")
+            .title("Waqt Overlay")
             .inner_size(size.width as f64, size.height as f64)
             .position(pos.x as f64, pos.y as f64)
             .decorations(false)
@@ -52,7 +52,7 @@ fn spawn_single_overlay(app: &AppHandle, label: &str, prayer_name: &str) -> Resu
         label,
         WebviewUrl::App(format!("index.html?screen=overlay&prayer={}", prayer_name).into()),
     )
-    .title("Salah Guard Overlay")
+    .title("Waqt Overlay")
     .decorations(false)
     .always_on_top(true)
     .fullscreen(true)

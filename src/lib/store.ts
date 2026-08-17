@@ -14,8 +14,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboardingCompleted: false,
 };
 
-const SETTINGS_KEY = "salah_guard_settings";
-const LOGS_KEY = "salah_guard_logs";
+const SETTINGS_KEY = "waqt_settings";
+const LOGS_KEY = "waqt_logs";
 
 export function loadSettingsFromStorage(): AppSettings {
   try {

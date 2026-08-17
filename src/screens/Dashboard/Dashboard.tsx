@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AppSettings, PrayerTime } from "../../types";
 import { calculateDailyPrayerTimes } from "../../lib/adhanCalc";
-import { Clock, MapPin, Settings as SettingsIcon, History, PlayCircle, ShieldCheck } from "lucide-react";
+import { MapPin, Settings as SettingsIcon, History, PlayCircle, ShieldCheck } from "lucide-react";
 
 interface DashboardProps {
   settings: AppSettings;
@@ -44,7 +44,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ settings, onNavigate, onTr
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">Salah Guard</h1>
+            <h1 className="font-bold text-lg leading-tight">Waqt</h1>
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <MapPin className="w-3.5 h-3.5 text-emerald-400" />
               <span>{settings.cityName}</span>

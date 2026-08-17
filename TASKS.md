@@ -1,6 +1,6 @@
-# Project Task Tracking: Salah Guard
+# Project Task Tracking: Waqt
 
-This document outlines the detailed breakdown of tasks for implementing **Salah Guard**. Track progress by checking off tasks (`[x]`) as they are completed and verified.
+This document outlines the detailed breakdown of tasks for implementing **Waqt**. Track progress by checking off tasks (`[x]`) as they are completed and verified.
 
 ---
 

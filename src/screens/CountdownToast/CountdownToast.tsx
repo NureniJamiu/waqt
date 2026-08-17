@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { PrayerName } from "../../types";
-import { Bell, Clock } from "lucide-react";
+import { Bell } from "lucide-react";
 
 interface CountdownToastProps {
   prayerName: PrayerName;

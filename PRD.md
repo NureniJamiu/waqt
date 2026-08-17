@@ -1,4 +1,4 @@
-# Product Requirements Document: Salah Guard
+# Product Requirements Document: Waqt
 ### A prayer-time accountability desktop app
 
 **Version:** 1.0
@@ -10,7 +10,7 @@
 
 ## 1. Purpose & Philosophy
 
-Salah Guard is a personal accountability tool, not a surveillance or enforcement tool. It cannot verify that a person actually prayed, and it must not pretend to. Its job is to interrupt work at the right times, apply enough friction that ignoring prayer is harder than doing it, and then get out of the way. There is no camera use, no pose detection, and no punitive logging designed to shame the user. The "lock" is a forced pause, not a technical prison — it must always have a documented emergency escape hatch so the app can never brick productivity during a genuine emergency.
+Waqt is a personal accountability tool, not a surveillance or enforcement tool. It cannot verify that a person actually prayed, and it must not pretend to. Its job is to interrupt work at the right times, apply enough friction that ignoring prayer is harder than doing it, and then get out of the way. There is no camera use, no pose detection, and no punitive logging designed to shame the user. The "lock" is a forced pause, not a technical prison — it must always have a documented emergency escape hatch so the app can never brick productivity during a genuine emergency.
 
 ## 2. Goals
 
@@ -97,7 +97,7 @@ Salah Guard is a personal accountability tool, not a surveillance or enforcement
 
 ## 7. Data Model
 
-Local JSON store, e.g. `~/Library/Application Support/salah-guard/store.json` (macOS path via Tauri's app data dir API):
+Local JSON store, e.g. `~/Library/Application Support/waqt/store.json` (macOS path via Tauri's app data dir API):
 
 ```json
 {
@@ -141,7 +141,7 @@ Each prayer has a natural end boundary (next prayer's start, or a hard cap — e
 If somehow two prayers' T-0 moments are both pending (should not happen given real prayer spacing, but guard anyway), only ever show one overlay at a time, queue the next.
 
 ### 8.5 App not running at all
-If the Tauri app process isn't running, no notifications or overlays can fire — this is expected and acceptable for v1 (no OS-level daemon). Document this limitation clearly to the user in onboarding: *"Salah Guard needs to be running in the background to work — enable 'Launch at login' in Settings."*
+If the Tauri app process isn't running, no notifications or overlays can fire — this is expected and acceptable for v1 (no OS-level daemon). Document this limitation clearly to the user in onboarding: *"Waqt needs to be running in the background to work — enable 'Launch at login' in Settings."*
 
 ### 8.6 Timezone/DST changes and travel
 Recompute prayer times fresh at each local midnight using the device's current timezone, not a cached timezone from onboarding — this handles both DST shifts and the user traveling with the laptop.
@@ -159,7 +159,7 @@ If the user force-quits the app to bypass the overlay (macOS Force Quit, Task Ma
 ## 10. Suggested File/Module Structure
 
 ```
-salah-guard/
+waqt/
 ├── src-tauri/                  # Rust backend
 │   ├── src/
 │   │   ├── main.rs

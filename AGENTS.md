@@ -1,18 +1,18 @@
-# Agent Steering Guidelines: Salah Guard
+# Agent Steering Guidelines: Waqt
 
-This document serves as the primary steering guide for AI agents and developers working on **Salah Guard**. All code modifications, refactorings, and feature implementations MUST strictly adhere to the guidelines and architectural decisions detailed below.
+This document serves as the primary steering guide for AI agents and developers working on **Waqt**. All code modifications, refactorings, and feature implementations MUST strictly adhere to the guidelines and architectural decisions detailed below.
 
 ---
 
 ## 1. Core Philosophy & Non-Negotiable Rules
 
-Salah Guard is a **personal accountability desktop app**, NOT a surveillance or enforcement tool.
+Waqt is a **personal accountability desktop app**, NOT a surveillance or enforcement tool.
 
 1. **Honor System Only**: The app cannot verify whether a user actually prayed, and it MUST NOT pretend to. No camera use, no pose detection, no keylogging, no OS-level input blocking, no kernel-level lock screens.
 2. **Mandatory Emergency Dismiss Hatch**: The full-screen overlay MUST always include an emergency dismiss option that is **immediately clickable at all times** (never disabled by the forced-pause timer). Clicking it presents a single confirmation prompt and logs the event as `emergency_dismissed`. This guarantees the app can NEVER trap the user during a real emergency.
 3. **Forced Pause Friction**: During the forced pause (default 7 minutes, configurable 1–20 minutes), the "I've prayed" confirmation button is visually present but **disabled/greyed out**. It becomes enabled only after the forced pause timer reaches zero.
 4. **Offline First (Zero Runtime API Dependency)**: Prayer times are calculated client-side using `adhan-js` (or Rust equivalent) based on stored coordinates, calculation method, and Asr school. The app MUST function 100% offline without requiring internet access.
-5. **Privacy First**: All settings and prayer logs are stored strictly locally in a JSON file (`~/Library/Application Support/salah-guard/store.json` on macOS). No analytics, no cloud sync, no tracking, no multi-user accounts.
+5. **Privacy First**: All settings and prayer logs are stored strictly locally in a JSON file (`~/Library/Application Support/waqt/store.json` on macOS). No analytics, no cloud sync, no tracking, no multi-user accounts.
 
 ---
 
@@ -32,7 +32,7 @@ Salah Guard is a **personal accountability desktop app**, NOT a surveillance or 
 ## 3. Architecture & Code Boundaries
 
 ```
-salah-guard/
+waqt/
 ├── AGENTS.md                  # This steering document
 ├── TASKS.md                   # Phased task tracking breakdown
 ├── PRD.md                     # Product Requirements Document

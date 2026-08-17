@@ -1,5 +1,5 @@
 [package]
-name = "salah-guard"
+name = "waqt"
 version = "1.0.0"
 description = "A prayer-time accountability desktop app"
 authors = ["Jamiu"]

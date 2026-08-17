@@ -41,7 +41,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 mb-4 border border-emerald-500/20">
           <Clock className="w-8 h-8" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome to Salah Guard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome to Waqt</h1>
         <p className="text-slate-400 mt-2 text-sm">
           A respectful, offline prayer-time accountability tool.
         </p>
