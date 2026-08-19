@@ -10,8 +10,6 @@ import {
   Bell,
   BellOff,
   CheckCircle2,
-  Sparkles,
-  Zap,
 } from "lucide-react";
 
 interface DashboardProps {
@@ -29,6 +27,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onToggleNotifications,
   onPreviewSplash,
 }) => {
+  const isDevelopment = import.meta.env.DEV;
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [prayers, setPrayers] = useState<PrayerTime[]>([]);
 
@@ -74,48 +73,60 @@ export const Dashboard: React.FC<DashboardProps> = ({
   });
 
   return (
-    <div className="min-h-screen bg-[#070a11] text-slate-100 flex flex-col p-4 md:p-8 max-w-5xl mx-auto space-y-6">
-      {/* Top Navigation Bar */}
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glass-panel p-4 md:px-6 md:py-4 rounded-3xl border border-white/10 shadow-2xl">
-        <div className="flex items-center gap-3.5">
-          <div className="relative group cursor-pointer" onClick={onPreviewSplash}>
-            <div className="absolute -inset-1 rounded-2xl bg-emerald-500/30 blur-sm group-hover:bg-emerald-500/50 transition" />
-            <div className="relative w-11 h-11 rounded-2xl glass-panel p-1.5 ring-1 ring-white/10 flex items-center justify-center bg-slate-900">
-              <img src="/logo.png" alt="Waqt Logo" className="w-full h-full object-contain rounded-xl" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-extrabold font-display text-xl leading-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                Waqt
-              </h1>
-              <span className="text-[10px] font-bold font-mono tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                PRO
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
-              <span className="flex items-center gap-1 font-medium">
+    <div className="min-h-screen bg-[#070a11] text-slate-100 flex flex-col p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      <header className="line-surface rounded-md px-4 md:px-6 py-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-4 min-w-0">
+          {isDevelopment && onPreviewSplash ? (
+            <button
+              type="button"
+              onClick={onPreviewSplash}
+              className="group shrink-0"
+              aria-label="Preview splash screen"
+            >
+              <img
+                src="/logo.png?v=3"
+                alt="Waqt Logo"
+                className="h-14 w-14 object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+              />
+            </button>
+          ) : (
+            <img
+              src="/logo.png?v=3"
+              alt="Waqt Logo"
+              className="h-14 w-14 shrink-0 object-contain"
+            />
+          )}
+
+          <div className="min-w-0 pt-0.5">
+            <h1 className="font-extrabold font-display text-xl leading-tight text-white">
+              Waqt
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+              <span className="inline-flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                {settings.cityName}
+                <span className="truncate max-w-[14rem] font-medium text-slate-300">{settings.cityName}</span>
               </span>
-              <span>•</span>
-              <span className="flex items-center gap-1 font-mono text-slate-300">
-                <Clock className="w-3 h-3 text-slate-400" />
-                {formattedDate}, {formattedTime}
+              <span className="text-slate-600">•</span>
+              <span className="inline-flex items-center gap-1.5 font-mono">
+                <Clock className="w-3.5 h-3.5 text-slate-500" />
+                <span>{formattedDate}</span>
+                <span className="text-slate-600">•</span>
+                <span>{formattedTime}</span>
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 self-stretch lg:self-auto">
           {onToggleNotifications && (
             <button
               onClick={onToggleNotifications}
               title={settings.notificationsEnabled ? "Notifications Active" : "Notifications Disabled"}
-              className={`p-2.5 rounded-xl text-xs transition-all border ${
+              aria-label={settings.notificationsEnabled ? "Disable notifications" : "Enable notifications"}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
                 settings.notificationsEnabled
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-glow-emerald"
-                  : "bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800"
+                  ? "border-emerald-400/20 bg-emerald-500/8 text-emerald-300"
+                  : "border-slate-700/70 bg-transparent text-slate-400 hover:border-slate-600 hover:bg-slate-900/40 hover:text-slate-200"
               }`}
             >
               {settings.notificationsEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
@@ -123,139 +134,125 @@ export const Dashboard: React.FC<DashboardProps> = ({
           )}
 
           <button
-            onClick={() => onNavigate("log")}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all text-slate-200"
+            onClick={() => onNavigate("settings")}
+            aria-label="Settings"
+            title="Settings"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/70 bg-transparent text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-900/40 hover:text-slate-200"
           >
-            <History className="w-4 h-4 text-emerald-400" />
-            <span className="hidden sm:inline">Prayer Log</span>
+            <SettingsIcon className="w-4 h-4" />
           </button>
 
           <button
-            onClick={() => onNavigate("settings")}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all text-slate-200"
+            onClick={() => onNavigate("log")}
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-emerald-400/30 hover:bg-emerald-500/14 hover:text-white"
           >
-            <SettingsIcon className="w-4 h-4 text-emerald-400" />
-            <span className="hidden sm:inline">Settings</span>
+            <History className="w-4 h-4 text-emerald-300" />
+            <span>Prayer Log</span>
           </button>
         </div>
       </header>
 
-      {/* Hero Countdown Card */}
-      {nextPrayer && (
-        <div className="relative glass-panel-emerald p-6 md:p-8 rounded-3xl overflow-hidden border border-emerald-500/40 shadow-2xl">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-500/20 px-3 py-1 rounded-full border border-emerald-500/30">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-spin-slow" />
-                  Upcoming Prayer
-                </span>
-                <span className="text-xs text-slate-400 font-mono">
-                  {settings.asrSchool} Asr
-                </span>
+      <div className="line-surface rounded-3xl overflow-hidden">
+        {nextPrayer && (
+          <section className="px-5 md:px-7 py-6 border-b border-slate-800/80">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+              <div>
+                <div className="text-xs uppercase tracking-widest text-slate-400 font-bold">Upcoming Prayer</div>
+                <h2 className="text-4xl md:text-5xl font-black font-display tracking-tight text-white mt-2">{nextPrayer.name}</h2>
+                <p className="text-slate-300 text-sm mt-2">
+                  Scheduled at <strong className="text-emerald-300 font-mono">{nextPrayer.formattedTime}</strong>
+                </p>
               </div>
-              <h2 className="text-4xl md:text-5xl font-black font-display tracking-tight text-white">
-                {nextPrayer.name}
-              </h2>
-              <p className="text-slate-300 text-sm font-medium">
-                Scheduled today at <strong className="text-emerald-400 font-mono text-base">{nextPrayer.formattedTime}</strong>
-              </p>
-            </div>
 
-            <div className="text-left md:text-right bg-slate-950/60 p-5 md:p-6 rounded-2xl border border-white/10 backdrop-blur-md w-full md:w-auto">
-              <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                Time Remaining
-              </span>
-              <div className="font-mono text-4xl md:text-5xl font-black text-emerald-400 tracking-tight shadow-glow-emerald">
-                {formattedCountdown(nextPrayer.time)}
+              <div className="w-full md:w-auto md:text-right">
+                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Time Remaining</div>
+                <div className="font-mono text-4xl md:text-5xl font-black text-emerald-300 tracking-tight mt-1">
+                  {formattedCountdown(nextPrayer.time)}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-2">{settings.asrSchool} Asr school</div>
               </div>
             </div>
+          </section>
+        )}
+
+        <section className="px-4 md:px-5 py-5 border-b border-slate-800/80">
+          <div className="px-1 py-1 flex justify-between items-center">
+            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">Today's Schedule</h3>
+            <span className="text-xs text-slate-500 font-mono">5 daily prayers</span>
           </div>
-        </div>
-      )}
 
-      {/* Daily 5 Prayer Cards Grid */}
-      <section className="space-y-4">
-        <div className="flex justify-between items-center px-1">
-          <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-            <Zap className="w-3.5 h-3.5 text-emerald-400" />
-            Today's Schedule
-          </h3>
-          <span className="text-xs text-slate-500 font-mono">5 Daily Mandatory Prayers</span>
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-4">
+            {prayers.map((prayer) => (
+              <div
+                key={prayer.name}
+                className={`relative overflow-hidden rounded-md p-3.5 border transition-colors ${
+                  prayer.isNext
+                    ? "border-emerald-400/50 bg-emerald-500/5"
+                    : prayer.isPassed
+                    ? "border-slate-700/80 bg-slate-950/45"
+                    : "line-surface-soft"
+                }`}
+              >
+                <div
+                  className={`absolute left-0 top-0 h-[2px] w-full ${
+                    prayer.isNext ? "bg-emerald-400/80" : prayer.isPassed ? "bg-slate-700" : "bg-slate-600/70"
+                  }`}
+                />
 
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3.5">
-          {prayers.map((prayer) => (
-            <div
-              key={prayer.name}
-              className={`glass-panel p-4 rounded-2xl flex flex-col justify-between transition-all duration-300 ${
-                prayer.isNext
-                  ? "glass-panel-emerald ring-2 ring-emerald-500/40 shadow-glow-emerald scale-[1.02]"
-                  : prayer.isPassed
-                  ? "opacity-60 bg-slate-950/50 border-slate-800"
-                  : "glass-panel-hover bg-slate-900/80 hover:bg-slate-800/90"
-              }`}
-            >
-              <div className="flex justify-between items-center">
-                <span className={`font-bold text-sm font-display ${prayer.isNext ? "text-emerald-300" : "text-slate-200"}`}>
-                  {prayer.name}
-                </span>
-                {prayer.isNext ? (
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                <div className="flex items-center justify-between gap-3">
+                  <span className={`font-bold text-sm font-display ${prayer.isNext ? "text-emerald-300" : "text-slate-200"}`}>
+                    {prayer.name}
                   </span>
-                ) : prayer.isPassed ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-slate-500" />
-                ) : (
-                  <Clock className="w-3.5 h-3.5 text-slate-600" />
-                )}
-              </div>
-
-              <div className="mt-5">
-                <span className="text-xl font-black font-mono tracking-tight text-white">
-                  {prayer.formattedTime}
-                </span>
-                <div className="mt-1.5 flex items-center gap-1">
-                  {prayer.isPassed ? (
-                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Passed</span>
-                  ) : prayer.isNext ? (
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Active Next</span>
+                  {prayer.isNext ? (
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                    </span>
+                  ) : prayer.isPassed ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-500" />
                   ) : (
-                    <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Scheduled</span>
+                    <Clock className="w-3.5 h-3.5 text-slate-600" />
+                  )}
+                </div>
+
+                <div className="mt-5">
+                  <span className="text-lg font-black font-mono tracking-tight text-white">{prayer.formattedTime}</span>
+                  {prayer.isPassed ? (
+                    <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Passed</div>
+                  ) : prayer.isNext ? (
+                    <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Next</div>
+                  ) : (
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Scheduled</div>
                   )}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
 
-      {/* Accountability Controls & Footer Info */}
-      <footer className="pt-2 flex flex-col sm:flex-row justify-between items-center gap-4 glass-panel px-6 py-4 rounded-2xl border border-white/5">
-        <div className="text-xs text-slate-400 flex items-center gap-3">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            Forced Pause: <strong className="text-slate-200">{Math.round(settings.forcedPauseSeconds / 60)}m</strong>
-          </span>
-          <span>•</span>
-          <span>
-            Snooze: <strong className="text-slate-200">{settings.snoozeEnabled ? "Enabled (5m)" : "Disabled"}</strong>
-          </span>
-        </div>
+        <footer className="px-5 md:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-xs text-slate-400 flex items-center gap-3">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              Forced Pause: <strong className="text-slate-200">{Math.round(settings.forcedPauseSeconds / 60)}m</strong>
+            </span>
+            <span>•</span>
+            <span>
+              Snooze: <strong className="text-slate-200">{settings.snoozeEnabled ? "Enabled (5m)" : "Disabled"}</strong>
+            </span>
+          </div>
 
-        {onTriggerTestOverlay && (
-          <button
-            onClick={onTriggerTestOverlay}
-            className="flex items-center gap-2 text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-4 py-2 rounded-xl transition-all shadow-glow-emerald"
-          >
-            <PlayCircle className="w-4 h-4 text-emerald-400" />
-            <span>Test Overlay Screen</span>
-          </button>
-        )}
-      </footer>
+          {isDevelopment && onTriggerTestOverlay && (
+            <button
+              onClick={onTriggerTestOverlay}
+              className="line-button flex items-center gap-2 text-xs font-semibold text-emerald-300 px-4 py-2 rounded-full"
+            >
+              <PlayCircle className="w-4 h-4 text-emerald-400" />
+              <span>Test Overlay Screen</span>
+            </button>
+          )}
+        </footer>
+      </div>
     </div>
   );
 };

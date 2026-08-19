@@ -5,15 +5,172 @@
 @layer base {
   body {
     @apply bg-[#070a11] text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.05) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(15, 23, 42, 0.5) 0px, transparent 50%);
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
     background-attachment: fixed;
   }
 
   h1, h2, h3, h4, .font-heading {
     font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  }
+}
+
+@layer components {
+  .line-surface {
+    background: rgba(6, 10, 18, 0.92);
+    border: 1px solid rgba(71, 85, 105, 0.7);
+  }
+
+  .line-surface-soft {
+    background: rgba(8, 12, 20, 0.78);
+    border: 1px solid rgba(71, 85, 105, 0.72);
+  }
+
+  .line-divider {
+    border-color: rgba(71, 85, 105, 0.6);
+  }
+
+  .line-chip {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(100, 116, 139, 0.75);
+  }
+
+  .line-button {
+    background: rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(100, 116, 139, 0.72);
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .line-button:hover {
+    border-color: rgba(148, 163, 184, 0.95);
+    background: rgba(30, 41, 59, 0.95);
+  }
+
+  .select-control {
+    @apply w-full h-10 appearance-none rounded-md border border-slate-700 bg-surface-card px-3 py-2 pr-10 text-sm text-slate-100 shadow-sm outline-none transition-colors;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23cbd5e1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 16px;
+  }
+
+  .select-control:hover {
+    background-color: #172031;
+    border-color: rgba(148, 163, 184, 0.88);
+  }
+
+  .select-control:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18);
+  }
+
+  .select-control:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .select-control option {
+    background: #0f1624;
+    color: #e2e8f0;
+  }
+
+  /* Compatibility aliases for screens not yet fully restyled. */
+  .glass-panel {
+    background: rgba(8, 12, 20, 0.88);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .glass-panel-emerald {
+    background: rgba(8, 12, 20, 0.9);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+  }
+
+  .glass-panel-amber {
+    background: rgba(8, 12, 20, 0.9);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+  }
+
+  .glass-panel-violet {
+    background: rgba(8, 12, 20, 0.9);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+  }
+  /* ─── Range slider ──────────────────────────────────────────── */
+  .range-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    outline: none;
+    cursor: pointer;
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(71, 85, 105, 0.55);
+    transition: background 0.2s ease;
+  }
+
+  /* webkit track */
+  .range-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  /* webkit thumb */
+  .range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #10b981;
+    border: 3px solid #0d9488;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18), 0 2px 8px rgba(0,0,0,0.5);
+    cursor: pointer;
+    margin-top: -7px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .range-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.25), 0 2px 10px rgba(0,0,0,0.6);
+  }
+
+  .range-slider::-webkit-slider-thumb:active {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.18), 0 2px 12px rgba(0,0,0,0.7);
+  }
+
+  /* firefox track */
+  .range-slider::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(71, 85, 105, 0.55);
+  }
+
+  /* firefox filled part */
+  .range-slider::-moz-range-progress {
+    background: linear-gradient(90deg, #059669, #10b981);
+    height: 6px;
+    border-radius: 999px;
+  }
+
+  /* firefox thumb */
+  .range-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #10b981;
+    border: 3px solid #0d9488;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .range-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
   }
 }
 
@@ -31,48 +188,6 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
-}
-
-/* Glassmorphism utilities */
-.glass-panel {
-  background: rgba(15, 22, 36, 0.72);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.5);
-}
-
-.glass-panel-hover {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.glass-panel-hover:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  transform: translateY(-2px);
-  box-shadow: 0 16px 48px -12px rgba(0, 0, 0, 0.6);
-}
-
-.glass-panel-emerald {
-  background: linear-gradient(135deg, rgba(6, 78, 59, 0.35) 0%, rgba(15, 22, 36, 0.85) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 0 12px 40px -10px rgba(16, 185, 129, 0.15);
-}
-
-.glass-panel-amber {
-  background: linear-gradient(135deg, rgba(120, 53, 15, 0.35) 0%, rgba(15, 22, 36, 0.85) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  box-shadow: 0 12px 40px -10px rgba(245, 158, 11, 0.15);
-}
-
-.glass-panel-violet {
-  background: linear-gradient(135deg, rgba(88, 28, 135, 0.35) 0%, rgba(15, 22, 36, 0.85) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 0 12px 40px -10px rgba(139, 92, 246, 0.15);
 }
 
 @keyframes float {

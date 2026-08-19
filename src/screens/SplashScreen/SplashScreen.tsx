@@ -37,38 +37,30 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         fadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
-      {/* Background Radial Glow */}
-      <div className="absolute w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse-glow pointer-events-none" />
+      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(71,85,105,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(71,85,105,0.18)_1px,transparent_1px)] bg-[size:28px_28px] opacity-25" />
 
-      {/* Main Logo & Title Stack */}
       <div className="relative z-10 flex flex-col items-center space-y-6 max-w-sm px-6 text-center">
-        {/* Glowing Logo Badge */}
-        <div className="relative group">
-          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-emerald-500 to-teal-400 opacity-50 blur-xl group-hover:opacity-75 transition duration-500 animate-pulse-subtle" />
-          <div className="relative w-28 h-28 rounded-3xl overflow-hidden glass-panel p-2 shadow-2xl ring-1 ring-white/10 flex items-center justify-center bg-slate-900/90">
-            <img
-              src="/logo.png"
-              alt="Waqt Logo"
-              className="w-full h-full object-contain rounded-2xl animate-float"
-            />
-          </div>
+        <div className="relative">
+          <img
+            src="/logo.png?v=3"
+            alt="Waqt Logo"
+            className="h-28 w-28 object-contain animate-float"
+          />
         </div>
 
-        {/* Title & Tagline */}
         <div className="space-y-1">
-          <h1 className="text-4xl font-extrabold font-display tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-extrabold font-display tracking-tight text-white">
             Waqt
           </h1>
-          <p className="text-xs uppercase tracking-widest font-semibold text-emerald-400/90">
+          <p className="text-xs uppercase tracking-widest font-semibold text-emerald-300">
             Personal Prayer Accountability
           </p>
         </div>
 
-        {/* Progress Bar & Status */}
         <div className="w-full space-y-2 pt-4">
           <div className="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden p-0.5 border border-white/5">
             <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-75 shadow-glow-emerald"
+              className="h-full bg-emerald-400 rounded-full transition-all duration-75"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -85,7 +77,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           </div>
         </div>
 
-        {/* Footer Badge */}
         <div className="pt-8">
           <span className="text-[11px] font-mono text-slate-500 px-3 py-1 rounded-full bg-slate-900/60 border border-slate-800">
             v1.0.0 • Offline First

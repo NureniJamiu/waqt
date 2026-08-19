@@ -28,6 +28,7 @@ const CITY_PRESETS = [
 ];
 
 export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, onPreviewSplash }) => {
+  const isDevelopment = import.meta.env.DEV;
   const [form, setForm] = useState<AppSettings>({ ...settings });
   const [savedToast, setSavedToast] = useState(false);
   const [testNotifToast, setTestNotifToast] = useState<string | null>(null);
@@ -134,9 +135,8 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
   };
 
   return (
-    <div className="min-h-screen bg-[#070a11] text-slate-100 p-4 md:p-8 max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <header className="flex justify-between items-center glass-panel px-6 py-4 rounded-3xl border border-white/10 shadow-2xl">
+    <div className="min-h-screen bg-[#070a11] text-slate-100 p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      <header className="line-surface rounded-full px-6 py-4 flex justify-between items-center">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors"
@@ -147,7 +147,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
         <h1 className="font-extrabold font-display text-lg text-white">Settings</h1>
         <button
           onClick={handleSubmit}
-          className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-black transition-all active:scale-95 shadow-glow-emerald"
+          className="line-button flex items-center gap-2 text-emerald-300 px-5 py-2.5 rounded-full text-xs font-black transition-all active:scale-95"
         >
           <Save className="w-4 h-4" />
           <span>Save Changes</span>
@@ -155,7 +155,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
       </header>
 
       {savedToast && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3.5 rounded-2xl text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-glow-emerald">
+        <div className="line-surface border-emerald-400/40 text-emerald-300 p-3.5 rounded-full text-xs font-semibold text-center flex items-center justify-center gap-2">
           <CheckCircle2 className="w-4 h-4" />
           <span>Settings saved successfully!</span>
         </div>
@@ -163,8 +163,8 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
 
       {bannerPreview && (
         <div className="fixed top-6 right-6 z-50 animate-float">
-          <div className="glass-panel p-4 rounded-2xl shadow-2xl border border-emerald-500/40 bg-slate-950/95 max-w-sm flex items-start gap-3.5 shadow-glow-emerald">
-            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+          <div className="line-surface p-4 rounded-full border border-emerald-500/40 max-w-sm flex items-start gap-3.5">
+            <div className="p-2 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
               <Bell className="w-5 h-5 animate-pulse" />
             </div>
             <div className="flex-1">
@@ -176,10 +176,9 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Section 1: Location */}
-        <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/5">
-          <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display">
+      <form onSubmit={handleSubmit} className="line-surface rounded-md overflow-hidden">
+        <section className="px-6 py-6 border-b border-slate-800/80">
+          <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display mb-4">
             <MapPin className="w-4 h-4" />
             <span>Location & Coordinates</span>
           </div>
@@ -190,7 +189,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               <select
                 value={selectedPreset}
                 onChange={(e) => handleCityPresetChange(e.target.value)}
-                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                className="select-control"
               >
                 {CITY_PRESETS.map((p) => (
                   <option key={p.name} value={p.name}>
@@ -209,7 +208,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                   handleFormChange("cityName", e.target.value);
                   setSelectedPreset("Custom / Manual Input");
                 }}
-                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                className="w-full line-surface-soft rounded-full px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
               />
             </div>
 
@@ -224,7 +223,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                     handleFormChange("latitude", parseFloat(e.target.value) || 0);
                     setSelectedPreset("Custom / Manual Input");
                   }}
-                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-mono text-slate-100"
+                  className="w-full line-surface-soft rounded-full px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-mono text-slate-100"
                 />
               </div>
               <div>
@@ -237,16 +236,15 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                     handleFormChange("longitude", parseFloat(e.target.value) || 0);
                     setSelectedPreset("Custom / Manual Input");
                   }}
-                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-mono text-slate-100"
+                  className="w-full line-surface-soft rounded-full px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-mono text-slate-100"
                 />
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Section 2: Calculation Method */}
-        <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/5">
-          <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display">
+        <section className="px-6 py-6 border-b border-slate-800/80">
+          <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display mb-4">
             <Sliders className="w-4 h-4" />
             <span>Calculation Authority & Jurisprudence</span>
           </div>
@@ -257,7 +255,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               <select
                 value={form.calculationMethod}
                 onChange={(e) => handleFormChange("calculationMethod", e.target.value as CalculationMethodName)}
-                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                className="select-control"
               >
                 <option value="MuslimWorldLeague">Muslim World League (Default)</option>
                 <option value="Egyptian">Egyptian General Authority</option>
@@ -279,43 +277,64 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               <select
                 value={form.asrSchool}
                 onChange={(e) => handleFormChange("asrSchool", e.target.value as AsrSchool)}
-                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                className="select-control"
               >
                 <option value="Standard">Standard (Shafi, Maliki, Hanbali)</option>
                 <option value="Hanafi">Hanafi</option>
               </select>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Section 3: Overlay Pause Duration */}
-        <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/5">
-          <div className="flex justify-between items-center">
+        <section className="px-6 py-6 border-b border-slate-800/80">
+          <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display">
               <Moon className="w-4 h-4" />
               <span>Forced Pause Duration</span>
             </div>
-            <span className="font-extrabold font-mono text-emerald-400 text-base bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+            <span className="font-extrabold font-mono text-emerald-300 text-base line-chip px-3 py-1 rounded-full">
               {Math.round(form.forcedPauseSeconds / 60)} Minutes
             </span>
           </div>
 
-          <input
-            type="range"
-            min="1"
-            max="20"
-            value={Math.round(form.forcedPauseSeconds / 60)}
-            onChange={(e) => handleFormChange("forcedPauseSeconds", parseInt(e.target.value) * 60)}
-            className="w-full accent-emerald-500 bg-slate-800 h-2.5 rounded-lg cursor-pointer"
-          />
-          <p className="text-xs text-slate-400">
-            During this duration, the confirmation button is locked to guarantee focused friction.
-          </p>
-        </div>
+          <div className="space-y-3">
+            <input
+              type="range"
+              min="1"
+              max="20"
+              value={Math.round(form.forcedPauseSeconds / 60)}
+              onChange={(e) => handleFormChange("forcedPauseSeconds", parseInt(e.target.value) * 60)}
+              className="range-slider"
+              style={{
+                background: `linear-gradient(to right, #10b981 ${((Math.round(form.forcedPauseSeconds / 60) - 1) / 19) * 100}%, rgba(30,41,59,0.9) ${((Math.round(form.forcedPauseSeconds / 60) - 1) / 19) * 100}%)`
+              }}
+            />
+            <div className="flex justify-between px-0.5">
+              {[1, 5, 10, 15, 20].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => handleFormChange("forcedPauseSeconds", v * 60)}
+                  className={`text-[10px] font-mono transition-colors cursor-pointer ${
+                    Math.round(form.forcedPauseSeconds / 60) === v
+                      ? 'text-emerald-400 font-bold'
+                      : 'text-slate-600 hover:text-slate-400'
+                  }`}
+                >
+                  {v}m
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400">
+              During this duration, the confirmation button is locked to guarantee focused friction.
+            </p>
+          </div>
+        </section>
 
-        {/* Section 4: Preferences Toggles */}
-        <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/5">
-          <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">System Preferences</h3>
+        <section className="px-6 py-6">
+          <div className="mb-4">
+            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">System Preferences</h3>
+          </div>
 
           <div className="space-y-4">
             <div className="space-y-3">
@@ -335,28 +354,28 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                 />
               </div>
 
-              {form.notificationsEnabled && (
+              {isDevelopment && form.notificationsEnabled && (
                 <div className="pl-7 pt-1 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-slate-400 mr-1">Test Reminders:</span>
                     <button
                       type="button"
                       onClick={() => handleSendTestNotif(30)}
-                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-emerald-400 border border-emerald-500/20 transition active:scale-95 flex items-center gap-1.5"
+                      className="line-button px-2.5 py-1 text-xs font-semibold rounded-full text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
                     >
                       <Sparkles className="w-3 h-3" /> Test 30m
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSendTestNotif(15)}
-                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-emerald-400 border border-emerald-500/20 transition active:scale-95 flex items-center gap-1.5"
+                      className="line-button px-2.5 py-1 text-xs font-semibold rounded-full text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
                     >
                       <Sparkles className="w-3 h-3" /> Test 15m
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSendTestNotif(5)}
-                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-emerald-400 border border-emerald-500/20 transition active:scale-95 flex items-center gap-1.5"
+                      className="line-button px-2.5 py-1 text-xs font-semibold rounded-full text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
                     >
                       <Sparkles className="w-3 h-3" /> Test 5m
                     </button>
@@ -367,7 +386,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                     )}
                   </div>
                   <p className="text-[11px] text-slate-400/90 leading-relaxed italic">
-                    💡 macOS Note: When Waqt is focused, macOS routes system banners to Notification Center (top-right date/time). Switch to another app or check Notification Center to view native system popups.
+                    macOS note: when Waqt is focused, banners route to Notification Center (top-right date/time). Switch apps or open Notification Center to view native popups.
                   </p>
                 </div>
               )}
@@ -409,8 +428,8 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               <div className="flex items-center gap-3">
                 <Power className="w-4 h-4 text-emerald-400" />
                 <div>
-                  <div className="text-sm font-bold">Launch at Login</div>
-                  <div className="text-xs text-slate-400">Ensure background scheduler runs on startup</div>
+                  <div className="text-sm font-bold">Launch at Power Up</div>
+                  <div className="text-xs text-slate-400">Start Waqt automatically after the laptop powers on</div>
                 </div>
               </div>
               <input
@@ -421,15 +440,14 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               />
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Section 5: Splash Screen Preview */}
-        {onPreviewSplash && (
+        {isDevelopment && onPreviewSplash && (
           <div className="pt-2 flex justify-end">
             <button
               type="button"
               onClick={onPreviewSplash}
-              className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-emerald-400 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 px-4 py-2.5 rounded-xl transition-colors"
+              className="line-button flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-emerald-300 px-4 py-2.5 rounded-full transition-colors"
             >
               <Sparkles className="w-4 h-4 text-emerald-400" />
               <span>Preview Splash Screen</span>

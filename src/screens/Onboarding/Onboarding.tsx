@@ -34,7 +34,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
   const [method, setMethod] = useState<CalculationMethodName>(settings.calculationMethod);
   const [asrSchool, setAsrSchool] = useState<AsrSchool>(settings.asrSchool);
   const [pauseMinutes, setPauseMinutes] = useState(Math.round(settings.forcedPauseSeconds / 60));
-  const [notifGranted, setNotifGranted] = useState<boolean>(false);
+  const [notifGranted, setNotifGranted] = useState<boolean>(true);
 
   const handleCityPresetChange = (presetName: string) => {
     setSelectedPreset(presetName);
@@ -84,15 +84,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 md:p-8 max-w-xl mx-auto text-slate-100">
-      {/* Header Badge */}
       <div className="text-center mb-8 flex flex-col items-center">
-        <div className="relative group mb-4">
-          <div className="absolute -inset-1 rounded-3xl bg-emerald-500/30 blur-md group-hover:bg-emerald-500/50 transition" />
-          <div className="relative w-20 h-20 rounded-3xl glass-panel p-2 flex items-center justify-center bg-slate-900 border border-white/10 shadow-2xl">
-            <img src="/logo.png" alt="Waqt Logo" className="w-full h-full object-contain rounded-2xl animate-float" />
-          </div>
+        <div className="mb-4">
+          <img src="/logo.png?v=3" alt="Waqt Logo" className="h-20 w-20 object-contain animate-float" />
         </div>
-        <h1 className="text-3xl md:text-4xl font-black font-display tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+        <h1 className="text-3xl md:text-4xl font-black font-display tracking-tight text-white">
           Welcome to Waqt
         </h1>
         <p className="text-slate-400 mt-2 text-xs md:text-sm max-w-sm font-medium">
@@ -100,20 +96,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
         </p>
       </div>
 
-      {/* Progress Dots */}
       <div className="flex items-center gap-2 mb-8 w-full">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
             className={`h-2 flex-1 rounded-full transition-all duration-300 ${
-              i <= step ? "bg-gradient-to-r from-emerald-500 to-teal-400 shadow-glow-emerald" : "bg-slate-800"
+              i <= step ? "bg-emerald-400" : "bg-slate-800"
             }`}
           />
         ))}
       </div>
 
-      {/* Step Container Card */}
-      <div className="w-full glass-panel rounded-3xl p-6 md:p-8 shadow-2xl border border-white/10 backdrop-blur-2xl">
+      <div className="w-full line-surface rounded-md p-6 md:p-8">
         {step === 1 && (
           <div className="space-y-5">
             <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest">
@@ -131,7 +125,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                 <select
                   value={selectedPreset}
                   onChange={(e) => handleCityPresetChange(e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                  className="select-control"
                 >
                   {CITY_PRESETS.map((p) => (
                     <option key={p.name} value={p.name}>
@@ -150,7 +144,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                     setCityName(e.target.value);
                     setSelectedPreset("Custom / Manual Input");
                   }}
-                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                  className="w-full line-surface-soft rounded-md px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
                   placeholder="e.g. London, UK"
                 />
               </div>
@@ -166,7 +160,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                       setLatitude(e.target.value);
                       setSelectedPreset("Custom / Manual Input");
                     }}
-                    className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:border-emerald-500 text-slate-100"
+                    className="w-full line-surface-soft rounded-md px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:border-emerald-500 text-slate-100"
                   />
                 </div>
                 <div>
@@ -179,7 +173,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                       setLongitude(e.target.value);
                       setSelectedPreset("Custom / Manual Input");
                     }}
-                    className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:border-emerald-500 text-slate-100"
+                    className="w-full line-surface-soft rounded-md px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:border-emerald-500 text-slate-100"
                   />
                 </div>
               </div>
@@ -204,7 +198,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                 <select
                   value={method}
                   onChange={(e) => setMethod(e.target.value as CalculationMethodName)}
-                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                  className="select-control"
                 >
                   <option value="MuslimWorldLeague">Muslim World League (Default)</option>
                   <option value="Egyptian">Egyptian General Authority</option>
@@ -226,7 +220,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                 <select
                   value={asrSchool}
                   onChange={(e) => setAsrSchool(e.target.value as AsrSchool)}
-                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                  className="select-control"
                 >
                   <option value="Standard">Standard (Shafi, Maliki, Hanbali)</option>
                   <option value="Hanafi">Hanafi</option>
@@ -237,66 +231,98 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
         )}
 
         {step === 3 && (
-          <div className="space-y-5">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest">
-              <Clock className="w-4 h-4" />
-              <span>Step 3 of 3: Friction & Notifications</span>
+          <div className="space-y-6">
+            {/* Header */}
+            <div>
+              <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest mb-3">
+                <Clock className="w-4 h-4" />
+                <span>Step 3 of 3: Friction &amp; Notifications</span>
+              </div>
+              <h2 className="text-2xl font-black font-display text-white">Forced Pause Duration</h2>
+              <p className="text-slate-400 text-xs mt-1.5 leading-relaxed">
+                The confirm button stays locked for this long — giving you genuine step-away time.
+              </p>
             </div>
-            <h2 className="text-2xl font-black font-display text-white">Forced Pause Duration</h2>
-            <p className="text-slate-400 text-xs md:text-sm leading-relaxed">
-              Configure how long the full-screen overlay locks the confirm button to give you focused step-away time.
-            </p>
 
-            <div className="space-y-5 pt-2">
-              <div>
-                <div className="flex justify-between items-center text-sm mb-2">
-                  <span className="text-slate-400 font-medium">Pause Friction Duration:</span>
-                  <span className="font-extrabold font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                    {pauseMinutes} Minutes
-                  </span>
+            {/* Slider card */}
+            <div className="line-surface-soft rounded-xl p-5 space-y-4">
+              {/* Value display */}
+              <div className="flex items-end justify-between">
+                <div>
+                  <div className="text-[11px] uppercase tracking-widest text-slate-500 font-semibold mb-0.5">Pause Duration</div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-4xl font-black text-emerald-300 tabular-nums leading-none">{pauseMinutes}</span>
+                    <span className="text-sm font-semibold text-slate-400">min</span>
+                  </div>
                 </div>
+                <div className="text-right">
+                  <div className="text-[10px] text-slate-600 font-medium">Range</div>
+                  <div className="text-xs text-slate-400 font-mono">1 – 20 min</div>
+                </div>
+              </div>
+
+              {/* Slider */}
+              <div className="pt-1">
                 <input
                   type="range"
                   min="1"
                   max="20"
                   value={pauseMinutes}
                   onChange={(e) => setPauseMinutes(parseInt(e.target.value))}
-                  className="w-full accent-emerald-500 bg-slate-800 h-2.5 rounded-lg cursor-pointer"
+                  className="range-slider"
+                  style={{
+                    background: `linear-gradient(to right, #10b981 ${((pauseMinutes - 1) / 19) * 100}%, rgba(30,41,59,0.9) ${((pauseMinutes - 1) / 19) * 100}%)`
+                  }}
                 />
-              </div>
-
-              <div className="p-4 bg-slate-900/80 rounded-2xl border border-white/5 flex items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                    <Bell className="w-4 h-4 text-emerald-400" />
-                    <span>Desktop Pre-Notifications</span>
-                  </div>
-                  <div className="text-[11px] text-slate-400">
-                    Receive gentle alerts at T-30m, T-15m, and T-5m before prayer time.
-                  </div>
+                {/* Tick labels */}
+                <div className="flex justify-between mt-2 px-0.5">
+                  {[1, 5, 10, 15, 20].map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setPauseMinutes(v)}
+                      className={`text-[10px] font-mono transition-colors cursor-pointer ${
+                        pauseMinutes === v ? 'text-emerald-400 font-bold' : 'text-slate-600 hover:text-slate-400'
+                      }`}
+                    >
+                      {v}m
+                    </button>
+                  ))}
                 </div>
-
-                <button
-                  onClick={handleRequestNotificationPermission}
-                  type="button"
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    notifGranted
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-glow-emerald"
-                      : "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
-                  }`}
-                >
-                  {notifGranted ? "✓ Enabled" : "Enable Alerts"}
-                </button>
               </div>
+            </div>
+
+            {/* Notifications card */}
+            <div className="line-surface-soft rounded-xl p-4 flex items-center gap-4">
+              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                notifGranted ? 'bg-emerald-500/15 border border-emerald-500/30' : 'bg-slate-800/60 border border-slate-700/50'
+              }`}>
+                <Bell className={`w-5 h-5 transition-colors ${notifGranted ? 'text-emerald-400' : 'text-slate-500'}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold text-slate-100">Desktop Pre-Notifications</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">Gentle alerts at T-30m, T-15m &amp; T-5m before prayer.</div>
+              </div>
+              <button
+                onClick={handleRequestNotificationPermission}
+                type="button"
+                className={`shrink-0 relative w-12 h-6 rounded-full transition-all duration-300 focus:outline-none ${
+                  notifGranted ? 'bg-emerald-500' : 'bg-slate-700 border border-slate-600'
+                }`}
+                aria-label={notifGranted ? 'Disable notifications' : 'Enable notifications'}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300 ${
+                  notifGranted ? 'left-[26px]' : 'left-0.5'
+                }`} />
+              </button>
             </div>
           </div>
         )}
 
-        {/* Action Button */}
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleNext}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black px-6 py-3 rounded-2xl transition-all shadow-glow-emerald active:scale-95 text-xs uppercase tracking-wider"
+            className="line-button flex items-center gap-2 text-emerald-300 font-black px-6 py-3 rounded-md transition-all active:scale-95 text-xs uppercase tracking-wider"
           >
             <span>{step === 3 ? "Complete Setup" : "Continue"}</span>
             {step === 3 ? <CheckCircle2 className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}

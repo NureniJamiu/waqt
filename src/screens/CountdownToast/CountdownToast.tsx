@@ -64,7 +64,8 @@ export const CountdownToast: React.FC<CountdownToastProps> = ({
 
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-float">
-      <div className="glass-panel-emerald p-4 rounded-3xl shadow-2xl border border-emerald-500/40 bg-slate-950/95 max-w-xs flex items-center gap-4 shadow-glow-emerald">
+      <div className="relative line-surface p-4 rounded-md border border-emerald-500/35 max-w-xs flex items-center gap-4 overflow-hidden">
+        <div className="absolute top-0 left-0 h-[2px] w-full bg-emerald-400/80" />
         <div className="relative w-12 h-12 flex items-center justify-center">
           <svg className="w-12 h-12 -rotate-90 transform">
             <circle cx="24" cy="24" r="18" stroke="rgba(255,255,255,0.1)" strokeWidth="3" fill="transparent" />
@@ -86,7 +87,7 @@ export const CountdownToast: React.FC<CountdownToastProps> = ({
 
         <div className="flex-1">
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-extrabold uppercase tracking-wider mb-0.5">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-spin-slow" />
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             <span>Time for Prayer</span>
           </div>
           <h4 className="font-black font-display text-white text-base">{prayerName}</h4>

@@ -116,18 +116,17 @@ export const Overlay: React.FC<OverlayProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-[#05080e] text-slate-100 flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(71,85,105,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(71,85,105,0.18)_1px,transparent_1px)] bg-[size:26px_26px] opacity-20" />
 
       {/* Top Bar */}
       <div className="flex justify-between items-center w-full max-w-5xl mx-auto relative z-10">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-300 bg-slate-900/90 px-4 py-2 rounded-2xl border border-white/10 shadow-lg">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-300 bg-slate-900/90 px-4 py-2 rounded-md border border-slate-700/80">
             <Moon className="w-4 h-4 text-emerald-400" />
             <span>Waqt Forced Pause</span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/60 px-4 py-2 rounded-2xl border border-white/5">
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/60 px-4 py-2 rounded-md border border-slate-800/80">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             <span>{currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
           </div>
@@ -136,16 +135,14 @@ export const Overlay: React.FC<OverlayProps> = ({
         {/* Emergency Dismiss Button - ALWAYS CLICKABLE */}
         <button
           onClick={() => setShowEmergencyConfirm(true)}
-          className="flex items-center gap-2 text-xs font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-2xl border border-amber-500/30 transition-all shadow-glow-amber cursor-pointer"
+          className="flex items-center gap-2 text-xs font-bold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/15 px-4 py-2 rounded-md border border-amber-500/35 transition-all cursor-pointer"
         >
           <AlertTriangle className="w-4 h-4" />
           <span>Emergency Dismiss</span>
         </button>
       </div>
 
-      {/* Main Center Stack */}
-      <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto space-y-6 relative z-10">
-        {/* SVG Circular Ring Countdown */}
+      <div className="line-surface rounded-md flex flex-col items-center justify-center text-center max-w-md mx-auto space-y-6 relative z-10 px-6 py-8 border border-slate-700/70">
         <div className="relative flex items-center justify-center">
           <svg className="w-44 h-44 -rotate-90 transform">
             <circle
@@ -166,7 +163,7 @@ export const Overlay: React.FC<OverlayProps> = ({
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
               fill="transparent"
-              className="transition-all duration-1000 ease-linear shadow-glow-emerald"
+              className="transition-all duration-1000 ease-linear"
             />
           </svg>
 
@@ -180,9 +177,8 @@ export const Overlay: React.FC<OverlayProps> = ({
           </div>
         </div>
 
-        {/* Messaging */}
         <div className="space-y-2">
-          <span className="text-xs uppercase font-extrabold tracking-widest text-emerald-400 bg-emerald-500/10 px-3.5 py-1 rounded-full border border-emerald-500/20">
+          <span className="text-xs uppercase font-extrabold tracking-widest text-emerald-300 bg-emerald-500/10 px-3.5 py-1 rounded-full border border-emerald-500/25">
             Time to step away
           </span>
           <h1 className="text-4xl md:text-5xl font-black font-display tracking-tight text-white">
@@ -193,15 +189,13 @@ export const Overlay: React.FC<OverlayProps> = ({
           </p>
         </div>
 
-        {/* Action Buttons */}
         <div className="pt-2 flex flex-col items-center gap-3 w-full">
-          {/* Confirm Button - Disabled until forced pause elapses */}
           <button
             onClick={onConfirmPrayed}
             disabled={!isPauseElapsed}
-            className={`w-full py-4 px-6 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-2xl ${
+            className={`w-full py-4 px-6 rounded-md font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all ${
               isPauseElapsed
-                ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-glow-emerald cursor-pointer active:scale-98"
+                ? "bg-emerald-500/15 border border-emerald-500/45 text-emerald-200 hover:bg-emerald-500/20 cursor-pointer active:scale-98"
                 : "bg-slate-900/90 text-slate-500 border border-slate-800 cursor-not-allowed opacity-75"
             }`}
           >
@@ -218,7 +212,6 @@ export const Overlay: React.FC<OverlayProps> = ({
             )}
           </button>
 
-          {/* Snooze Button */}
           {settings.snoozeEnabled && !snoozed && (
             <button
               onClick={handleSnoozeClick}
@@ -239,7 +232,7 @@ export const Overlay: React.FC<OverlayProps> = ({
       {/* Emergency Dismiss Modal */}
       {showEmergencyConfirm && (
         <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4">
-          <div className="bg-[#0b0f19] max-w-md w-full p-6 md:p-8 rounded-3xl border border-amber-500/50 space-y-5 text-left shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative z-[101]">
+          <div className="bg-[#0b0f19] max-w-md w-full p-6 md:p-8 rounded-md border border-amber-500/45 space-y-5 text-left relative z-[101]">
             <div className="flex items-center gap-2.5 text-amber-400 font-extrabold text-lg font-display">
               <ShieldAlert className="w-6 h-6 text-amber-400 shrink-0" />
               <span>Emergency Dismiss</span>
@@ -255,14 +248,14 @@ export const Overlay: React.FC<OverlayProps> = ({
               <button
                 type="button"
                 onClick={() => setShowEmergencyConfirm(false)}
-                className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold rounded-2xl text-xs transition-all cursor-pointer border border-slate-700 active:scale-95 shadow-md"
+                className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold rounded-md text-xs transition-all cursor-pointer border border-slate-700 active:scale-95"
               >
                 Cancel (Keep Paused)
               </button>
               <button
                 type="button"
                 onClick={onEmergencyDismiss}
-                className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-2xl text-xs transition-all shadow-glow-amber cursor-pointer active:scale-95"
+                className="flex-1 py-3 px-4 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/45 text-amber-200 font-black rounded-md text-xs transition-all cursor-pointer active:scale-95"
               >
                 Yes, Dismiss Immediately
               </button>
