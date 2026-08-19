@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AppSettings, CalculationMethodName, AsrSchool } from "../../types";
-import { MapPin, Sliders, Clock, CheckCircle2, ChevronRight, Bell } from "lucide-react";
+import { MapPin, Sliders, Clock, CheckCircle2, ChevronRight, Bell, ShieldCheck, ShieldAlert, Loader2 } from "lucide-react";
 import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
+import {
+  checkAccessibilityPermission,
+  requestAccessibilityPermission,
+} from "../../lib/store";
 
 interface OnboardingProps {
   settings: AppSettings;
@@ -34,7 +38,78 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
   const [method, setMethod] = useState<CalculationMethodName>(settings.calculationMethod);
   const [asrSchool, setAsrSchool] = useState<AsrSchool>(settings.asrSchool);
   const [pauseMinutes, setPauseMinutes] = useState(Math.round(settings.forcedPauseSeconds / 60));
-  const [notifGranted, setNotifGranted] = useState<boolean>(true);
+
+  // Notification permission state
+  const [notifGranted, setNotifGranted] = useState<boolean | null>(null); // null = checking
+  const [notifRequesting, setNotifRequesting] = useState(false);
+
+  // Accessibility permission state (macOS)
+  const [accessGranted, setAccessGranted] = useState<boolean | null>(null); // null = checking
+  const [accessRequesting, setAccessRequesting] = useState(false);
+
+  // Track whether we've auto-prompted for notifications on step 3 mount
+  const hasAutoPromptedNotif = useRef(false);
+
+  // ── When entering Step 3, check both permissions and auto-prompt notifications ──
+  useEffect(() => {
+    if (step !== 3) return;
+
+    // Check notification permission (real OS state)
+    const checkNotif = async () => {
+      try {
+        const granted = await isPermissionGranted();
+        setNotifGranted(granted);
+
+        // Auto-prompt once if not yet granted
+        if (!granted && !hasAutoPromptedNotif.current) {
+          hasAutoPromptedNotif.current = true;
+          setNotifRequesting(true);
+          try {
+            const perm = await requestPermission();
+            setNotifGranted(perm === "granted");
+          } catch {
+            setNotifGranted(false);
+          } finally {
+            setNotifRequesting(false);
+          }
+        }
+      } catch {
+        // Fallback: assume granted if API is unavailable (web dev mode)
+        setNotifGranted(true);
+      }
+    };
+
+    // Check accessibility permission
+    const checkAccess = async () => {
+      try {
+        const granted = await checkAccessibilityPermission();
+        setAccessGranted(granted);
+      } catch {
+        setAccessGranted(true); // Non-macOS / dev fallback
+      }
+    };
+
+    checkNotif();
+    checkAccess();
+  }, [step]);
+
+  // ── Poll accessibility permission while step 3 is visible so the card
+  //    updates live when the user toggles the switch in System Preferences ──
+  useEffect(() => {
+    if (step !== 3) return;
+    if (accessGranted === true) return; // Already granted, no need to poll
+
+    const interval = setInterval(async () => {
+      try {
+        const granted = await checkAccessibilityPermission();
+        setAccessGranted(granted);
+      } catch {
+        // ignore
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [step, accessGranted]);
 
   const handleCityPresetChange = (presetName: string) => {
     setSelectedPreset(presetName);
@@ -48,6 +123,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
   };
 
   const handleRequestNotificationPermission = async () => {
+    if (notifRequesting) return;
+    setNotifRequesting(true);
     try {
       let granted = await isPermissionGranted();
       if (!granted) {
@@ -60,6 +137,21 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
         const permission = await Notification.requestPermission();
         setNotifGranted(permission === "granted");
       }
+    } finally {
+      setNotifRequesting(false);
+    }
+  };
+
+  const handleRequestAccessibilityPermission = async () => {
+    if (accessRequesting) return;
+    setAccessRequesting(true);
+    try {
+      const granted = await requestAccessibilityPermission();
+      setAccessGranted(granted);
+    } catch {
+      setAccessGranted(false);
+    } finally {
+      setAccessRequesting(false);
     }
   };
 
@@ -75,12 +167,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
         calculationMethod: method,
         asrSchool,
         forcedPauseSeconds: pauseMinutes * 60,
-        notificationsEnabled: notifGranted || settings.notificationsEnabled,
+        notificationsEnabled: notifGranted === true,
         onboardingCompleted: true,
       };
       onComplete(updated);
     }
   };
+
+  const allPermissionsGranted = notifGranted === true && accessGranted === true;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 md:p-8 max-w-xl mx-auto text-slate-100">
@@ -236,11 +330,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
             <div>
               <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest mb-3">
                 <Clock className="w-4 h-4" />
-                <span>Step 3 of 3: Friction &amp; Notifications</span>
+                <span>Step 3 of 3: Pause &amp; Permissions</span>
               </div>
-              <h2 className="text-2xl font-black font-display text-white">Forced Pause Duration</h2>
+              <h2 className="text-2xl font-black font-display text-white">Forced Pause &amp; Access</h2>
               <p className="text-slate-400 text-xs mt-1.5 leading-relaxed">
-                The confirm button stays locked for this long — giving you genuine step-away time.
+                Configure your pause duration and grant required OS permissions so the app works correctly from the first prayer.
               </p>
             </div>
 
@@ -292,29 +386,110 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
               </div>
             </div>
 
-            {/* Notifications card */}
-            <div className="line-surface-soft rounded-xl p-4 flex items-center gap-4">
-              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                notifGranted ? 'bg-emerald-500/15 border border-emerald-500/30' : 'bg-slate-800/60 border border-slate-700/50'
-              }`}>
-                <Bell className={`w-5 h-5 transition-colors ${notifGranted ? 'text-emerald-400' : 'text-slate-500'}`} />
+            {/* ── Permissions section ── */}
+            <div className="space-y-3">
+              <div className="text-[11px] uppercase tracking-widest text-slate-500 font-semibold">Required Permissions</div>
+
+              {/* Notification permission card */}
+              <div className="line-surface-soft rounded-xl p-4 flex items-center gap-4">
+                <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                  notifGranted === true
+                    ? 'bg-emerald-500/15 border border-emerald-500/30'
+                    : notifGranted === null
+                    ? 'bg-slate-800/60 border border-slate-700/50'
+                    : 'bg-amber-500/10 border border-amber-500/30'
+                }`}>
+                  {notifGranted === null || notifRequesting
+                    ? <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+                    : notifGranted === true
+                    ? <Bell className="w-5 h-5 text-emerald-400" />
+                    : <Bell className="w-5 h-5 text-amber-400" />
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-slate-100">Desktop Notifications</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    {notifGranted === true
+                      ? "Granted — T-30m, T-15m & T-5m prayer alerts enabled."
+                      : notifGranted === false
+                      ? "Denied — prayer pre-notifications will be disabled."
+                      : "Checking…"}
+                  </div>
+                </div>
+                {notifGranted !== true && (
+                  <button
+                    onClick={handleRequestNotificationPermission}
+                    disabled={notifRequesting}
+                    type="button"
+                    className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {notifRequesting ? "Requesting…" : "Allow"}
+                  </button>
+                )}
+                {notifGranted === true && (
+                  <div className="shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  </div>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-bold text-slate-100">Desktop Pre-Notifications</div>
-                <div className="text-[11px] text-slate-400 mt-0.5">Gentle alerts at T-30m, T-15m &amp; T-5m before prayer.</div>
+
+              {/* Accessibility permission card (macOS) */}
+              <div className="line-surface-soft rounded-xl p-4 flex items-center gap-4">
+                <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                  accessGranted === true
+                    ? 'bg-emerald-500/15 border border-emerald-500/30'
+                    : accessGranted === null
+                    ? 'bg-slate-800/60 border border-slate-700/50'
+                    : 'bg-amber-500/10 border border-amber-500/30'
+                }`}>
+                  {accessGranted === null || accessRequesting
+                    ? <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+                    : accessGranted === true
+                    ? <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                    : <ShieldAlert className="w-5 h-5 text-amber-400" />
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-slate-100">Accessibility Access</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    {accessGranted === true
+                      ? "Granted — overlay can minimize other windows on prayer time."
+                      : accessGranted === false
+                      ? "Required to minimize fullscreen apps when overlay fires. Grant in System Settings."
+                      : "Checking…"}
+                  </div>
+                  {accessGranted === false && (
+                    <div className="text-[10px] text-amber-500/80 mt-1">
+                      Waiting for you to toggle the switch in System Settings…
+                    </div>
+                  )}
+                </div>
+                {accessGranted !== true && (
+                  <button
+                    onClick={handleRequestAccessibilityPermission}
+                    disabled={accessRequesting}
+                    type="button"
+                    className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {accessRequesting ? "Opening…" : "Grant Access"}
+                  </button>
+                )}
+                {accessGranted === true && (
+                  <div className="shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  </div>
+                )}
               </div>
-              <button
-                onClick={handleRequestNotificationPermission}
-                type="button"
-                className={`shrink-0 relative w-12 h-6 rounded-full transition-all duration-300 focus:outline-none ${
-                  notifGranted ? 'bg-emerald-500' : 'bg-slate-700 border border-slate-600'
-                }`}
-                aria-label={notifGranted ? 'Disable notifications' : 'Enable notifications'}
-              >
-                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300 ${
-                  notifGranted ? 'left-[26px]' : 'left-0.5'
-                }`} />
-              </button>
+
+              {/* Summary hint */}
+              {!allPermissionsGranted && notifGranted !== null && accessGranted !== null && (
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-500/8 border border-amber-500/20">
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-amber-300/80 leading-relaxed">
+                    You can continue without granting all permissions, but some features may be limited. You can grant access later in Settings.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -266,3 +266,34 @@ export async function sendTestNotificationCommand(prayerName?: string, minutes?:
   }
 }
 
+/** Returns true if the macOS Accessibility permission is currently granted. */
+export async function checkAccessibilityPermission(): Promise<boolean> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      return await invoke<boolean>("check_accessibility_permission");
+    } catch (err) {
+      console.warn("Failed to check accessibility permission:", err);
+    }
+  }
+  // Non-Tauri / non-macOS: no permission needed.
+  return true;
+}
+
+/**
+ * Triggers the native macOS "Allow Accessibility Access" dialog / opens
+ * System Preferences to the Accessibility pane.
+ * Returns true if permission is already granted, false if the user still
+ * needs to toggle the switch in System Preferences.
+ */
+export async function requestAccessibilityPermission(): Promise<boolean> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      return await invoke<boolean>("request_accessibility_permission");
+    } catch (err) {
+      console.warn("Failed to request accessibility permission:", err);
+    }
+  }
+  return true;
+}

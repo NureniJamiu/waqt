@@ -63,6 +63,16 @@ fn send_test_notification(app: AppHandle, prayer_name: Option<String>, minutes: 
         .map_err(|e| format!("Notification error: {:?}", e))
 }
 
+#[tauri::command]
+fn check_accessibility_permission() -> bool {
+    overlay_window::has_accessibility_permission()
+}
+
+#[tauri::command]
+fn request_accessibility_permission() -> bool {
+    overlay_window::request_accessibility_permission()
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
@@ -78,7 +88,9 @@ pub fn run() {
             add_log_entry,
             trigger_overlay,
             dismiss_overlay,
-            send_test_notification
+            send_test_notification,
+            check_accessibility_permission,
+            request_accessibility_permission
         ])
         .setup(|app| {
             let handle = app.handle().clone();

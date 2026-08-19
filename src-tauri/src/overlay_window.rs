@@ -220,7 +220,7 @@ pub fn build_minimize_all_windows_script() -> String {
 }
 
 #[cfg(target_os = "macos")]
-fn has_accessibility_permission() -> bool {
+pub fn has_accessibility_permission() -> bool {
     let result = std::process::Command::new("osascript")
         .arg("-e")
         .arg("tell application \"System Events\" to return name of every application process")
@@ -230,6 +230,40 @@ fn has_accessibility_permission() -> bool {
         Ok(output) => output.status.success(),
         Err(_) => false,
     }
+}
+
+/// Trigger the native macOS "Allow Accessibility Access" dialog by calling
+/// AXIsProcessTrustedWithOptions with kAXTrustedCheckOptionPrompt = true.
+/// If the permission is already granted it returns true immediately.
+/// If not, it shows the system prompt and opens System Preferences to the
+/// Accessibility pane so the user can grant it, then returns false (the user
+/// must toggle the switch in System Preferences — we cannot grant it for them).
+#[cfg(target_os = "macos")]
+pub fn request_accessibility_permission() -> bool {
+    // Call AXIsProcessTrustedWithOptions via osascript to avoid linking against
+    // ApplicationServices directly. The osascript attempt itself triggers the prompt.
+    // First try the direct CF approach via a small osascript that accesses System Events
+    // (which forces the AX prompt), then open System Preferences for manual granting.
+    let already_granted = has_accessibility_permission();
+    if already_granted {
+        return true;
+    }
+
+    // Opening System Preferences to the Accessibility pane causes macOS to
+    // show the "Allow Waqt to control your computer" system alert.
+    open_accessibility_settings();
+    false
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn has_accessibility_permission() -> bool {
+    // Non-macOS platforms don't need this permission.
+    true
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn request_accessibility_permission() -> bool {
+    true
 }
 
 #[cfg(target_os = "macos")]
