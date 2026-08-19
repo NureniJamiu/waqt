@@ -3,7 +3,7 @@ import { AppSettings, PrayerLogItem, PrayerName } from "./types";
 import {
   loadSettingsFromStorage,
   loadSettings,
-  saveSettingsToStorage,
+  saveSettings,
   loadLogsFromStorage,
   addLogEntryToStorage,
   dismissOverlayCommand,
@@ -41,6 +41,7 @@ export function App() {
   // If this window was spawned as an overlay, skip splash entirely and boot
   // straight into the overlay screen with the correct prayer name.
   const [showSplash, setShowSplash] = useState<boolean>(!isOverlayWindow);
+  const [isHydrating, setIsHydrating] = useState<boolean>(true);
   const [settings, setSettings] = useState<AppSettings>(() => loadSettingsFromStorage());
   const [logs, setLogs] = useState<PrayerLogItem[]>(() => loadLogsFromStorage());
   const [currentScreen, setCurrentScreen] = useState<"dashboard" | "settings" | "log" | "onboarding" | "toast" | "overlay">(
@@ -58,34 +59,37 @@ export function App() {
   // wasn't flushed identically). This is especially critical in the overlay
   // window where forcedPauseSeconds must be accurate.
   useEffect(() => {
-    loadSettings().then((hydrated) => {
-      setSettings((prev) => {
-        // Only update if something actually differs to avoid re-renders.
-        if (JSON.stringify(prev) !== JSON.stringify(hydrated)) {
-          return hydrated;
-        }
-        return prev;
+    loadSettings()
+      .then((hydrated) => {
+        setSettings((prev) => {
+          if (JSON.stringify(prev) !== JSON.stringify(hydrated)) {
+            return hydrated;
+          }
+          return prev;
+        });
+      })
+      .finally(() => {
+        setIsHydrating(false);
       });
-    });
     // Run once on mount only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    // Don't run onboarding logic in overlay windows — they are independent
-    // Tauri WebviewWindows with a single job: show the forced-pause overlay.
-    if (isOverlayWindow) return;
+    // Don't run onboarding logic in overlay windows or while initial store hydration is pending
+    if (isOverlayWindow || isHydrating) return;
 
     if (!settings.onboardingCompleted) {
       setCurrentScreen("onboarding");
     } else {
+      setCurrentScreen((prev) => (prev === "onboarding" ? "dashboard" : prev));
       syncAutostart(settings.launchAtLogin);
     }
-  }, [settings.onboardingCompleted, settings.launchAtLogin]);
+  }, [isOverlayWindow, isHydrating, settings.onboardingCompleted, settings.launchAtLogin]);
 
   const handleSaveSettings = (updated: AppSettings) => {
     setSettings(updated);
-    saveSettingsToStorage(updated);
+    saveSettings(updated);
     if (currentScreen === "onboarding") {
       setCurrentScreen("dashboard");
     }
@@ -143,7 +147,7 @@ export function App() {
   const handleToggleNotifications = () => {
     const updated = { ...settings, notificationsEnabled: !settings.notificationsEnabled };
     setSettings(updated);
-    saveSettingsToStorage(updated);
+    saveSettings(updated);
   };
 
   const handleSnooze = () => {
