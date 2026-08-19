@@ -37,6 +37,7 @@ const isOverlayWindow = urlParams.screen === "overlay";
 
 
 export function App() {
+  const isDevelopment = import.meta.env.DEV;
   // If this window was spawned as an overlay, skip splash entirely and boot
   // straight into the overlay screen with the correct prayer name.
   const [showSplash, setShowSplash] = useState<boolean>(!isOverlayWindow);
@@ -184,9 +185,9 @@ export function App() {
             <Dashboard
               settings={settings}
               onNavigate={(screen) => setCurrentScreen(screen)}
-              onTriggerTestOverlay={handleTriggerTestOverlay}
+              onTriggerTestOverlay={isDevelopment ? handleTriggerTestOverlay : undefined}
               onToggleNotifications={handleToggleNotifications}
-              onPreviewSplash={() => setShowSplash(true)}
+              onPreviewSplash={isDevelopment ? () => setShowSplash(true) : undefined}
             />
           )}
 
@@ -195,7 +196,7 @@ export function App() {
               settings={settings}
               onSave={handleSaveSettings}
               onBack={() => setCurrentScreen("dashboard")}
-              onPreviewSplash={() => setShowSplash(true)}
+              onPreviewSplash={isDevelopment ? () => setShowSplash(true) : undefined}
             />
           )}
 
