@@ -119,12 +119,14 @@ export async function loadSettings(): Promise<AppSettings> {
 export async function syncAutostart(launchAtLogin: boolean): Promise<void> {
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     try {
-      const { enable, disable } = await import("@tauri-apps/plugin-autostart");
-      if (launchAtLogin) {
+      const { enable, disable, isEnabled } = await import("@tauri-apps/plugin-autostart");
+      const currentlyEnabled = await isEnabled();
+      if (launchAtLogin && !currentlyEnabled) {
         await enable();
-      } else {
+      } else if (!launchAtLogin && currentlyEnabled) {
         await disable();
       }
+      // No-op if already in the desired state — prevents duplicate login items
     } catch (err) {
       console.warn("Failed to sync autostart setting via Tauri autostart plugin:", err);
     }
@@ -145,7 +147,7 @@ export async function isAutostartEnabled(): Promise<boolean> {
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
   saveSettingsToStorage(settings);
-  syncAutostart(settings.launchAtLogin);
+  await syncAutostart(settings.launchAtLogin);
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
