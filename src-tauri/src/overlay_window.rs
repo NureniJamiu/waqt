@@ -1,6 +1,11 @@
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
 pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        minimize_all_other_windows();
+    }
+
     let monitors_res = app.available_monitors();
 
     let monitors = match monitors_res {
@@ -178,28 +183,90 @@ fn harden_macos(win: &tauri::WebviewWindow) {
         ns_win_ref.setCanHide(false);
         ns_win_ref.setHidesOnDeactivate(false);
 
-        // 5. Bring to front unconditionally (works even when app is not active).
+        // 5. Before bringing overlay to front, fully minimize all other app windows.
+        // `hideOtherApplications()` and similar AppKit calls do not reliably eject
+        // apps from fullscreen spaces, which is why the app can still be reached
+        // via three-finger gestures. This OS-level minimization step is the required
+        // precondition before the overlay takes over the screen.
+        minimize_all_other_windows();
+
+        // 6. Bring to front unconditionally (works even when app is not active).
         ns_win_ref.orderFrontRegardless();
 
-        // 6. Activate our app so keyboard events route here.
+        // 7. Activate our app so keyboard events route here.
         let mtm = objc2::MainThreadMarker::new_unchecked();
         let app = NSApplication::sharedApplication(mtm);
         app.activate();
-        app.hideOtherApplications(None);
-
-        hide_all_other_apps();
     }
 }
 
 #[cfg(target_os = "macos")]
-fn hide_all_other_apps() {
-    use objc2_app_kit::NSWorkspace;
-    let workspace = NSWorkspace::sharedWorkspace();
-    let current_pid = std::process::id() as i32;
-    let running_apps = workspace.runningApplications();
-    for running_app in running_apps {
-        if running_app.processIdentifier() != current_pid {
-            let _ = running_app.hide();
+pub fn build_minimize_all_windows_script() -> String {
+    r#"
+    tell application "System Events"
+        repeat with proc in every application process
+            if name of proc is not "waqt" then
+                try
+                    repeat with aWindow in windows of proc
+                        set miniaturized of aWindow to true
+                    end repeat
+                end try
+            end if
+        end repeat
+    end tell
+    "#
+    .trim()
+    .to_string()
+}
+
+#[cfg(target_os = "macos")]
+fn has_accessibility_permission() -> bool {
+    let result = std::process::Command::new("osascript")
+        .arg("-e")
+        .arg("tell application \"System Events\" to return name of every application process")
+        .output();
+
+    match result {
+        Ok(output) => output.status.success(),
+        Err(_) => false,
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn open_accessibility_settings() {
+    let _ = std::process::Command::new("open")
+        .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+        .status();
+}
+
+#[cfg(target_os = "macos")]
+fn minimize_all_other_windows() {
+    if !has_accessibility_permission() {
+        eprintln!(
+            "[Waqt] macOS Accessibility permission is required to minimize fullscreen windows before an overlay is shown."
+        );
+        open_accessibility_settings();
+        return;
+    }
+
+    let script = build_minimize_all_windows_script();
+    let result = std::process::Command::new("osascript")
+        .arg("-e")
+        .arg(&script)
+        .output();
+
+    match result {
+        Ok(output) => {
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                eprintln!("[Waqt] Failed to minimize other app windows: {}", stderr);
+                if stderr.to_lowercase().contains("not authorized") || stderr.to_lowercase().contains("accessibility") {
+                    open_accessibility_settings();
+                }
+            }
+        }
+        Err(err) => {
+            eprintln!("[Waqt] Could not execute osascript to minimize apps: {}", err);
         }
     }
 }
@@ -220,5 +287,17 @@ pub fn close_all_overlays(app: &AppHandle) {
         for running_app in running_apps {
             let _ = running_app.unhide();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_minimize_all_windows_script_targets_all_application_windows() {
+        let script = super::build_minimize_all_windows_script();
+
+        assert!(script.contains("every application process"));
+        assert!(script.contains("if name of proc is not \"waqt\""));
+        assert!(script.contains("set miniaturized of aWindow to true"));
     }
 }
