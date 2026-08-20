@@ -109,10 +109,64 @@ pub fn run() {
         ])
         .setup(|app| {
             let handle = app.handle().clone();
+
+            if let Ok(show_item) = tauri::menu::MenuItemBuilder::with_id("show_dashboard", "Show Waqt Dashboard").build(app) {
+                if let Ok(quit_item) = tauri::menu::MenuItemBuilder::with_id("quit", "Quit Waqt").build(app) {
+                    if let Ok(menu) = tauri::menu::MenuBuilder::new(app).items(&[&show_item, &quit_item]).build() {
+                        let mut tray_builder = tauri::tray::TrayIconBuilder::new()
+                            .tooltip("Waqt - Prayer Accountability")
+                            .menu(&menu)
+                            .on_menu_event(|app, event| {
+                                match event.id.as_ref() {
+                                    "show_dashboard" => {
+                                        if let Some(win) = app.get_webview_window("main") {
+                                            let _ = win.show();
+                                            let _ = win.set_focus();
+                                        }
+                                    }
+                                    "quit" => {
+                                        app.exit(0);
+                                    }
+                                    _ => {}
+                                }
+                            })
+                            .on_tray_icon_event(|tray, event| {
+                                if let tauri::tray::TrayIconEvent::Click { button, .. } = event {
+                                    if button == tauri::tray::MouseButton::Left {
+                                        let app_handle = tray.app_handle();
+                                        if let Some(win) = app_handle.get_webview_window("main") {
+                                            if win.is_visible().unwrap_or(false) {
+                                                let _ = win.hide();
+                                            } else {
+                                                let _ = win.show();
+                                                let _ = win.set_focus();
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+
+                        if let Some(icon) = app.default_window_icon() {
+                            tray_builder = tray_builder.icon(icon.clone());
+                        }
+
+                        let _ = tray_builder.build(app);
+                    }
+                }
+            }
+
             tauri::async_runtime::spawn(async move {
                 scheduler::start_background_scheduler(handle).await;
             });
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() == "main" {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

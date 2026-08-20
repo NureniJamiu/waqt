@@ -103,8 +103,21 @@ impl StoreManager {
     pub fn load_store(&self) -> WaqtStore {
         let path = self.get_store_path();
         if let Ok(content) = fs::read_to_string(&path) {
-            if let Ok(store) = serde_json::from_str::<WaqtStore>(&content) {
-                return store;
+            match serde_json::from_str::<WaqtStore>(&content) {
+                Ok(store) => return store,
+                Err(err) => {
+                    eprintln!("[Waqt Store] Corrupted JSON store detected: {err}");
+                    let timestamp = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map(|d| d.as_secs())
+                        .unwrap_or(0);
+                    let backup_path = self.config_dir.join(format!("store.json.corrupted.{}.bak", timestamp));
+                    if let Err(b_err) = fs::copy(&path, &backup_path) {
+                        eprintln!("[Waqt Store] Failed to create corrupted backup: {b_err}");
+                    } else {
+                        eprintln!("[Waqt Store] Saved corrupted store backup to {:?}", backup_path);
+                    }
+                }
             }
         }
         WaqtStore::default()
@@ -115,8 +128,10 @@ impl StoreManager {
         if let Some(parent) = path.parent() {
             let _ = fs::create_dir_all(parent);
         }
+        let temp_path = self.config_dir.join(format!("store.json.tmp.{}", std::process::id()));
         let json = serde_json::to_string_pretty(store).map_err(|e| e.to_string())?;
-        fs::write(path, json).map_err(|e| e.to_string())
+        fs::write(&temp_path, json).map_err(|e| e.to_string())?;
+        fs::rename(&temp_path, &path).map_err(|e| e.to_string())
     }
 
     pub fn load_settings(&self) -> AppSettings {
@@ -271,6 +286,28 @@ mod tests {
         mgr.mark_missed_prayer("2026-08-20", "Dhuhr", "2026-08-20T13:00:00Z").unwrap();
         let dhuhr_log = mgr.load_logs().into_iter().find(|l| l.prayer == "Dhuhr").unwrap();
         assert_eq!(dhuhr_log.status, "confirmed");
+
+        let _ = std::fs::remove_dir_all(temp_dir);
+    }
+
+    #[test]
+    fn test_corrupted_store_backup_recovery() {
+        let unique_name = format!("waqt_corrupt_test_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos());
+        let temp_dir = std::env::temp_dir().join(unique_name);
+        let mgr = StoreManager::new(temp_dir.clone());
+        let store_path = mgr.get_store_path();
+
+        let _ = std::fs::create_dir_all(&temp_dir);
+        std::fs::write(&store_path, "{ invalid_json_syntax: true ").unwrap();
+
+        let loaded = mgr.load_store();
+        assert!(!loaded.settings.onboarding_completed);
+
+        let entries = std::fs::read_dir(&temp_dir).unwrap();
+        let backup_exists = entries.filter_map(|e| e.ok()).any(|e| {
+            e.file_name().to_string_lossy().contains("store.json.corrupted.")
+        });
+        assert!(backup_exists, "Corrupted backup file should be created");
 
         let _ = std::fs::remove_dir_all(temp_dir);
     }
