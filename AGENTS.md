@@ -35,7 +35,6 @@ Waqt is a **personal accountability desktop app**, NOT a surveillance or enforce
 waqt/
 ├── AGENTS.md                  # This steering document
 ├── TASKS.md                   # Phased task tracking breakdown
-├── PRD.md                     # Product Requirements Document
 ├── package.json               # Frontend dependencies & scripts
 ├── vite.config.ts             # Vite build setup for Tauri
 ├── src-tauri/                 # Rust Backend (Tauri v2)

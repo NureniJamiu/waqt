@@ -1,4 +1,4 @@
-# Waqt 🕌
+# Waqt
 
 [![Tauri v2](https://img.shields.io/badge/Tauri-v2.2-blue?logo=tauri&logoColor=white)](https://tauri.app/)
 [![Rust](https://img.shields.io/badge/Rust-2021-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
@@ -7,23 +7,32 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v3.4-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **Waqt** is a minimalist, privacy-first personal accountability desktop application designed to interrupt work smoothly at prayer times, enforce a brief forced pause, and foster consistent prayer habits without trapping the user.
+> **Waqt** is a minimalist, privacy-first personal accountability desktop application designed to interrupt work sessions smoothly at prayer times, enforce a brief forced pause, and foster consistent habits without trapping the user.
 
 ---
 
-## 🌟 Overview & Philosophy
+## Technical Article (Coming Soon)
 
-Waqt operates on a simple principle: **personal accountability, not surveillance or punishment**. 
-
-* **Honor System Only**: The application does not monitor your camera, log keypresses, block system inputs, or act as an OS-level lock screen.
-* **Pre-Lock Lead Time Offset (`preLockMinutes`)**: Configure a custom lead time (0 to 30 minutes, default 15 minutes) prior to prayer time to gracefully disengage from computer tasks early.
-* **Forced Pause Friction**: At prayer lock time, a full-screen overlay appears with a configurable forced pause duration (default 7 minutes). During this window, the *"I've prayed"* confirmation button is present but disabled, giving you space to disengage.
-* **Emergency Dismiss Prolongation & Strict Re-Lock Protocol**: Triggering emergency dismiss temporarily snoozes the lock screen by 30 minutes while sending desktop reminders at T-15m, T-10m, and T-5m. If the prayer window is still active after 30 minutes, Waqt re-locks the screen with `emergencyExhausted = true`, disabling emergency dismiss to prevent abuse while respecting true emergencies.
-* **100% Offline & Private**: All prayer times are calculated client-side using `adhan-js` based on your coordinates and preferred calculation method. All settings and history logs remain strictly local on your device (`~/Library/Application Support/waqt/store.json`). Zero cloud telemetry, tracking, or network calls.
+A comprehensive deep-dive article will be published soon covering:
+* **Motivation & Philosophy**: Why Waqt was built and how the unbreakable honor system works.
+* **Plain-English Mechanics**: How schedule calculations, forced pause friction, and emergency prolongations function under the hood.
+* **Architecture & Native Hardening**: Multi-monitor window elevation (`NSMainMenuWindowLevel + 1` Cocoa FFI and Win32 `HWND_TOPMOST`), dynamic scale factors, and physical-to-logical pixel mappings.
+* **Edge Cases & Resilience**: Handling OS sleep/wake recovery, mid-day timezone and DST shifts, and retroactive 7-day missed prayer backfills.
+* **Engineering Trade-offs**: Lessons learned building an offline-first desktop app with Rust and Tauri v2.
 
 ---
 
-## 📐 System Design & Execution Flow
+## Impressive Features at a Glance
+
+* **Native Multi-Monitor Overlay Hardening**: Spawns physical borderless lock screens across all connected monitors using macOS Objective-C Cocoa FFI (`NSMainMenuWindowLevel + 1`) and Win32 extended window styles (`HWND_TOPMOST`, `WS_EX_TOOLWINDOW`) on Windows.
+* **Fail-Safe Honor System & Re-Lock Protocol**: Enforces a configurable pause (default 7 mins). Emergency dismissal grants a single 30-minute delay with reminders at T-15m, T-10m, and T-5m, automatically re-locking with `emergencyExhausted = true` to prevent perpetual shortcuts.
+* **Continuous Background Tokio Daemon**: Runs continuously in Rust, independently monitoring time, system sleep/wake events, and mid-day timezone/DST shifts (`Local::now().offset()`) to immediately recalculate schedules.
+* **Offline & Zero-Telemetry Privacy**: Calculates prayer times client-side using `adhan-js` across 12 calculation methods and Asr schools. All settings and history logs remain strictly local (`~/Library/Application Support/waqt/store.json`).
+* **Automated 7-Day Backfill**: Automatically reconciles unconfirmed prayer windows retroactively up to 7 days upon app launch or OS wake.
+
+---
+
+## System Design & Execution Flow
 
 Below is the architectural workflow showing how **Waqt** computes schedules, handles notifications, manages emergency prolongations, spawns multi-monitor overlays, and processes user responses:
 
@@ -75,85 +84,51 @@ flowchart TD
 
 ---
 
-## ✨ Features
+## Tech Stack
 
-- **Offline Prayer Calculations**: Accurately computes Fajr, Dhuhr, Asr, Maghrib, and Isha times locally across 12 calculation methods (MWL, ISNA, Umm Al-Qura, Egyptian, Karachi, Dubai, Moonsighting Committee, North America, Kuwait, Qatar, Singapore, Turkey, Tehran) and Asr schools (Standard / Hanafi).
-- **Configurable Pre-Lock Lead Time (`preLockMinutes`)**: Configure a pre-lock lead time (0–30 minutes, default 15 mins) before official prayer times to help disengage early.
-- **Pre-Prayer Notifications**: Timely desktop reminders delivered at **T-30m**, **T-15m**, and **T-5m** before prayer lock.
-- **10-Second Countdown Toast**: Non-intrusive corner toast with chime support notifying you 10 seconds before the overlay activates.
-- **Multi-Monitor Overlay & Native Window Elevation**: Full-screen overlay spawned across all connected displays with physical-to-logical Retina pixel scaling, native macOS window level elevation (`NSMainMenuWindowLevel + 1`), automatic app window minimization, and Win32 top-most style fallbacks (`HWND_TOPMOST`, `WS_EX_TOOLWINDOW`) on Windows.
-- **Emergency Extension & Strict Re-Lock Protocol**: Emergency dismissal grants a 30-minute delay with reminders at 15m, 10m, and 5m. After 30 minutes, Waqt re-locks the screen with `emergencyExhausted = true`, disabling emergency dismiss on re-lock to prevent perpetual shortcuts.
-- **Automated 7-Day Missed Prayer Backfill**: Automatically scans and backfills missed prayer entries for unconfirmed windows up to 7 days retroactively.
-- **Sleep, Wake & Dynamic Timezone/DST Shift Recovery**: Evaluates OS wake events and monitors system timezone offset (`Local::now().offset()`). Automatically invalidates cached schedule dates and updates prayer times immediately when timezones or DST shift mid-day.
-- **Onboarding OS Permissions Wizard**: 4-step setup wizard with live permission checking and guidance for Notifications, Autostart, and macOS Accessibility.
-- **Single Instance & Background Daemon**: Managed by `tauri-plugin-single-instance` and a Rust Tokio interval scheduler running continuously in the background.
-- **Developer Environment Guarding**: Test reminders and debug tools strictly isolated behind development environment checks.
+* **Desktop Core**: [Tauri v2](https://tauri.app/) (Rust backend + Webview frontend)
+* **Frontend Engine**: React 18, TypeScript, Vite, Tailwind CSS
+* **Native OS Interop**: Objective-C / Cocoa AppKit FFI (macOS window level elevation), Win32 API (`windows-sys` crate)
+* **Computation & State**: `adhan-js`, `tauri-plugin-store` (local JSON store), Rust Tokio async runtime
 
 ---
 
-## 🛠 Tech Stack
-
-- **Desktop Framework**: [Tauri v2](https://tauri.app/) (Rust backend + Webview frontend)
-- **Frontend UI**: React 18, TypeScript, Vite
-- **Styling**: Tailwind CSS (Dark aesthetic, modern glassmorphism, micro-animations)
-- **Calculation Library**: `adhan` (npm package)
-- **State & Storage**: Tauri Store (`tauri-plugin-store`) saving local JSON
-- **OS Plugins & Integrations**: `tauri-plugin-notification`, `tauri-plugin-autostart`, `tauri-plugin-single-instance`, Cocoa / Objective-C FFI (macOS window hardening), Win32 API (`windows-sys` crate for Windows topmost hardening)
-- **Background Scheduler**: Tokio interval loop in Rust (`src-tauri`)
-
----
-
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 waqt/
 ├── AGENTS.md                  # Developer & AI agent steering guidelines
-├── PRD.md                     # Product Requirements Document
 ├── TASKS.md                   # Feature implementation roadmap
 ├── package.json               # Node.js dependencies & frontend scripts
 ├── vite.config.ts             # Vite build configuration for Tauri
 ├── src-tauri/                 # Rust Backend (Tauri v2)
-│   ├── Cargo.toml             # Rust dependencies (tauri, tokio, serde, etc.)
+│   ├── Cargo.toml             # Rust dependencies & crates
 │   ├── tauri.conf.json        # Tauri app configuration & window settings
 │   └── src/
 │       ├── main.rs            # Rust entrypoint & Tauri command registration
 │       ├── lib.rs             # Tauri setup & plugin initializations
-│       ├── scheduler.rs       # Tokio background interval, missed prayer backfill & wake listener
-│       ├── store.rs           # Local JSON state management wrapper
-│       └── overlay_window.rs  # Multi-monitor borderless overlay & macOS window level elevation
+│       ├── scheduler.rs       # Tokio background scheduler & wake listener
+│       ├── store.rs           # Local JSON store wrapper
+│       └── overlay_window.rs  # Multi-monitor borderless overlay & macOS elevation
 └── src/                       # React Frontend
     ├── main.tsx               # React application root
     ├── App.tsx                # Context router & view switcher
-    ├── index.css              # Global design tokens, Tailwind directives & dark theme
+    ├── index.css              # Global design tokens & dark theme
     ├── types/                 # TypeScript type definitions
-    ├── lib/
-    │   ├── adhanCalc.ts       # adhan-js wrapper & calculation utilities
-    │   └── store.ts           # Tauri store & IPC synchronization wrapper
-    └── screens/
-        ├── Onboarding/        # Setup wizard (Location, Method, Pre-Lock, Pause, OS Permissions)
-        ├── Dashboard/         # Today's 5 prayer times & live countdown
-        ├── Settings/          # User preferences & calculation configuration
-        ├── Log/               # Prayer log history table
-        ├── CountdownToast/    # 10s bottom-right countdown toast
-        └── Overlay/           # Full-screen forced-pause lock overlay & emergency re-lock state
+    ├── lib/                   # Calculation wrappers & store sync
+    └── screens/               # App views (Onboarding, Dashboard, Settings, Log, Overlay)
 ```
 
 ---
 
-## 🚀 Getting Started
+## Quickstart
 
 ### Prerequisites
 
-Ensure you have the following installed on your system:
+* [Node.js](https://nodejs.org/) (v18+)
+* [Rust](https://www.rust-lang.org/) (latest stable toolchain)
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [Rust](https://www.rust-lang.org/tools/install) (latest stable toolchain)
-- Platform build essentials:
-  - **macOS**: Xcode Command Line Tools (`xcode-select --install`)
-  - **Linux**: `build-essential`, `libssl-dev`, `libgtk-3-dev`, `libwebkit2gtk-4.1-dev`, `libappindicator3-dev`
-  - **Windows**: C++ Build Tools or Visual Studio
-
-### Installation
+### Local Development
 
 1. **Clone the repository:**
    ```bash
@@ -161,77 +136,37 @@ Ensure you have the following installed on your system:
    cd waqt
    ```
 
-2. **Install frontend dependencies:**
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Run in Development Mode:**
+3. **Start development server:**
    ```bash
    npm run tauri dev
    ```
-   This will start the Vite dev server and launch the Tauri desktop application with hot-reloading.
 
-4. **Build for Production:**
+4. **Build release binary:**
    ```bash
    npm run tauri build
    ```
-   The compiled executable and installer bundles will be generated in `src-tauri/target/release/bundle/`.
 
 ---
 
-## 🔒 Data & Privacy Model
+## Areas of Improvement & Future Roadmap
 
-Waqt stores all configuration settings, emergency extensions, and logs in a single local JSON file (`~/Library/Application Support/waqt/store.json` on macOS).
+Waqt is evolving from a specialized prayer tracker into a universal **Ergonomic Work-Break & Screen Pause Enforcer** for long sitters and desk workers.
 
-```json
-{
-  "settings": {
-    "latitude": 6.5244,
-    "longitude": 3.3792,
-    "cityName": "Lagos, Nigeria",
-    "calculationMethod": "MuslimWorldLeague",
-    "asrSchool": "Standard",
-    "forcedPauseSeconds": 420,
-    "preLockMinutes": 15,
-    "soundEnabled": true,
-    "snoozeEnabled": false,
-    "notificationsEnabled": true,
-    "launchAtLogin": true,
-    "onboardingCompleted": true,
-    "created_at": "2026-08-17"
-  },
-  "log": [
-    {
-      "id": "1723900000000-Dhuhr",
-      "date": "2026-08-17",
-      "prayer": "Dhuhr",
-      "scheduledTime": "2026-08-17T13:02:00+01:00",
-      "status": "confirmed",
-      "confirmedAt": "2026-08-17T13:09:14+01:00"
-    }
-  ],
-  "emergency_extensions": [
-    {
-      "id": "ext-1723900000000",
-      "date": "2026-08-17",
-      "prayer": "Asr",
-      "dismissedAt": "2026-08-17T16:15:00+01:00",
-      "expiresAt": "2026-08-17T16:45:00+01:00",
-      "notified15m": true,
-      "notified10m": true,
-      "notified5m": true,
-      "relocked": true
-    }
-  ]
-}
-```
-
-*Status Enum Values:* `confirmed` | `emergency_dismissed` | `missed`
+### Planned Evolution
+* **Universal Break Enforcement**: Introduce mandatory break schedules for sedentary work (e.g. 5-minute movement break every 50 minutes of computer activity).
+* **Flexible Onboarding Preferences**: Add an onboarding toggle: *"Are you a Muslim and would like to enable prayer time tracking and enforcement?"*
+  * **If enabled**: Maintains full v1 prayer schedule calculations alongside customizable break intervals.
+  * **If disabled**: Functions strictly as a customizable work-break enforcer with user-defined pause durations and lock schedules.
+* **Custom Break Timing**: Allow users to configure multiple custom break intervals throughout their workday while keeping the same non-bypassable forced pause mechanics.
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
 
