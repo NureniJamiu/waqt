@@ -24,8 +24,7 @@ export const Overlay: React.FC<OverlayProps> = ({
   isEmergencyExhausted = false,
   isTest = false,
 }) => {
-  const isDevelopment = import.meta.env.DEV;
-  const isTestMode = isTest || isDevelopment || isEmergencyExhausted;
+  const isTestMode = Boolean(isTest);
   const initialSeconds = isTestMode ? 60 : settings.forcedPauseSeconds;
 
   const [secondsRemaining, setSecondsRemaining] = useState<number>(initialSeconds);
@@ -121,7 +120,7 @@ export const Overlay: React.FC<OverlayProps> = ({
 
   const progressPercent = Math.min(
     100,
-    Math.max(0, ((settings.forcedPauseSeconds - secondsRemaining) / settings.forcedPauseSeconds) * 100)
+    Math.max(0, ((initialSeconds - secondsRemaining) / initialSeconds) * 100)
   );
 
   const handleSnoozeClick = () => {

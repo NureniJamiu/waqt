@@ -147,18 +147,23 @@ export function App() {
   };
 
   const handleConfirmPrayed = async () => {
-    const now = new Date();
-    const prayerDateStr = getEffectivePrayerDateString(activePrayer, now);
-    const newEntry: PrayerLogItem = {
-      id: Date.now().toString(),
-      date: prayerDateStr,
-      prayer: activePrayer,
-      scheduledTime: now.toISOString(),
-      status: "confirmed",
-      confirmedAt: now.toISOString(),
-    };
-    const updatedLogs = await addLogEntry(newEntry);
-    setLogs(updatedLogs);
+    if (!isTestOverlay && !urlParams.isTest) {
+      const now = new Date();
+      const prayerDateStr = getEffectivePrayerDateString(activePrayer, now);
+      const newEntry: PrayerLogItem = {
+        id: Date.now().toString(),
+        date: prayerDateStr,
+        prayer: activePrayer,
+        scheduledTime: now.toISOString(),
+        status: "confirmed",
+        confirmedAt: now.toISOString(),
+      };
+      const updatedLogs = await addLogEntry(newEntry);
+      setLogs(updatedLogs);
+    }
+
+    setIsTestOverlay(false);
+    setIsEmergencyExhausted(false);
 
     if (isOverlayWindow) {
       dismissOverlayCommand();
@@ -169,6 +174,43 @@ export function App() {
   };
 
   const handleEmergencyDismiss = async () => {
+    if (isTestOverlay || urlParams.isTest) {
+      dismissOverlayCommand();
+      setCurrentScreen("dashboard");
+
+      if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+        import("@tauri-apps/plugin-notification")
+          .then(({ isPermissionGranted, requestPermission, sendNotification }) => {
+            isPermissionGranted().then((granted: boolean) => {
+              if (granted) {
+                sendNotification({
+                  title: "Test Emergency Extension",
+                  body: "10-second test grace period active. System will re-lock once expired.",
+                });
+              } else {
+                requestPermission().then((perm: string) => {
+                  if (perm === "granted") {
+                    sendNotification({
+                      title: "Test Emergency Extension",
+                      body: "10-second test grace period active. System will re-lock once expired.",
+                    });
+                  }
+                });
+              }
+            });
+          })
+          .catch(() => {});
+      }
+
+      setTimeout(() => {
+        setIsTestOverlay(true);
+        setIsEmergencyExhausted(true);
+        setCurrentScreen("overlay");
+        triggerOverlayCommand(activePrayer, true, true);
+      }, 10000);
+      return;
+    }
+
     const now = new Date();
     const prayerDateStr = getEffectivePrayerDateString(activePrayer, now);
     const expiresAt = new Date(now.getTime() + 30 * 60 * 1000).toISOString();
@@ -197,7 +239,6 @@ export function App() {
     await addEmergencyExtension(extensionItem);
     const updatedLogs = await addLogEntry(newEntry);
     setLogs(updatedLogs);
-    setIsEmergencyExhausted(true);
 
     if (isOverlayWindow) {
       dismissOverlayCommand();
@@ -209,8 +250,9 @@ export function App() {
 
   const handleTriggerTestOverlay = () => {
     setIsTestOverlay(true);
+    setIsEmergencyExhausted(false);
     setCurrentScreen("overlay");
-    triggerOverlayCommand("Dhuhr", isEmergencyExhausted, true);
+    triggerOverlayCommand("Dhuhr", false, true);
   };
 
   const handleToggleNotifications = () => {

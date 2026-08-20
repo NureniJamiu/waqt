@@ -1,11 +1,6 @@
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
 pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhausted: bool, is_test: bool) -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    {
-        minimize_all_other_windows();
-    }
-
     let mut query = vec![format!("screen=overlay"), format!("prayer={}", prayer_name)];
     if emergency_exhausted {
         query.push("emergency_exhausted=true".to_string());
@@ -20,7 +15,7 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhau
     let monitors = match monitors_res {
         Ok(m) if !m.is_empty() => m,
         _ => {
-            return spawn_single_overlay(app, "overlay-primary", &url);
+            return spawn_single_overlay(app, "overlay-primary", &url, is_test);
         }
     };
 
@@ -30,7 +25,7 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhau
         if let Some(existing) = app.get_webview_window(&label) {
             let _ = existing.show();
             let _ = existing.set_focus();
-            harden_window(&existing);
+            harden_window(&existing, is_test);
             spawned_any = true;
             continue;
         }
@@ -62,13 +57,13 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhau
 
         if let Ok(win) = window_result {
             let _ = win.set_focus();
-            harden_window(&win);
+            harden_window(&win, is_test);
             spawned_any = true;
         }
     }
 
     if !spawned_any {
-        return spawn_single_overlay(app, "overlay-primary", &url);
+        return spawn_single_overlay(app, "overlay-primary", &url, is_test);
     }
 
     Ok(())
@@ -117,11 +112,11 @@ pub fn sync_overlay_monitors(app: &AppHandle) {
 
 
 
-fn spawn_single_overlay(app: &AppHandle, label: &str, url: &str) -> Result<(), String> {
+fn spawn_single_overlay(app: &AppHandle, label: &str, url: &str, is_test: bool) -> Result<(), String> {
     if let Some(existing) = app.get_webview_window(label) {
         let _ = existing.show();
         let _ = existing.set_focus();
-        harden_window(&existing);
+        harden_window(&existing, is_test);
         return Ok(());
     }
 
@@ -150,7 +145,7 @@ fn spawn_single_overlay(app: &AppHandle, label: &str, url: &str) -> Result<(), S
 
     let win = builder.build().map_err(|e| e.to_string())?;
 
-    harden_window(&win);
+    harden_window(&win, is_test);
 
     Ok(())
 }
@@ -159,23 +154,24 @@ fn spawn_single_overlay(app: &AppHandle, label: &str, url: &str) -> Result<(), S
 /// All AppKit/NSWindow APIs are main-thread-only on macOS; calling them from
 /// any other thread causes SIGILL. `run_on_main_thread` guarantees the closure
 /// executes on the UI thread regardless of where `harden_window` was called from.
-fn harden_window(win: &tauri::WebviewWindow) {
+fn harden_window(win: &tauri::WebviewWindow, is_test: bool) {
     #[cfg(target_os = "macos")]
     {
         let win_for_closure = win.clone();
         // Ignore errors — if the dispatch fails the window still shows,
         // just without the extra NSWindow hardening.
         let _ = win.run_on_main_thread(move || {
-            harden_macos(&win_for_closure);
+            harden_macos(&win_for_closure, is_test);
         });
     }
     #[cfg(target_os = "windows")]
     {
+        let _ = is_test;
         harden_windows(win);
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        let _ = win;
+        let _ = (win, is_test);
     }
 }
 
@@ -214,7 +210,7 @@ fn harden_windows(win: &tauri::WebviewWindow) {
 /// Called exclusively from within `run_on_main_thread`, so the main-thread
 /// invariant required by AppKit is always satisfied.
 #[cfg(target_os = "macos")]
-fn harden_macos(win: &tauri::WebviewWindow) {
+fn harden_macos(win: &tauri::WebviewWindow, is_test: bool) {
     use objc2_app_kit::{NSApplication, NSWindow};
 
     // NSWindowLevel: i32::MAX (2147483647) = Maximum Window Level (CGShieldingWindowLevel)
@@ -273,12 +269,12 @@ fn harden_macos(win: &tauri::WebviewWindow) {
         ns_win_ref.setCanHide(false);
         ns_win_ref.setHidesOnDeactivate(false);
 
-        // 5. Before bringing overlay to front, fully minimize all other app windows.
-        // `hideOtherApplications()` and similar AppKit calls do not reliably eject
-        // apps from fullscreen spaces, which is why the app can still be reached
-        // via three-finger gestures. This OS-level minimization step is the required
-        // precondition before the overlay takes over the screen.
-        minimize_all_other_windows();
+        // 5. Before bringing overlay to front, minimize all other app windows asynchronously if not in test mode.
+        if !is_test {
+            std::thread::spawn(|| {
+                minimize_all_other_windows();
+            });
+        }
 
         // 6. Bring to front unconditionally (works even when app is not active).
         ns_win_ref.orderFrontRegardless();

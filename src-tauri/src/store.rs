@@ -213,9 +213,10 @@ impl StoreManager {
 
     pub fn has_used_emergency_dismiss(&self, date: &str, prayer: &str) -> bool {
         let store = self.load_store();
-        let in_logs = store.log.iter().any(|item| item.date == date && item.prayer == prayer && item.status == "emergency_dismissed");
-        let in_exts = store.emergency_extensions.iter().any(|e| e.date == date && e.prayer == prayer);
-        in_logs || in_exts
+        let now_iso = chrono::Local::now().to_rfc3339();
+        store.emergency_extensions.iter().any(|e| {
+            e.date == date && e.prayer == prayer && (e.relocked || e.expires_at <= now_iso)
+        })
     }
 }
 
@@ -231,7 +232,7 @@ mod tests {
 
         assert!(!mgr.has_used_emergency_dismiss("2026-08-20", "Dhuhr"));
 
-        let ext = EmergencyExtension {
+        let mut ext = EmergencyExtension {
             id: "ext-1".to_string(),
             date: "2026-08-20".to_string(),
             prayer: "Dhuhr".to_string(),
@@ -245,6 +246,12 @@ mod tests {
 
         mgr.add_emergency_extension(ext.clone()).unwrap();
 
+        // While relocked is false (grace period active), emergency is not exhausted
+        assert!(!mgr.has_used_emergency_dismiss("2026-08-20", "Dhuhr"));
+
+        // Once relocked is true (30m grace period elapsed), emergency is exhausted
+        ext.relocked = true;
+        mgr.update_emergency_extension(&ext).unwrap();
         assert!(mgr.has_used_emergency_dismiss("2026-08-20", "Dhuhr"));
         assert!(!mgr.has_used_emergency_dismiss("2026-08-20", "Asr"));
 
