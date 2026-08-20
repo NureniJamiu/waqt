@@ -25,7 +25,7 @@ pub struct AppSettings {
 }
 
 fn default_pre_lock_minutes() -> u64 {
-    15
+    10
 }
 
 fn default_sound_option() -> String {
@@ -40,8 +40,8 @@ impl Default for AppSettings {
             city_name: "Lagos, Nigeria".to_string(),
             calculation_method: "MuslimWorldLeague".to_string(),
             asr_school: "Standard".to_string(),
-            forced_pause_seconds: 420,
-            pre_lock_minutes: 15,
+            forced_pause_seconds: 900,
+            pre_lock_minutes: 10,
             sound_enabled: true,
             sound_option: "chime".to_string(),
             snooze_enabled: false,

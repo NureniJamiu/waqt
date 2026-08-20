@@ -6,8 +6,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   cityName: "Lagos, Nigeria",
   calculationMethod: "MuslimWorldLeague",
   asrSchool: "Standard",
-  forcedPauseSeconds: 420, // 7 minutes
-  preLockMinutes: 15, // 15 minutes before prayer time
+  forcedPauseSeconds: 900, // 15 minutes default
+  preLockMinutes: 10, // 10 minutes default
   soundEnabled: true,
   soundOption: "chime",
   snoozeEnabled: false,

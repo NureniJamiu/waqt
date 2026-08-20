@@ -22,8 +22,8 @@ export interface AppSettings {
   cityName: string;
   calculationMethod: CalculationMethodName;
   asrSchool: AsrSchool;
-  forcedPauseSeconds: number; // default 420 (7 mins)
-  preLockMinutes: number; // default 15 mins (lock offset before prayer)
+  forcedPauseSeconds: number; // default 900 (15 mins)
+  preLockMinutes: number; // default 10 mins (lock offset before prayer)
   soundEnabled: boolean;
   soundOption?: SoundOption; // default "chime"
   snoozeEnabled: boolean;

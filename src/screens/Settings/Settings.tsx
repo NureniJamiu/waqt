@@ -221,7 +221,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                 onChange={(e) => handleFormChange("calculationMethod", e.target.value as CalculationMethodName)}
                 className="select-control"
               >
-                <option value="MuslimWorldLeague">Muslim World League (Default)</option>
+                <option value="MuslimWorldLeague">Muslim World League (Recommended)</option>
                 <option value="Egyptian">Egyptian General Authority</option>
                 <option value="Karachi">University of Islamic Sciences, Karachi</option>
                 <option value="UmmAlQura">Umm Al-Qura University, Makkah</option>
@@ -243,7 +243,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                 onChange={(e) => handleFormChange("asrSchool", e.target.value as AsrSchool)}
                 className="select-control"
               >
-                <option value="Standard">Standard (Shafi, Maliki, Hanbali)</option>
+                <option value="Standard">Standard (Shafi, Maliki, Hanbali) (Recommended)</option>
                 <option value="Hanafi">Hanafi</option>
               </select>
             </div>
@@ -257,7 +257,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               <span>Pre-Lock Lead Time</span>
             </div>
             <span className="font-extrabold font-mono text-emerald-300 text-base line-chip px-3 py-1 rounded-full">
-              {form.preLockMinutes ?? 15} Minutes Before
+              {form.preLockMinutes ?? 10} Minutes Before
             </span>
           </div>
 
@@ -267,11 +267,11 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               min="0"
               max="30"
               step="5"
-              value={form.preLockMinutes ?? 15}
+              value={form.preLockMinutes ?? 10}
               onChange={(e) => handleFormChange("preLockMinutes", parseInt(e.target.value))}
               className="range-slider"
               style={{
-                background: `linear-gradient(to right, #10b981 ${((form.preLockMinutes ?? 15) / 30) * 100}%, rgba(30,41,59,0.9) ${((form.preLockMinutes ?? 15) / 30) * 100}%)`
+                background: `linear-gradient(to right, #10b981 ${((form.preLockMinutes ?? 10) / 30) * 100}%, rgba(30,41,59,0.9) ${((form.preLockMinutes ?? 10) / 30) * 100}%)`
               }}
             />
             <div className="flex justify-between px-0.5">
@@ -281,7 +281,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                   type="button"
                   onClick={() => handleFormChange("preLockMinutes", v)}
                   className={`text-[10px] font-mono transition-colors cursor-pointer ${
-                    (form.preLockMinutes ?? 15) === v
+                    (form.preLockMinutes ?? 10) === v
                       ? 'text-emerald-400 font-bold'
                       : 'text-slate-600 hover:text-slate-400'
                   }`}
@@ -352,7 +352,12 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                 <div className="flex items-center gap-3">
                   <Bell className="w-4 h-4 text-emerald-400" />
                   <div>
-                    <div className="text-sm font-bold">Desktop Notifications</div>
+                    <div className="text-sm font-bold flex items-center gap-2">
+                      <span>Desktop Notifications</span>
+                      <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                        Recommended
+                      </span>
+                    </div>
                     <div className="text-xs text-slate-400">Send pre-notifications at T-30, T-15, and T-5 min</div>
                   </div>
                 </div>
@@ -465,7 +470,12 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               <div className="flex items-center gap-3">
                 <Power className="w-4 h-4 text-emerald-400" />
                 <div>
-                  <div className="text-sm font-bold">Launch at Power Up</div>
+                  <div className="text-sm font-bold flex items-center gap-2">
+                    <span>Launch at Power Up</span>
+                    <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                      Recommended
+                    </span>
+                  </div>
                   <div className="text-xs text-slate-400">Start Waqt automatically after the laptop powers on</div>
                 </div>
               </div>

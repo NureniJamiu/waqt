@@ -38,7 +38,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
   const [method, setMethod] = useState<CalculationMethodName>(settings.calculationMethod);
   const [asrSchool, setAsrSchool] = useState<AsrSchool>(settings.asrSchool);
   const [pauseMinutes, setPauseMinutes] = useState(Math.round(settings.forcedPauseSeconds / 60));
-  const [preLockMinutes, setPreLockMinutes] = useState(settings.preLockMinutes ?? 15);
+  const [preLockMinutes, setPreLockMinutes] = useState(settings.preLockMinutes ?? 10);
 
   // Notification permission state
   const [notifGranted, setNotifGranted] = useState<boolean | null>(null); // null = checking
@@ -296,7 +296,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                   onChange={(e) => setMethod(e.target.value as CalculationMethodName)}
                   className="select-control"
                 >
-                  <option value="MuslimWorldLeague">Muslim World League (Default)</option>
+                  <option value="MuslimWorldLeague">Muslim World League (Recommended)</option>
                   <option value="Egyptian">Egyptian General Authority</option>
                   <option value="Karachi">University of Islamic Sciences, Karachi</option>
                   <option value="UmmAlQura">Umm Al-Qura University, Makkah</option>
@@ -318,7 +318,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                   onChange={(e) => setAsrSchool(e.target.value as AsrSchool)}
                   className="select-control"
                 >
-                  <option value="Standard">Standard (Shafi, Maliki, Hanbali)</option>
+                  <option value="Standard">Standard (Shafi, Maliki, Hanbali) (Recommended)</option>
                   <option value="Hanafi">Hanafi</option>
                 </select>
               </div>
@@ -458,7 +458,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
                   }
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold text-slate-100">Desktop Notifications</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-slate-100">Desktop Notifications</span>
+                    <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                      Recommended
+                    </span>
+                  </div>
                   <div className="text-[11px] text-slate-400 mt-0.5">
                     {notifGranted === true
                       ? "Granted — T-30m, T-15m & T-5m prayer alerts enabled."
