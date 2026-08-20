@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PrayerLogItem, PrayerStatus } from "../../types";
+import { loadLogs, subscribeLogUpdated } from "../../lib/store";
 import { ArrowLeft, CheckCircle2, AlertTriangle, XCircle, History, Filter } from "lucide-react";
 
 interface PrayerLogProps {
@@ -7,8 +8,23 @@ interface PrayerLogProps {
   onBack: () => void;
 }
 
-export const PrayerLog: React.FC<PrayerLogProps> = ({ logs, onBack }) => {
+export const PrayerLog: React.FC<PrayerLogProps> = ({ logs: propLogs, onBack }) => {
+  const [logs, setLogs] = useState<PrayerLogItem[]>(propLogs);
   const [filter, setFilter] = useState<"all" | PrayerStatus>("all");
+
+  useEffect(() => {
+    setLogs(propLogs);
+  }, [propLogs]);
+
+  useEffect(() => {
+    loadLogs().then((hydrated) => setLogs(hydrated));
+
+    const unsubscribe = subscribeLogUpdated(() => {
+      loadLogs().then((updated) => setLogs(updated));
+    });
+
+    return unsubscribe;
+  }, []);
 
   const totalConfirmed = logs.filter((l) => l.status === "confirmed").length;
   const totalEmergency = logs.filter((l) => l.status === "emergency_dismissed").length;

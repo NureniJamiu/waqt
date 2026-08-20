@@ -1,17 +1,23 @@
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
-pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str) -> Result<(), String> {
+pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhausted: bool) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
         minimize_all_other_windows();
     }
+
+    let url = if emergency_exhausted {
+        format!("index.html?screen=overlay&prayer={}&emergency_exhausted=true", prayer_name)
+    } else {
+        format!("index.html?screen=overlay&prayer={}", prayer_name)
+    };
 
     let monitors_res = app.available_monitors();
 
     let monitors = match monitors_res {
         Ok(m) if !m.is_empty() => m,
         _ => {
-            return spawn_single_overlay(app, "overlay-primary", prayer_name);
+            return spawn_single_overlay(app, "overlay-primary", &url);
         }
     };
 
@@ -35,7 +41,7 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str) -> Result<(), S
         let window_result = WebviewWindowBuilder::new(
             app,
             &label,
-            WebviewUrl::App(format!("index.html?screen=overlay&prayer={}", prayer_name).into()),
+            WebviewUrl::App(url.clone().into()),
         )
         .title("Waqt Overlay")
         .position(logical_pos.x, logical_pos.y)
@@ -58,13 +64,13 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str) -> Result<(), S
     }
 
     if !spawned_any {
-        return spawn_single_overlay(app, "overlay-primary", prayer_name);
+        return spawn_single_overlay(app, "overlay-primary", &url);
     }
 
     Ok(())
 }
 
-fn spawn_single_overlay(app: &AppHandle, label: &str, prayer_name: &str) -> Result<(), String> {
+fn spawn_single_overlay(app: &AppHandle, label: &str, url: &str) -> Result<(), String> {
     if let Some(existing) = app.get_webview_window(label) {
         let _ = existing.show();
         let _ = existing.set_focus();
@@ -75,7 +81,7 @@ fn spawn_single_overlay(app: &AppHandle, label: &str, prayer_name: &str) -> Resu
     let mut builder = WebviewWindowBuilder::new(
         app,
         label,
-        WebviewUrl::App(format!("index.html?screen=overlay&prayer={}", prayer_name).into()),
+        WebviewUrl::App(url.into()),
     )
     .title("Waqt Overlay")
     .decorations(false)

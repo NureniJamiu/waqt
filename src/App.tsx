@@ -5,7 +5,11 @@ import {
   loadSettings,
   saveSettings,
   loadLogsFromStorage,
-  addLogEntryToStorage,
+  loadLogs,
+  addLogEntry,
+  addEmergencyExtension,
+  hasUsedEmergencyDismiss,
+  subscribeLogUpdated,
   dismissOverlayCommand,
   triggerOverlayCommand,
   syncAutostart,
@@ -18,16 +22,20 @@ import { PrayerLog } from "./screens/Log/PrayerLog";
 import { CountdownToast } from "./screens/CountdownToast/CountdownToast";
 import { Overlay } from "./screens/Overlay/Overlay";
 
+function getLocalDateString(d: Date = new Date()): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 // ── URL-based overlay detection ──────────────────────────────────────────────
-// The Rust backend spawns overlay windows at:
-//   index.html?screen=overlay&prayer=<PrayerName>
-// We read these params once at module load so the overlay window renders the
-// correct screen immediately, rather than defaulting to the dashboard.
-function getUrlParams(): { screen: string | null; prayer: string | null } {
+function getUrlParams(): { screen: string | null; prayer: string | null; emergencyExhausted: boolean } {
   const params = new URLSearchParams(window.location.search);
   return {
     screen: params.get("screen"),
     prayer: params.get("prayer"),
+    emergencyExhausted: params.get("emergency_exhausted") === "true",
   };
 }
 
@@ -35,11 +43,8 @@ const urlParams = getUrlParams();
 const isOverlayWindow = urlParams.screen === "overlay";
 // ─────────────────────────────────────────────────────────────────────────────
 
-
 export function App() {
   const isDevelopment = import.meta.env.DEV;
-  // If this window was spawned as an overlay, skip splash entirely and boot
-  // straight into the overlay screen with the correct prayer name.
   const [showSplash, setShowSplash] = useState<boolean>(!isOverlayWindow);
   const [isHydrating, setIsHydrating] = useState<boolean>(true);
   const [settings, setSettings] = useState<AppSettings>(() => loadSettingsFromStorage());
@@ -51,13 +56,8 @@ export function App() {
     isOverlayWindow && urlParams.prayer ? (urlParams.prayer as PrayerName) : "Dhuhr"
   );
   const [snoozedPrayers, setSnoozedPrayers] = useState<Set<string>>(new Set());
+  const [isEmergencyExhausted, setIsEmergencyExhausted] = useState<boolean>(urlParams.emergencyExhausted);
 
-  // On mount, async-hydrate settings from the canonical Tauri store (IPC →
-  // plugin-store → localStorage). The initial useState uses the fast sync
-  // localStorage read, but Tauri's JSON file may have newer values (e.g. if
-  // the user changed settings and the IPC write succeeded but localStorage
-  // wasn't flushed identically). This is especially critical in the overlay
-  // window where forcedPauseSeconds must be accurate.
   useEffect(() => {
     loadSettings()
       .then((hydrated) => {
@@ -71,12 +71,33 @@ export function App() {
       .finally(() => {
         setIsHydrating(false);
       });
+
+    loadLogs().then((hydratedLogs) => {
+      setLogs(hydratedLogs);
+    });
+
+    const todayStr = getLocalDateString();
+    hasUsedEmergencyDismiss(todayStr, activePrayer).then((used) => {
+      if (used || urlParams.emergencyExhausted) {
+        setIsEmergencyExhausted(true);
+      }
+    });
+
+    const unsubscribe = subscribeLogUpdated(() => {
+      loadLogs().then((updated) => setLogs(updated));
+      hasUsedEmergencyDismiss(todayStr, activePrayer).then((used) => {
+        if (used || urlParams.emergencyExhausted) {
+          setIsEmergencyExhausted(true);
+        }
+      });
+    });
+
+    return unsubscribe;
     // Run once on mount only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    // Don't run onboarding logic in overlay windows or while initial store hydration is pending
     if (isOverlayWindow || isHydrating) return;
 
     if (!settings.onboardingCompleted) {
@@ -95,21 +116,20 @@ export function App() {
     }
   };
 
-  const handleConfirmPrayed = () => {
+  const handleConfirmPrayed = async () => {
+    const now = new Date();
     const newEntry: PrayerLogItem = {
       id: Date.now().toString(),
-      date: new Date().toISOString().split("T")[0],
+      date: getLocalDateString(now),
       prayer: activePrayer,
-      scheduledTime: new Date().toISOString(),
+      scheduledTime: now.toISOString(),
       status: "confirmed",
-      confirmedAt: new Date().toISOString(),
+      confirmedAt: now.toISOString(),
     };
-    const updatedLogs = addLogEntryToStorage(newEntry);
+    const updatedLogs = await addLogEntry(newEntry);
     setLogs(updatedLogs);
 
     if (isOverlayWindow) {
-      // In the overlay window, dismiss via IPC (which closes this window).
-      // There is no dashboard to navigate back to in this window context.
       dismissOverlayCommand();
     } else {
       dismissOverlayCommand();
@@ -117,20 +137,38 @@ export function App() {
     }
   };
 
-  const handleEmergencyDismiss = () => {
+  const handleEmergencyDismiss = async () => {
+    const now = new Date();
+    const todayStr = getLocalDateString(now);
+    const expiresAt = new Date(now.getTime() + 30 * 60 * 1000).toISOString();
+
     const newEntry: PrayerLogItem = {
       id: Date.now().toString(),
-      date: new Date().toISOString().split("T")[0],
+      date: todayStr,
       prayer: activePrayer,
-      scheduledTime: new Date().toISOString(),
+      scheduledTime: now.toISOString(),
       status: "emergency_dismissed",
-      confirmedAt: new Date().toISOString(),
+      confirmedAt: now.toISOString(),
     };
-    const updatedLogs = addLogEntryToStorage(newEntry);
+
+    const extensionItem = {
+      id: `ext-${Date.now()}`,
+      date: todayStr,
+      prayer: activePrayer,
+      dismissedAt: now.toISOString(),
+      expiresAt,
+      notified15m: false,
+      notified10m: false,
+      notified5m: false,
+      relocked: false,
+    };
+
+    await addEmergencyExtension(extensionItem);
+    const updatedLogs = await addLogEntry(newEntry);
     setLogs(updatedLogs);
+    setIsEmergencyExhausted(true);
 
     if (isOverlayWindow) {
-      // In the overlay window, IPC dismiss closes this window.
       dismissOverlayCommand();
     } else {
       dismissOverlayCommand();
@@ -139,9 +177,7 @@ export function App() {
   };
 
   const handleTriggerTestOverlay = () => {
-    // Spawn the real OS-level hardened window via Tauri IPC —
-    // identical to what the scheduler triggers at prayer time.
-    triggerOverlayCommand("Dhuhr");
+    triggerOverlayCommand("Dhuhr", isEmergencyExhausted);
   };
 
   const handleToggleNotifications = () => {
@@ -152,7 +188,7 @@ export function App() {
 
   const handleSnooze = () => {
     dismissOverlayCommand();
-    const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = getLocalDateString();
     const snoozeKey = `${todayStr}:${activePrayer}`;
 
     setSnoozedPrayers((prev) => new Set(prev).add(snoozeKey));
@@ -169,7 +205,7 @@ export function App() {
     }, 5 * 60 * 1000);
   };
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalDateString();
   const activeSnoozeKey = `${todayStr}:${activePrayer}`;
   const hasSnoozedForCurrentPrayer = snoozedPrayers.has(activeSnoozeKey);
 
@@ -224,6 +260,7 @@ export function App() {
               onEmergencyDismiss={handleEmergencyDismiss}
               onSnooze={handleSnooze}
               hasSnoozed={hasSnoozedForCurrentPrayer}
+              isEmergencyExhausted={isEmergencyExhausted}
             />
           )}
         </>

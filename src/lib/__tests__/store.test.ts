@@ -1,11 +1,13 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   DEFAULT_SETTINGS,
   loadSettingsFromStorage,
   saveSettingsToStorage,
   loadLogsFromStorage,
   addLogEntryToStorage,
+  addLogEntry,
   clearLogsFromStorage,
+  subscribeLogUpdated,
 } from "../store";
 import { AppSettings, PrayerLogItem } from "../../types";
 
@@ -84,6 +86,26 @@ describe("store.ts Persistence Layer", () => {
     const updated2 = addLogEntryToStorage(log2);
     expect(updated2).toHaveLength(2);
     expect(updated2[0].id).toBe("log-2"); // Newest first
+  });
+
+  it("should notify log listeners when addLogEntry is called", async () => {
+    const callback = vi.fn();
+    const unsubscribe = subscribeLogUpdated(callback);
+
+    const log: PrayerLogItem = {
+      id: "log-async-1",
+      date: "2026-08-19",
+      prayer: "Maghrib",
+      scheduledTime: "2026-08-19T19:00:00+01:00",
+      status: "confirmed",
+    };
+
+    await addLogEntry(log);
+
+    expect(loadLogsFromStorage()).toHaveLength(1);
+    expect(callback).toHaveBeenCalled();
+
+    unsubscribe();
   });
 
   it("should clear logs when requested", () => {

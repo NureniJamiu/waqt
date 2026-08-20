@@ -49,3 +49,15 @@ export interface PrayerTime {
   isPassed: boolean;
   fireableUntil: Date;
 }
+
+export interface EmergencyExtension {
+  id: string;
+  date: string;
+  prayer: PrayerName;
+  dismissedAt: string;
+  expiresAt: string;
+  notified15m?: boolean;
+  notified10m?: boolean;
+  notified5m?: boolean;
+  relocked?: boolean;
+}

@@ -48,6 +48,24 @@ pub struct PrayerLogItem {
     pub confirmed_at: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct EmergencyExtension {
+    pub id: String,
+    pub date: String,
+    pub prayer: String,
+    pub dismissed_at: String,
+    pub expires_at: String,
+    #[serde(default)]
+    pub notified_15m: bool,
+    #[serde(default)]
+    pub notified_10m: bool,
+    #[serde(default)]
+    pub notified_5m: bool,
+    #[serde(default)]
+    pub relocked: bool,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct WaqtStore {
@@ -55,6 +73,8 @@ pub struct WaqtStore {
     pub settings: AppSettings,
     #[serde(default)]
     pub log: Vec<PrayerLogItem>,
+    #[serde(default)]
+    pub emergency_extensions: Vec<EmergencyExtension>,
 }
 
 pub struct StoreManager {
@@ -130,4 +150,69 @@ impl StoreManager {
         self.add_log_entry(entry)?;
         Ok(())
     }
+
+    pub fn add_emergency_extension(&self, ext: EmergencyExtension) -> Result<(), String> {
+        let mut store = self.load_store();
+        store.emergency_extensions.retain(|e| !(e.date == ext.date && e.prayer == ext.prayer));
+        store.emergency_extensions.push(ext);
+        self.save_store(&store)
+    }
+
+    pub fn load_emergency_extensions(&self) -> Vec<EmergencyExtension> {
+        self.load_store().emergency_extensions
+    }
+
+    pub fn update_emergency_extension(&self, ext: &EmergencyExtension) -> Result<(), String> {
+        let mut store = self.load_store();
+        if let Some(pos) = store.emergency_extensions.iter().position(|e| e.id == ext.id) {
+            store.emergency_extensions[pos] = ext.clone();
+            self.save_store(&store)?;
+        }
+        Ok(())
+    }
+
+    pub fn has_used_emergency_dismiss(&self, date: &str, prayer: &str) -> bool {
+        let store = self.load_store();
+        let in_logs = store.log.iter().any(|item| item.date == date && item.prayer == prayer && item.status == "emergency_dismissed");
+        let in_exts = store.emergency_extensions.iter().any(|e| e.date == date && e.prayer == prayer);
+        in_logs || in_exts
+    }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_emergency_extension_store_and_check() {
+        let unique_name = format!("waqt_test_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos());
+        let temp_dir = std::env::temp_dir().join(unique_name);
+        let mgr = StoreManager::new(temp_dir.clone());
+
+        assert!(!mgr.has_used_emergency_dismiss("2026-08-20", "Dhuhr"));
+
+        let ext = EmergencyExtension {
+            id: "ext-1".to_string(),
+            date: "2026-08-20".to_string(),
+            prayer: "Dhuhr".to_string(),
+            dismissed_at: "2026-08-20T13:00:00Z".to_string(),
+            expires_at: "2026-08-20T13:30:00Z".to_string(),
+            notified_15m: false,
+            notified_10m: false,
+            notified_5m: false,
+            relocked: false,
+        };
+
+        mgr.add_emergency_extension(ext.clone()).unwrap();
+
+        assert!(mgr.has_used_emergency_dismiss("2026-08-20", "Dhuhr"));
+        assert!(!mgr.has_used_emergency_dismiss("2026-08-20", "Asr"));
+
+        let loaded = mgr.load_emergency_extensions();
+        assert_eq!(loaded.len(), 1);
+        assert_eq!(loaded[0].prayer, "Dhuhr");
+
+        let _ = std::fs::remove_dir_all(temp_dir);
+    }
+}
+

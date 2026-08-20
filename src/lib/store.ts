@@ -191,13 +191,80 @@ export async function loadLogs(): Promise<PrayerLogItem[]> {
   return loadLogsFromStorage();
 }
 
+const logListeners = new Set<() => void>();
+
+export function notifyLogUpdated(): void {
+  logListeners.forEach((listener) => {
+    try {
+      listener();
+    } catch (err) {
+      console.error("Error in logListener callback:", err);
+    }
+  });
+
+  if (typeof window !== "undefined") {
+    if (typeof window.dispatchEvent === "function" && typeof CustomEvent !== "undefined") {
+      window.dispatchEvent(new CustomEvent("waqt:log-updated"));
+    }
+    if ("__TAURI_INTERNALS__" in window) {
+      import("@tauri-apps/api/event")
+        .then(({ emit }) => emit("waqt:log-updated"))
+        .catch((err) => console.warn("Failed to emit Tauri log update event:", err));
+    }
+  }
+}
+
+export function subscribeLogUpdated(callback: () => void): () => void {
+  logListeners.add(callback);
+
+  const handleCustomEvent = () => callback();
+  const handleStorageEvent = (e: StorageEvent) => {
+    if (!e.key || e.key === LOGS_KEY) {
+      callback();
+    }
+  };
+
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+    window.addEventListener("waqt:log-updated", handleCustomEvent);
+    window.addEventListener("storage", handleStorageEvent);
+    window.addEventListener("focus", handleCustomEvent);
+  }
+
+  let unlistenTauri: (() => void) | null = null;
+
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    import("@tauri-apps/api/event")
+      .then(({ listen }) => {
+        listen("waqt:log-updated", () => callback()).then((unlistenFn) => {
+          unlistenTauri = unlistenFn;
+        });
+      })
+      .catch((err) => console.warn("Failed to listen for Tauri log update event:", err));
+  }
+
+  return () => {
+    logListeners.delete(callback);
+    if (typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+      window.removeEventListener("waqt:log-updated", handleCustomEvent);
+      window.removeEventListener("storage", handleStorageEvent);
+      window.removeEventListener("focus", handleCustomEvent);
+    }
+    if (unlistenTauri) {
+      unlistenTauri();
+    }
+  };
+}
+
 export async function addLogEntry(entry: PrayerLogItem): Promise<PrayerLogItem[]> {
   const updated = addLogEntryToStorage(entry);
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       const res = await invoke<PrayerLogItem[]>("add_log_entry", { entry });
-      if (res) return res;
+      if (res) {
+        notifyLogUpdated();
+        return res;
+      }
     } catch {
       // fallback
     }
@@ -211,14 +278,51 @@ export async function addLogEntry(entry: PrayerLogItem): Promise<PrayerLogItem[]
       console.error("Failed to append log entry to Tauri Store:", err);
     }
   }
+  notifyLogUpdated();
   return updated;
 }
 
-export async function triggerOverlayCommand(prayerName: string): Promise<void> {
+export async function addEmergencyExtension(ext: import("../types").EmergencyExtension): Promise<void> {
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("trigger_overlay", { prayerName });
+      await invoke("add_emergency_extension", { ext });
+    } catch (err) {
+      console.error("Failed to add emergency extension IPC:", err);
+    }
+  }
+  const store = await getTauriStore();
+  if (store) {
+    try {
+      const exts: any[] = (await store.get("emergency_extensions")) || [];
+      const updated = exts.filter((e) => !(e.date === ext.date && e.prayer === ext.prayer));
+      updated.push(ext);
+      await store.set("emergency_extensions", updated);
+      await store.save();
+    } catch (err) {
+      console.error("Failed to save emergency extension to Tauri Store:", err);
+    }
+  }
+}
+
+export async function hasUsedEmergencyDismiss(date: string, prayer: string): Promise<boolean> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      return await invoke<boolean>("has_used_emergency_dismiss", { date, prayer });
+    } catch {
+      // fallback
+    }
+  }
+  const logs = await loadLogs();
+  return logs.some((l) => l.date === date && l.prayer === prayer && l.status === "emergency_dismissed");
+}
+
+export async function triggerOverlayCommand(prayerName: string, emergencyExhausted?: boolean): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("trigger_overlay", { prayerName, emergencyExhausted: emergencyExhausted || false });
     } catch (err) {
       console.error("Failed to trigger overlay IPC:", err);
     }

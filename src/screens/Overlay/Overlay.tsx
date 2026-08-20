@@ -9,6 +9,7 @@ interface OverlayProps {
   onEmergencyDismiss: () => void;
   onSnooze?: () => void;
   hasSnoozed?: boolean;
+  isEmergencyExhausted?: boolean;
 }
 
 export const Overlay: React.FC<OverlayProps> = ({
@@ -18,6 +19,7 @@ export const Overlay: React.FC<OverlayProps> = ({
   onEmergencyDismiss,
   onSnooze,
   hasSnoozed = false,
+  isEmergencyExhausted = false,
 }) => {
   const [secondsRemaining, setSecondsRemaining] = useState<number>(settings.forcedPauseSeconds);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState<boolean>(false);
@@ -38,46 +40,37 @@ export const Overlay: React.FC<OverlayProps> = ({
   }, [secondsRemaining]);
 
   // ─── Keyboard bypass interceptor ───────────────────────────────────────────
-  // This is a defence-in-depth layer on top of the OS-level NSWindow hardening.
-  // Even if a shortcut somehow reaches the webview, we swallow it here so it
-  // never propagates further into macOS's event chain.
   useEffect(() => {
     const BLOCKED_KEYS = new Set(["h", "m", "w", "q", "Tab", " "]);
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const meta = e.metaKey; // ⌘ on macOS
+      const meta = e.metaKey;
       const alt = e.altKey;
 
-      // Block ⌘+H (hide), ⌘+M (minimize), ⌘+W (close), ⌘+Q (quit),
-      // ⌘+Tab (app switch), ⌘+Space (Spotlight)
       if (meta && BLOCKED_KEYS.has(e.key)) {
         e.preventDefault();
         e.stopImmediatePropagation();
         return;
       }
 
-      // Block Alt+Tab (also used on some keyboards/remappings)
       if (alt && e.key === "Tab") {
         e.preventDefault();
         e.stopImmediatePropagation();
         return;
       }
 
-      // Block Escape (could be mapped to window hide on some setups)
       if (e.key === "Escape" && !showEmergencyConfirm) {
         e.preventDefault();
         e.stopImmediatePropagation();
         return;
       }
 
-      // Block Mission Control shortcuts (F3, Ctrl+Up, Ctrl+Down)
       if (e.key === "F3" || (e.ctrlKey && (e.key === "ArrowUp" || e.key === "ArrowDown"))) {
         e.preventDefault();
         e.stopImmediatePropagation();
         return;
       }
 
-      // Block F11 (fullscreen toggle in some configs)
       if (e.key === "F11") {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -132,14 +125,25 @@ export const Overlay: React.FC<OverlayProps> = ({
           </div>
         </div>
 
-        {/* Emergency Dismiss Button - ALWAYS CLICKABLE */}
-        <button
-          onClick={() => setShowEmergencyConfirm(true)}
-          className="flex items-center gap-2 text-xs font-bold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/15 px-4 py-2 rounded-md border border-amber-500/35 transition-all cursor-pointer"
-        >
-          <AlertTriangle className="w-4 h-4" />
-          <span>Emergency Dismiss</span>
-        </button>
+        {/* Emergency Dismiss Button */}
+        {isEmergencyExhausted ? (
+          <button
+            disabled
+            title="Emergency grace period has already been used for this prayer session."
+            className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-900/80 px-4 py-2 rounded-md border border-slate-800 cursor-not-allowed opacity-70"
+          >
+            <ShieldAlert className="w-4 h-4 text-amber-500/60" />
+            <span>Emergency Grace Used</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowEmergencyConfirm(true)}
+            className="flex items-center gap-2 text-xs font-bold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/15 px-4 py-2 rounded-md border border-amber-500/35 transition-all cursor-pointer"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            <span>Emergency Dismiss</span>
+          </button>
+        )}
       </div>
 
       <div className="line-surface rounded-md flex flex-col items-center justify-center text-center max-w-md mx-auto space-y-6 relative z-10 px-6 py-8 border border-slate-700/70">
@@ -157,7 +161,7 @@ export const Overlay: React.FC<OverlayProps> = ({
               cx="88"
               cy="88"
               r={radius}
-              stroke="#10b981"
+              stroke={isEmergencyExhausted ? "#f59e0b" : "#10b981"}
               strokeWidth={strokeWidth}
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -172,20 +176,28 @@ export const Overlay: React.FC<OverlayProps> = ({
               {formatCountdown(secondsRemaining)}
             </span>
             <span className="text-[10px] uppercase tracking-widest font-extrabold text-slate-400 mt-1">
-              {isPauseElapsed ? "Pause Complete" : "Forced Pause"}
+              {isPauseElapsed ? "Pause Complete" : isEmergencyExhausted ? "Re-locked Pause" : "Forced Pause"}
             </span>
           </div>
         </div>
 
         <div className="space-y-2">
-          <span className="text-xs uppercase font-extrabold tracking-widest text-emerald-300 bg-emerald-500/10 px-3.5 py-1 rounded-full border border-emerald-500/25">
-            Time to step away
-          </span>
+          {isEmergencyExhausted ? (
+            <span className="text-xs uppercase font-extrabold tracking-widest text-amber-300 bg-amber-500/10 px-3.5 py-1 rounded-full border border-amber-500/25">
+              Emergency Prolongation Expired • System Lock Active
+            </span>
+          ) : (
+            <span className="text-xs uppercase font-extrabold tracking-widest text-emerald-300 bg-emerald-500/10 px-3.5 py-1 rounded-full border border-emerald-500/25">
+              Time to step away
+            </span>
+          )}
           <h1 className="text-4xl md:text-5xl font-black font-display tracking-tight text-white">
             It's time for {prayerName}
           </h1>
           <p className="text-slate-400 text-xs md:text-sm max-w-sm leading-relaxed">
-            Take a respectful pause from your screen, perform wudu, and prepare for prayer.
+            {isEmergencyExhausted
+              ? "Your 30-minute emergency extension has ended. Please step away from your screen and perform prayer."
+              : "Take a respectful pause from your screen, perform wudu, and prepare for prayer."}
           </p>
         </div>
 
@@ -212,7 +224,7 @@ export const Overlay: React.FC<OverlayProps> = ({
             )}
           </button>
 
-          {settings.snoozeEnabled && !snoozed && (
+          {settings.snoozeEnabled && !snoozed && !isEmergencyExhausted && (
             <button
               onClick={handleSnoozeClick}
               className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-2 pt-1 transition-colors cursor-pointer"
@@ -230,19 +242,24 @@ export const Overlay: React.FC<OverlayProps> = ({
       </div>
 
       {/* Emergency Dismiss Modal */}
-      {showEmergencyConfirm && (
+      {showEmergencyConfirm && !isEmergencyExhausted && (
         <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4">
           <div className="bg-[#0b0f19] max-w-md w-full p-6 md:p-8 rounded-md border border-amber-500/45 space-y-5 text-left relative z-[101]">
             <div className="flex items-center gap-2.5 text-amber-400 font-extrabold text-lg font-display">
               <ShieldAlert className="w-6 h-6 text-amber-400 shrink-0" />
-              <span>Emergency Dismiss</span>
+              <span>Emergency Dismiss (30m Extension)</span>
             </div>
             <p className="text-slate-200 text-xs md:text-sm leading-relaxed">
-              Dismiss the overlay without confirming prayer? This action immediately unlocks your desktop and logs an
+              Dismiss the overlay for a 30-minute grace period? This action temporarily unlocks your desktop for up to 30 minutes and logs an
               <code className="text-amber-400 bg-amber-950/80 border border-amber-500/40 px-1.5 py-0.5 rounded font-mono text-xs ml-1 font-semibold">
                 emergency_dismissed
               </code> entry to your local log.
             </p>
+            <div className="bg-amber-950/40 border border-amber-500/25 rounded-md p-3 text-xs text-amber-200/90 leading-normal space-y-1">
+              <p className="font-bold text-amber-300">Prolongation Schedule:</p>
+              <p>• Warning notifications at T-15m, T-10m, and T-5m remaining.</p>
+              <p>• System re-locks after 30 minutes with <strong>no emergency grace option</strong>.</p>
+            </div>
 
             <div className="flex gap-3 pt-2">
               <button
@@ -257,7 +274,7 @@ export const Overlay: React.FC<OverlayProps> = ({
                 onClick={onEmergencyDismiss}
                 className="flex-1 py-3 px-4 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/45 text-amber-200 font-black rounded-md text-xs transition-all cursor-pointer active:scale-95"
               >
-                Yes, Dismiss Immediately
+                Grant 30m Extension
               </button>
             </div>
           </div>

@@ -3,7 +3,7 @@ pub mod prayer_calc;
 pub mod scheduler;
 pub mod store;
 
-use store::{AppSettings, PrayerLogItem, StoreManager};
+use store::{AppSettings, EmergencyExtension, PrayerLogItem, StoreManager};
 use tauri::{AppHandle, Manager};
 
 fn get_config_dir(app: &AppHandle) -> std::path::PathBuf {
@@ -37,8 +37,21 @@ fn add_log_entry(app: AppHandle, entry: PrayerLogItem) -> Result<Vec<PrayerLogIt
 }
 
 #[tauri::command]
-fn trigger_overlay(app: AppHandle, prayer_name: String) -> Result<(), String> {
-    overlay_window::spawn_overlay_windows(&app, &prayer_name)
+fn add_emergency_extension(app: AppHandle, ext: EmergencyExtension) -> Result<(), String> {
+    let mgr = StoreManager::new(get_config_dir(&app));
+    mgr.add_emergency_extension(ext)
+}
+
+#[tauri::command]
+fn has_used_emergency_dismiss(app: AppHandle, date: String, prayer: String) -> Result<bool, String> {
+    let mgr = StoreManager::new(get_config_dir(&app));
+    Ok(mgr.has_used_emergency_dismiss(&date, &prayer))
+}
+
+#[tauri::command]
+fn trigger_overlay(app: AppHandle, prayer_name: String, emergency_exhausted: Option<bool>) -> Result<(), String> {
+    let exhausted = emergency_exhausted.unwrap_or(false);
+    overlay_window::spawn_overlay_windows(&app, &prayer_name, exhausted)
 }
 
 #[tauri::command]
@@ -86,6 +99,8 @@ pub fn run() {
             save_settings,
             get_logs,
             add_log_entry,
+            add_emergency_extension,
+            has_used_emergency_dismiss,
             trigger_overlay,
             dismiss_overlay,
             send_test_notification,

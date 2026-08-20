@@ -172,7 +172,80 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                     }
 
                     // Spawn borderless overlay windows across monitors
-                    let _ = overlay_window::spawn_overlay_windows(&app_handle, p_name);
+                    let _ = overlay_window::spawn_overlay_windows(&app_handle, p_name, false);
+                }
+            }
+        }
+
+        // 3. Emergency Extension Prolongation Checks (30m extension with T-15m, T-10m, T-5m notifications and re-lock at T-0m)
+        let exts = store_mgr.load_emergency_extensions();
+        for mut ext in exts {
+            if !ext.relocked {
+                let is_resolved = store_mgr.load_logs().iter().any(|l| l.date == ext.date && l.prayer == ext.prayer && (l.status == "confirmed" || l.status == "missed"));
+                if is_resolved {
+                    ext.relocked = true;
+                    let _ = store_mgr.update_emergency_extension(&ext);
+                    continue;
+                }
+
+                if let Ok(exp_dt) = chrono::DateTime::parse_from_rfc3339(&ext.expires_at) {
+                    let exp_ts = exp_dt.timestamp();
+                    let rem_secs = exp_ts - now_ts;
+
+                    if rem_secs <= 15 * 60 && rem_secs > 10 * 60 && !ext.notified_15m {
+                        ext.notified_15m = true;
+                        let _ = store_mgr.update_emergency_extension(&ext);
+                        if settings.notifications_enabled {
+                            let _ = app_handle
+                                .notification()
+                                .builder()
+                                .title(format!("Emergency Extension: {}", ext.prayer))
+                                .body(format!("15 minutes remaining before Waqt re-locks for {}. Grace period will expire.", ext.prayer))
+                                .show();
+                        }
+                    }
+
+                    if rem_secs <= 10 * 60 && rem_secs > 5 * 60 && !ext.notified_10m {
+                        ext.notified_10m = true;
+                        let _ = store_mgr.update_emergency_extension(&ext);
+                        if settings.notifications_enabled {
+                            let _ = app_handle
+                                .notification()
+                                .builder()
+                                .title(format!("Emergency Extension: {}", ext.prayer))
+                                .body(format!("10 minutes remaining before Waqt re-locks for {}. Grace period will expire.", ext.prayer))
+                                .show();
+                        }
+                    }
+
+                    if rem_secs <= 5 * 60 && rem_secs > 0 && !ext.notified_5m {
+                        ext.notified_5m = true;
+                        let _ = store_mgr.update_emergency_extension(&ext);
+                        if settings.notifications_enabled {
+                            let _ = app_handle
+                                .notification()
+                                .builder()
+                                .title(format!("Emergency Extension: {}", ext.prayer))
+                                .body(format!("5 minutes remaining before Waqt re-locks for {}. Grace period will expire.", ext.prayer))
+                                .show();
+                        }
+                    }
+
+                    if rem_secs <= 0 {
+                        ext.relocked = true;
+                        let _ = store_mgr.update_emergency_extension(&ext);
+
+                        if settings.notifications_enabled {
+                            let _ = app_handle
+                                .notification()
+                                .builder()
+                                .title(format!("Emergency Prolongation Expired: {}", ext.prayer))
+                                .body(format!("30-minute grace period for {} has ended. Re-locking system.", ext.prayer))
+                                .show();
+                        }
+
+                        let _ = overlay_window::spawn_overlay_windows(&app_handle, &ext.prayer, true);
+                    }
                 }
             }
         }
