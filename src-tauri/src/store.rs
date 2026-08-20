@@ -173,6 +173,7 @@ impl StoreManager {
     pub fn clear_logs(&self) -> Result<(), String> {
         let mut store = self.load_store();
         store.log.clear();
+        store.emergency_extensions.clear();
         self.save_store(&store)
     }
 

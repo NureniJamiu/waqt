@@ -80,21 +80,25 @@ export function App() {
       setLogs(hydratedLogs);
     });
 
-    const effectiveDateStr = getEffectivePrayerDateString(activePrayer);
-    hasUsedEmergencyDismiss(effectiveDateStr, activePrayer).then((used) => {
-      if (used || urlParams.emergencyExhausted) {
-        setIsEmergencyExhausted(true);
-      }
-    });
-
-    const unsubscribeLog = subscribeLogUpdated(() => {
-      loadLogs().then((updated) => setLogs(updated));
-      const currentEffectiveDateStr = getEffectivePrayerDateString(activePrayer);
-      hasUsedEmergencyDismiss(currentEffectiveDateStr, activePrayer).then((used) => {
+    if (!urlParams.isTest) {
+      const effectiveDateStr = getEffectivePrayerDateString(activePrayer);
+      hasUsedEmergencyDismiss(effectiveDateStr, activePrayer).then((used) => {
         if (used || urlParams.emergencyExhausted) {
           setIsEmergencyExhausted(true);
         }
       });
+    }
+
+    const unsubscribeLog = subscribeLogUpdated(() => {
+      loadLogs().then((updated) => setLogs(updated));
+      if (!urlParams.isTest) {
+        const currentEffectiveDateStr = getEffectivePrayerDateString(activePrayer);
+        hasUsedEmergencyDismiss(currentEffectiveDateStr, activePrayer).then((used) => {
+          if (used || urlParams.emergencyExhausted) {
+            setIsEmergencyExhausted(true);
+          }
+        });
+      }
     });
 
     const unsubscribeTz = subscribeTimezoneChanged(() => {
@@ -339,7 +343,7 @@ export function App() {
               onSnooze={handleSnooze}
               hasSnoozed={hasSnoozedForCurrentPrayer}
               isEmergencyExhausted={isEmergencyExhausted}
-              isTest={isTestOverlay || urlParams.isTest || isDevelopment}
+              isTest={isTestOverlay || urlParams.isTest}
             />
           )}
         </>
