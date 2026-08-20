@@ -38,6 +38,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
   const [method, setMethod] = useState<CalculationMethodName>(settings.calculationMethod);
   const [asrSchool, setAsrSchool] = useState<AsrSchool>(settings.asrSchool);
   const [pauseMinutes, setPauseMinutes] = useState(Math.round(settings.forcedPauseSeconds / 60));
+  const [preLockMinutes, setPreLockMinutes] = useState(settings.preLockMinutes ?? 15);
 
   // Notification permission state
   const [notifGranted, setNotifGranted] = useState<boolean | null>(null); // null = checking
@@ -167,6 +168,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
         calculationMethod: method,
         asrSchool,
         forcedPauseSeconds: pauseMinutes * 60,
+        preLockMinutes,
         notificationsEnabled: notifGranted === true,
         onboardingCompleted: true,
       };
@@ -338,12 +340,61 @@ export const Onboarding: React.FC<OnboardingProps> = ({ settings, onComplete }) 
               </p>
             </div>
 
+            {/* Pre-Lock Lead Time card */}
+            <div className="line-surface-soft rounded-xl p-5 space-y-4">
+              <div className="flex items-end justify-between">
+                <div>
+                  <div className="text-[11px] uppercase tracking-widest text-slate-500 font-semibold mb-0.5">Pre-Lock Lead Time</div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-4xl font-black text-emerald-300 tabular-nums leading-none">{preLockMinutes}</span>
+                    <span className="text-sm font-semibold text-slate-400">min before Adhan</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] text-slate-600 font-medium">Range</div>
+                  <div className="text-xs text-slate-400 font-mono">0 – 30 min</div>
+                </div>
+              </div>
+
+              <div className="pt-1">
+                <input
+                  type="range"
+                  min="0"
+                  max="30"
+                  step="5"
+                  value={preLockMinutes}
+                  onChange={(e) => setPreLockMinutes(parseInt(e.target.value))}
+                  className="range-slider"
+                  style={{
+                    background: `linear-gradient(to right, #10b981 ${(preLockMinutes / 30) * 100}%, rgba(30,41,59,0.9) ${(preLockMinutes / 30) * 100}%)`
+                  }}
+                />
+                <div className="flex justify-between mt-2 px-0.5">
+                  {[0, 5, 10, 15, 20, 30].map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setPreLockMinutes(v)}
+                      className={`text-[10px] font-mono transition-colors cursor-pointer ${
+                        preLockMinutes === v ? 'text-emerald-400 font-bold' : 'text-slate-600 hover:text-slate-400'
+                      }`}
+                    >
+                      {v}m
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Locks laptop before Adhan to give you time to perform wudu and arrive at the Masjid on time.
+              </p>
+            </div>
+
             {/* Slider card */}
             <div className="line-surface-soft rounded-xl p-5 space-y-4">
               {/* Value display */}
               <div className="flex items-end justify-between">
                 <div>
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 font-semibold mb-0.5">Pause Duration</div>
+                  <div className="text-[11px] uppercase tracking-widest text-slate-500 font-semibold mb-0.5">Forced Pause Duration</div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-4xl font-black text-emerald-300 tabular-nums leading-none">{pauseMinutes}</span>
                     <span className="text-sm font-semibold text-slate-400">min</span>

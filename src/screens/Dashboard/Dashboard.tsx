@@ -159,15 +159,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div>
                 <div className="text-xs uppercase tracking-widest text-slate-400 font-bold">Upcoming Prayer</div>
                 <h2 className="text-4xl md:text-5xl font-black font-display tracking-tight text-white mt-2">{nextPrayer.name}</h2>
-                <p className="text-slate-300 text-sm mt-2">
-                  Scheduled at <strong className="text-emerald-300 font-mono">{nextPrayer.formattedTime}</strong>
-                </p>
+                <div className="text-slate-300 text-sm mt-2 space-y-0.5">
+                  <p>
+                    Adhan Time: <strong className="text-emerald-300 font-mono">{nextPrayer.formattedTime}</strong>
+                  </p>
+                  {(settings.preLockMinutes ?? 15) > 0 && (
+                    <p className="text-xs text-slate-400">
+                      Locks laptop at <strong className="text-amber-300 font-mono">{nextPrayer.formattedLockTime}</strong> ({settings.preLockMinutes ?? 15}m lead time for Masjid)
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="w-full md:w-auto md:text-right">
-                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Time Remaining</div>
+                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                  {(settings.preLockMinutes ?? 15) > 0 ? "Time Until Lock" : "Time Remaining"}
+                </div>
                 <div className="font-mono text-4xl md:text-5xl font-black text-emerald-300 tracking-tight mt-1">
-                  {formattedCountdown(nextPrayer.time)}
+                  {formattedCountdown((settings.preLockMinutes ?? 15) > 0 ? nextPrayer.lockTime : nextPrayer.time)}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-2">{settings.asrSchool} Asr school</div>
               </div>
@@ -215,14 +224,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   )}
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-4">
                   <span className="text-lg font-black font-mono tracking-tight text-white">{prayer.formattedTime}</span>
+                  {(settings.preLockMinutes ?? 15) > 0 && (
+                    <div className="text-[11px] text-amber-300/80 font-mono mt-0.5">
+                      Lock: {prayer.formattedLockTime}
+                    </div>
+                  )}
                   {prayer.isPassed ? (
-                    <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Passed</div>
+                    <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mt-1">Passed</div>
                   ) : prayer.isNext ? (
-                    <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Next</div>
+                    <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mt-1">Next</div>
                   ) : (
-                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Scheduled</div>
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mt-1">Scheduled</div>
                   )}
                 </div>
               </div>
@@ -234,6 +248,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="text-xs text-slate-400 flex items-center gap-3">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              Pre-Lock Lead: <strong className="text-slate-200">{settings.preLockMinutes ?? 15}m</strong>
+            </span>
+            <span>•</span>
+            <span>
               Forced Pause: <strong className="text-slate-200">{Math.round(settings.forcedPauseSeconds / 60)}m</strong>
             </span>
             <span>•</span>

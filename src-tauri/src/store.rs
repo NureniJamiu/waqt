@@ -11,6 +11,8 @@ pub struct AppSettings {
     pub calculation_method: String,
     pub asr_school: String,
     pub forced_pause_seconds: u64,
+    #[serde(default = "default_pre_lock_minutes")]
+    pub pre_lock_minutes: u64,
     pub sound_enabled: bool,
     pub snooze_enabled: bool,
     pub notifications_enabled: bool,
@@ -18,6 +20,10 @@ pub struct AppSettings {
     pub onboarding_completed: bool,
     #[serde(default)]
     pub created_at: Option<String>,
+}
+
+fn default_pre_lock_minutes() -> u64 {
+    15
 }
 
 impl Default for AppSettings {
@@ -29,6 +35,7 @@ impl Default for AppSettings {
             calculation_method: "MuslimWorldLeague".to_string(),
             asr_school: "Standard".to_string(),
             forced_pause_seconds: 420,
+            pre_lock_minutes: 15,
             sound_enabled: true,
             snooze_enabled: false,
             notifications_enabled: true,

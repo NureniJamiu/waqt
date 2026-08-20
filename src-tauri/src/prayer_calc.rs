@@ -4,7 +4,9 @@ use std::f64::consts::PI;
 #[derive(Debug, Clone)]
 pub struct PrayerTimeItem {
     pub name: String,
-    pub timestamp: i64, // Unix timestamp in seconds
+    pub timestamp: i64, // Unix timestamp in seconds (Adhan time)
+    pub lock_timestamp: i64, // Unix timestamp in seconds (Lock trigger time)
+    pub next_lock_timestamp: i64, // Start of next prayer's pre-lock (fireableUntil boundary)
     pub next_timestamp: i64, // Start of next prayer (fireableUntil boundary)
 }
 
@@ -156,33 +158,45 @@ pub fn get_today_prayer_items(
     lng: f64,
     method: &str,
     asr_school: &str,
+    pre_lock_minutes: u64,
     date: chrono::DateTime<Local>,
 ) -> Vec<PrayerTimeItem> {
+    let pre_lock_sec = (pre_lock_minutes * 60) as i64;
     let sched = calculate_daily_schedule(lat, lng, method, asr_school, date);
     vec![
         PrayerTimeItem {
             name: "Fajr".to_string(),
             timestamp: sched.fajr,
+            lock_timestamp: sched.fajr - pre_lock_sec,
+            next_lock_timestamp: sched.dhuhr - pre_lock_sec,
             next_timestamp: sched.dhuhr,
         },
         PrayerTimeItem {
             name: "Dhuhr".to_string(),
             timestamp: sched.dhuhr,
+            lock_timestamp: sched.dhuhr - pre_lock_sec,
+            next_lock_timestamp: sched.asr - pre_lock_sec,
             next_timestamp: sched.asr,
         },
         PrayerTimeItem {
             name: "Asr".to_string(),
             timestamp: sched.asr,
+            lock_timestamp: sched.asr - pre_lock_sec,
+            next_lock_timestamp: sched.maghrib - pre_lock_sec,
             next_timestamp: sched.maghrib,
         },
         PrayerTimeItem {
             name: "Maghrib".to_string(),
             timestamp: sched.maghrib,
+            lock_timestamp: sched.maghrib - pre_lock_sec,
+            next_lock_timestamp: sched.isha - pre_lock_sec,
             next_timestamp: sched.isha,
         },
         PrayerTimeItem {
             name: "Isha".to_string(),
             timestamp: sched.isha,
+            lock_timestamp: sched.isha - pre_lock_sec,
+            next_lock_timestamp: sched.tomorrow_fajr - pre_lock_sec,
             next_timestamp: sched.tomorrow_fajr,
         },
     ]
@@ -195,7 +209,7 @@ mod tests {
     #[test]
     fn test_rust_offline_prayer_calculation() {
         let now = Local::now();
-        let items = get_today_prayer_items(6.5244, 3.3792, "MuslimWorldLeague", "Standard", now);
+        let items = get_today_prayer_items(6.5244, 3.3792, "MuslimWorldLeague", "Standard", 15, now);
 
         assert_eq!(items.len(), 5);
         assert_eq!(items[0].name, "Fajr");
@@ -210,13 +224,18 @@ mod tests {
         assert!(items[2].timestamp < items[3].timestamp);
         assert!(items[3].timestamp < items[4].timestamp);
         assert!(items[4].timestamp < items[4].next_timestamp);
+
+        // Verify lock_timestamp is exactly 15 minutes (900s) before timestamp
+        for item in &items {
+            assert_eq!(item.timestamp - item.lock_timestamp, 15 * 60);
+        }
     }
 
     #[test]
     fn test_hanafi_asr_delay_rust() {
         let now = Local::now();
-        let standard_items = get_today_prayer_items(6.5244, 3.3792, "MuslimWorldLeague", "Standard", now);
-        let hanafi_items = get_today_prayer_items(6.5244, 3.3792, "MuslimWorldLeague", "Hanafi", now);
+        let standard_items = get_today_prayer_items(6.5244, 3.3792, "MuslimWorldLeague", "Standard", 15, now);
+        let hanafi_items = get_today_prayer_items(6.5244, 3.3792, "MuslimWorldLeague", "Hanafi", 15, now);
 
         let std_asr = items_by_name(&standard_items, "Asr");
         let hanafi_asr = items_by_name(&hanafi_items, "Asr");

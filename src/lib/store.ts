@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   calculationMethod: "MuslimWorldLeague",
   asrSchool: "Standard",
   forcedPauseSeconds: 420, // 7 minutes
+  preLockMinutes: 15, // 15 minutes before prayer time
   soundEnabled: true,
   snoozeEnabled: false,
   notificationsEnabled: true,

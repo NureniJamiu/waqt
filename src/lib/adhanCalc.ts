@@ -84,6 +84,8 @@ export function calculateDailyPrayerTimes(
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowPrayerTimes = new PrayerTimes(coordinates, tomorrow, params);
 
+  const preLockMs = Math.max(0, (settings?.preLockMinutes ?? 15)) * 60 * 1000;
+
   const rawList: { name: PrayerName; time: Date; nextTime: Date }[] = [
     { name: "Fajr", time: prayerTimes.fajr, nextTime: prayerTimes.dhuhr },
     { name: "Dhuhr", time: prayerTimes.dhuhr, nextTime: prayerTimes.asr },
@@ -95,7 +97,10 @@ export function calculateDailyPrayerTimes(
   let nextFound = false;
 
   return rawList.map((item) => {
-    const isPassed = calcReferenceTime > item.time;
+    const lockTime = new Date(item.time.getTime() - preLockMs);
+    const nextLockTime = new Date(item.nextTime.getTime() - preLockMs);
+
+    const isPassed = calcReferenceTime > lockTime;
     let isNext = false;
     if (!isPassed && !nextFound) {
       isNext = true;
@@ -105,10 +110,12 @@ export function calculateDailyPrayerTimes(
     return {
       name: item.name,
       time: item.time,
+      lockTime,
       formattedTime: formatTime(item.time),
+      formattedLockTime: formatTime(lockTime),
       isNext,
       isPassed,
-      fireableUntil: item.nextTime,
+      fireableUntil: nextLockTime,
     };
   });
 }

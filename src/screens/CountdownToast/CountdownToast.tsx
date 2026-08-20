@@ -88,10 +88,10 @@ export const CountdownToast: React.FC<CountdownToastProps> = ({
         <div className="flex-1">
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-extrabold uppercase tracking-wider mb-0.5">
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Time for Prayer</span>
+            <span>Pre-Lock Warning</span>
           </div>
           <h4 className="font-black font-display text-white text-base">{prayerName}</h4>
-          <p className="text-[11px] text-slate-400 font-medium">Forced pause starting soon...</p>
+          <p className="text-[11px] text-slate-400 font-medium">Pre-lock starting soon... Get ready for prayer.</p>
         </div>
       </div>
     </div>

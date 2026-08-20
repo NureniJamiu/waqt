@@ -289,6 +289,52 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
         <section className="px-6 py-6 border-b border-slate-800/80">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display">
+              <AlarmClock className="w-4 h-4" />
+              <span>Pre-Lock Lead Time</span>
+            </div>
+            <span className="font-extrabold font-mono text-emerald-300 text-base line-chip px-3 py-1 rounded-full">
+              {form.preLockMinutes ?? 15} Minutes Before
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            <input
+              type="range"
+              min="0"
+              max="30"
+              step="5"
+              value={form.preLockMinutes ?? 15}
+              onChange={(e) => handleFormChange("preLockMinutes", parseInt(e.target.value))}
+              className="range-slider"
+              style={{
+                background: `linear-gradient(to right, #10b981 ${((form.preLockMinutes ?? 15) / 30) * 100}%, rgba(30,41,59,0.9) ${((form.preLockMinutes ?? 15) / 30) * 100}%)`
+              }}
+            />
+            <div className="flex justify-between px-0.5">
+              {[0, 5, 10, 15, 20, 30].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => handleFormChange("preLockMinutes", v)}
+                  className={`text-[10px] font-mono transition-colors cursor-pointer ${
+                    (form.preLockMinutes ?? 15) === v
+                      ? 'text-emerald-400 font-bold'
+                      : 'text-slate-600 hover:text-slate-400'
+                  }`}
+                >
+                  {v}m
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400">
+              Locks the laptop this many minutes before prayer time so you can get ready, perform wudu, and reach the Masjid for congregation.
+            </p>
+          </div>
+        </section>
+
+        <section className="px-6 py-6 border-b border-slate-800/80">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm font-display">
               <Moon className="w-4 h-4" />
               <span>Forced Pause Duration</span>
             </div>

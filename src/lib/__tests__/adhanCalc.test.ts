@@ -16,6 +16,7 @@ const mockSettings: AppSettings = {
   calculationMethod: "MuslimWorldLeague",
   asrSchool: "Standard",
   forcedPauseSeconds: 420,
+  preLockMinutes: 15,
   soundEnabled: true,
   snoozeEnabled: false,
   notificationsEnabled: true,
@@ -24,7 +25,7 @@ const mockSettings: AppSettings = {
 };
 
 describe("adhanCalc Engine", () => {
-  it("should calculate 5 daily prayers for Lagos, Nigeria", () => {
+  it("should calculate 5 daily prayers for Lagos, Nigeria with preLockMinutes", () => {
     const date = new Date(2026, 7, 17, 10, 0, 0); // 2026-08-17 10:00 AM
     const prayers = calculateDailyPrayerTimes(mockSettings, date, date);
 
@@ -39,9 +40,13 @@ describe("adhanCalc Engine", () => {
 
     prayers.forEach((prayer) => {
       expect(prayer.time).toBeInstanceOf(Date);
+      expect(prayer.lockTime).toBeInstanceOf(Date);
       expect(prayer.fireableUntil).toBeInstanceOf(Date);
-      expect(prayer.time.getTime()).toBeLessThan(prayer.fireableUntil.getTime());
+      // lockTime must be exactly preLockMinutes (15 mins) before prayer time
+      expect(prayer.time.getTime() - prayer.lockTime.getTime()).toBe(15 * 60 * 1000);
+      expect(prayer.lockTime.getTime()).toBeLessThan(prayer.fireableUntil.getTime());
       expect(typeof prayer.formattedTime).toBe("string");
+      expect(typeof prayer.formattedLockTime).toBe("string");
     });
 
     const formatted = formatTime(date, true);
@@ -137,11 +142,11 @@ describe("adhanCalc Engine", () => {
   });
 
   it("should return the correct upcoming prayer during evening and late night", () => {
-    // 18:57:03 - Maghrib is upcoming (19:00:00)
-    const eveningTime = new Date(2026, 7, 17, 18, 57, 3);
+    // 18:30:00 - Maghrib is upcoming (Lock at 18:45:00, Adhan at 19:00:00)
+    const eveningTime = new Date(2026, 7, 17, 18, 30, 0);
     const eveningUpcoming = getUpcomingPrayer(mockSettings, eveningTime);
     expect(eveningUpcoming.name).toBe("Maghrib");
-    expect(eveningUpcoming.time.getTime()).toBeGreaterThan(eveningTime.getTime());
+    expect(eveningUpcoming.lockTime.getTime()).toBeGreaterThan(eveningTime.getTime());
 
     // 22:30:00 - All 5 prayers today passed -> Tomorrow Fajr is upcoming
     const lateNightTime = new Date(2026, 7, 17, 22, 30, 0);

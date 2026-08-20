@@ -21,6 +21,7 @@ export interface AppSettings {
   calculationMethod: CalculationMethodName;
   asrSchool: AsrSchool;
   forcedPauseSeconds: number; // default 420 (7 mins)
+  preLockMinutes: number; // default 15 mins (lock offset before prayer)
   soundEnabled: boolean;
   snoozeEnabled: boolean;
   notificationsEnabled: boolean;
@@ -44,7 +45,9 @@ export interface PrayerLogItem {
 export interface PrayerTime {
   name: PrayerName;
   time: Date;
+  lockTime: Date;
   formattedTime: string;
+  formattedLockTime: string;
   isNext: boolean;
   isPassed: boolean;
   fireableUntil: Date;

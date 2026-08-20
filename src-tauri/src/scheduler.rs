@@ -52,11 +52,12 @@ pub fn check_and_mark_missed_prayers(app_handle: &AppHandle) {
                 settings.longitude,
                 &settings.calculation_method,
                 &settings.asr_school,
+                settings.pre_lock_minutes,
                 check_datetime,
             );
 
             for item in &prayers {
-                if now_ts >= item.next_timestamp {
+                if now_ts >= item.next_lock_timestamp {
                     if !store_mgr.has_logged_prayer(&date_str, &item.name) {
                         let sched_iso = chrono::DateTime::from_timestamp(item.timestamp, 0)
                             .map(|dt| dt.to_rfc3339())
@@ -82,10 +83,6 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
     let mut notified_events: HashSet<String> = HashSet::new();
 
     // ── Startup initialization pass ────────────────────────────────────────
-    // Pre-mark any prayer whose overlay window is currently active or already
-    // past so the scheduler never fires a phantom overlay the moment the app
-    // launches. Only prayers whose T-0 crosses zero *while the scheduler is
-    // running* will produce an overlay.
     {
         check_and_mark_missed_prayers(&app_handle);
         let config_dir = get_config_dir(&app_handle);
@@ -100,27 +97,23 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
             settings.longitude,
             &settings.calculation_method,
             &settings.asr_school,
+            settings.pre_lock_minutes,
             now,
         );
 
         for item in &prayers {
-            // If we're currently inside a fireable window OR past it,
-            // pre-seed the key so we won't fire an overlay for it.
-            if now_ts >= item.timestamp {
+            // If we're currently inside a pre-lock window OR past it, pre-seed the overlay key
+            if now_ts >= item.lock_timestamp {
                 let overlay_key = format!("{}:{}:overlay", today_str, item.name);
                 notified_events.insert(overlay_key);
                 println!(
-                    "[Waqt Scheduler] Startup: pre-seeding overlay key for {} (already at or past T-0)",
+                    "[Waqt Scheduler] Startup: pre-seeding overlay key for {} (already at or past lock_timestamp)",
                     item.name
                 );
             }
-            // Also pre-seed pre-notification keys for past prayers or pre-notification times
-            // that occurred well in the past (more than 5 minutes ago) so we don't fire stale
-            // notifications from hours ago on startup.
             for (label, seconds_before) in [("30m", 30 * 60i64), ("15m", 15 * 60), ("5m", 5 * 60)] {
                 let pre_ts = item.timestamp - seconds_before;
-                // Only pre-seed as done if prayer itself has passed OR if pre-notification time was > 5 minutes ago
-                if now_ts >= item.timestamp || now_ts >= (pre_ts + 300) {
+                if now_ts >= item.lock_timestamp || now_ts >= (pre_ts + 300) {
                     let key = format!("{}:{}:pre:{}", today_str, item.name, label);
                     notified_events.insert(key);
                 }
@@ -131,8 +124,8 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
     // ──────────────────────────────────────────────────────────────────────
 
     loop {
-        // Sleep 30s between ticks
-        sleep(Duration::from_secs(30)).await;
+        // Sleep 10s between ticks for fine-grained 10s toast handling
+        sleep(Duration::from_secs(10)).await;
 
         let elapsed = last_tick_instant.elapsed();
         last_tick_instant = Instant::now();
@@ -152,7 +145,6 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
         let today_str = now.format("%Y-%m-%d").to_string();
         let now_ts = now.timestamp();
 
-        // Prune old date notification keys to prevent unbounded set growth over long uptimes
         if notified_events.len() > 100 {
             notified_events.retain(|k| k.starts_with(&today_str));
         }
@@ -162,13 +154,14 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
             settings.longitude,
             &settings.calculation_method,
             &settings.asr_school,
+            settings.pre_lock_minutes,
             now,
         );
 
         for item in &prayers {
             let p_name = &item.name;
 
-            // 1. Pre-Notifications (T-30m, T-15m, T-5m)
+            // 1. Pre-Notifications (T-30m, T-15m, T-5m relative to Adhan time)
             if settings.notifications_enabled {
                 let pre_intervals = [
                     ("30m", 30 * 60),
@@ -181,8 +174,7 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                     let key = format!("{}:{}:pre:{}", today_str, p_name, label);
 
                     if !notified_events.contains(&key) {
-                        // Trigger pre-notification if current time has reached pre-notification time and prayer has not yet passed
-                        if now_ts >= pre_ts && now_ts < item.timestamp {
+                        if now_ts >= pre_ts && now_ts < item.lock_timestamp {
                             notified_events.insert(key);
                             let title = format!("Upcoming Prayer: {}", p_name);
                             let body = format!("{} is in {} minutes.", p_name, label.trim_end_matches('m'));
@@ -201,35 +193,43 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                 }
             }
 
-            // 2. Overlay / Forced Pause at T-0 & fireableUntil Window Rule
+            // 2. Toast warning (10 seconds before lock_timestamp)
+            let toast_key = format!("{}:{}:toast", today_str, p_name);
+            if now_ts >= (item.lock_timestamp - 10) && now_ts < item.next_lock_timestamp && !notified_events.contains(&toast_key) {
+                if !store_mgr.has_logged_prayer(&today_str, p_name) {
+                    notified_events.insert(toast_key);
+                    use tauri::Emitter;
+                    let _ = app_handle.emit("waqt:trigger-toast", p_name.clone());
+                    println!("[Waqt Scheduler] Emitted waqt:trigger-toast event for {}", p_name);
+                }
+            }
+
+            // 3. Overlay / Forced Pause at lock_timestamp & fireableUntil Window Rule
             let overlay_key = format!("{}:{}:overlay", today_str, p_name);
-            let is_past_fireable_window = now_ts >= item.next_timestamp;
-            let in_fireable_window = now_ts >= item.timestamp && now_ts < item.next_timestamp;
+            let is_past_fireable_window = now_ts >= item.next_lock_timestamp;
+            let in_fireable_window = now_ts >= item.lock_timestamp && now_ts < item.next_lock_timestamp;
 
             if is_past_fireable_window {
                 notified_events.insert(overlay_key);
             } else if in_fireable_window && !notified_events.contains(&overlay_key) {
-                // Check if user already logged this prayer today
                 if store_mgr.has_logged_prayer(&today_str, p_name) {
                     notified_events.insert(overlay_key);
                 } else {
                     notified_events.insert(overlay_key);
-                    println!("[Waqt Scheduler] Triggering overlay for {}", p_name);
+                    println!("[Waqt Scheduler] Triggering pre-lock overlay for {}", p_name);
 
-                    // Send T-0 notification if enabled
                     if settings.notifications_enabled {
                         if let Err(e) = app_handle
                             .notification()
                             .builder()
-                            .title(format!("Time for {}", p_name))
-                            .body(format!("It is now time for {}. Take a pause for prayer.", p_name))
+                            .title(format!("Pre-lock Time for {}", p_name))
+                            .body(format!("System is locking for {}. Prepare for prayer.", p_name))
                             .show()
                         {
-                            println!("[Waqt Scheduler] T-0 notification error for {}: {:?}", p_name, e);
+                            println!("[Waqt Scheduler] Lock notification error for {}: {:?}", p_name, e);
                         }
                     }
 
-                    // Spawn borderless overlay windows across monitors
                     let _ = overlay_window::spawn_overlay_windows(&app_handle, p_name, false);
                 }
             }

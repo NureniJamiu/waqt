@@ -92,7 +92,26 @@ export function App() {
       });
     });
 
-    return unsubscribe;
+    let unlistenToast: (() => void) | null = null;
+    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+      import("@tauri-apps/api/event").then(({ listen }) => {
+        listen<string>("waqt:trigger-toast", (event) => {
+          if (event.payload) {
+            _setActivePrayer(event.payload as PrayerName);
+            setCurrentScreen("toast");
+          }
+        }).then((unlistenFn) => {
+          unlistenToast = unlistenFn;
+        });
+      }).catch((err) => console.warn("Failed to listen for waqt:trigger-toast:", err));
+    }
+
+    return () => {
+      unsubscribe();
+      if (unlistenToast) {
+        unlistenToast();
+      }
+    };
     // Run once on mount only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
