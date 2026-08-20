@@ -80,9 +80,27 @@ pub fn check_and_mark_missed_prayers(app_handle: &AppHandle) {
     }
 }
 
+pub fn check_timezone_shift(
+    last_offset: &mut Option<chrono::FixedOffset>,
+    current_offset: chrono::FixedOffset,
+) -> bool {
+    match *last_offset {
+        Some(prev) if prev != current_offset => {
+            *last_offset = Some(current_offset);
+            true
+        }
+        None => {
+            *last_offset = Some(current_offset);
+            false
+        }
+        _ => false,
+    }
+}
+
 pub async fn start_background_scheduler(app_handle: AppHandle) {
     let mut last_tick_instant = Instant::now();
     let mut notified_events: HashSet<String> = HashSet::new();
+    let mut last_offset: Option<chrono::FixedOffset> = Some(*Local::now().offset());
 
     // ── Startup initialization pass ────────────────────────────────────────
     {
@@ -158,6 +176,16 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
         check_and_mark_missed_prayers(&app_handle);
 
         let now = Local::now();
+        let current_offset = *now.offset();
+        if check_timezone_shift(&mut last_offset, current_offset) {
+            println!(
+                "[Waqt Scheduler] Timezone / DST offset shift detected! Invalidating notification cache and emitting schedule refresh."
+            );
+            notified_events.clear();
+            use tauri::Emitter;
+            let _ = app_handle.emit("waqt:timezone-changed", ());
+        }
+
         let today_str = now.format("%Y-%m-%d").to_string();
         let now_ts = now.timestamp();
 
@@ -406,6 +434,31 @@ mod tests {
 
         let in_active_window_past = now_past >= lock_ts && now_past < active_expiry;
         assert!(!in_active_window_past);
+    }
+
+    #[test]
+    fn test_timezone_shift_detection() {
+        use super::check_timezone_shift;
+        use chrono::FixedOffset;
+
+        let mut last_offset: Option<FixedOffset> = None;
+        let offset_utc_plus_1 = FixedOffset::east_opt(3600).unwrap();
+        let offset_utc_plus_2 = FixedOffset::east_opt(7200).unwrap();
+
+        // 1. Initial assignment sets offset and returns false (no shift yet)
+        let shifted_init = check_timezone_shift(&mut last_offset, offset_utc_plus_1);
+        assert!(!shifted_init);
+        assert_eq!(last_offset, Some(offset_utc_plus_1));
+
+        // 2. Same offset returns false
+        let shifted_same = check_timezone_shift(&mut last_offset, offset_utc_plus_1);
+        assert!(!shifted_same);
+        assert_eq!(last_offset, Some(offset_utc_plus_1));
+
+        // 3. Changed offset returns true (shift detected) and updates stored offset
+        let shifted_change = check_timezone_shift(&mut last_offset, offset_utc_plus_2);
+        assert!(shifted_change);
+        assert_eq!(last_offset, Some(offset_utc_plus_2));
     }
 }
 

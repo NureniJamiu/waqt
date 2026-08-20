@@ -10,6 +10,7 @@ import {
   addEmergencyExtension,
   hasUsedEmergencyDismiss,
   subscribeLogUpdated,
+  subscribeTimezoneChanged,
   dismissOverlayCommand,
   triggerOverlayCommand,
   syncAutostart,
@@ -84,7 +85,7 @@ export function App() {
       }
     });
 
-    const unsubscribe = subscribeLogUpdated(() => {
+    const unsubscribeLog = subscribeLogUpdated(() => {
       loadLogs().then((updated) => setLogs(updated));
       const currentEffectiveDateStr = getEffectivePrayerDateString(activePrayer);
       hasUsedEmergencyDismiss(currentEffectiveDateStr, activePrayer).then((used) => {
@@ -92,6 +93,11 @@ export function App() {
           setIsEmergencyExhausted(true);
         }
       });
+    });
+
+    const unsubscribeTz = subscribeTimezoneChanged(() => {
+      loadSettings().then((s) => setSettings(s));
+      loadLogs().then((l) => setLogs(l));
     });
 
     let unlistenToast: (() => void) | null = null;
@@ -109,7 +115,8 @@ export function App() {
     }
 
     return () => {
-      unsubscribe();
+      unsubscribeLog();
+      unsubscribeTz();
       if (unlistenToast) {
         unlistenToast();
       }

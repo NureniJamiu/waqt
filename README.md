@@ -81,10 +81,10 @@ flowchart TD
 - **Configurable Pre-Lock Lead Time (`preLockMinutes`)**: Configure a pre-lock lead time (0–30 minutes, default 15 mins) before official prayer times to help disengage early.
 - **Pre-Prayer Notifications**: Timely desktop reminders delivered at **T-30m**, **T-15m**, and **T-5m** before prayer lock.
 - **10-Second Countdown Toast**: Non-intrusive corner toast with chime support notifying you 10 seconds before the overlay activates.
-- **Multi-Monitor Overlay & Native Window Elevation**: Full-screen overlay spawned across all connected displays with physical-to-logical Retina pixel scaling, native macOS window level elevation (`NSMainMenuWindowLevel + 1`), and automatic app window minimization.
+- **Multi-Monitor Overlay & Native Window Elevation**: Full-screen overlay spawned across all connected displays with physical-to-logical Retina pixel scaling, native macOS window level elevation (`NSMainMenuWindowLevel + 1`), automatic app window minimization, and Win32 top-most style fallbacks (`HWND_TOPMOST`, `WS_EX_TOOLWINDOW`) on Windows.
 - **Emergency Extension & Strict Re-Lock Protocol**: Emergency dismissal grants a 30-minute delay with reminders at 15m, 10m, and 5m. After 30 minutes, Waqt re-locks the screen with `emergencyExhausted = true`, disabling emergency dismiss on re-lock to prevent perpetual shortcuts.
 - **Automated 7-Day Missed Prayer Backfill**: Automatically scans and backfills missed prayer entries for unconfirmed windows up to 7 days retroactively.
-- **Sleep & Wake Recovery**: Evaluates OS wake events to trigger or skip overlays seamlessly based on active prayer boundaries.
+- **Sleep, Wake & Dynamic Timezone/DST Shift Recovery**: Evaluates OS wake events and monitors system timezone offset (`Local::now().offset()`). Automatically invalidates cached schedule dates and updates prayer times immediately when timezones or DST shift mid-day.
 - **Onboarding OS Permissions Wizard**: 4-step setup wizard with live permission checking and guidance for Notifications, Autostart, and macOS Accessibility.
 - **Single Instance & Background Daemon**: Managed by `tauri-plugin-single-instance` and a Rust Tokio interval scheduler running continuously in the background.
 - **Developer Environment Guarding**: Test reminders and debug tools strictly isolated behind development environment checks.
@@ -98,7 +98,7 @@ flowchart TD
 - **Styling**: Tailwind CSS (Dark aesthetic, modern glassmorphism, micro-animations)
 - **Calculation Library**: `adhan` (npm package)
 - **State & Storage**: Tauri Store (`tauri-plugin-store`) saving local JSON
-- **OS Plugins & Integrations**: `tauri-plugin-notification`, `tauri-plugin-autostart`, `tauri-plugin-single-instance`, Cocoa / Objective-C native FFI (macOS window hardening)
+- **OS Plugins & Integrations**: `tauri-plugin-notification`, `tauri-plugin-autostart`, `tauri-plugin-single-instance`, Cocoa / Objective-C FFI (macOS window hardening), Win32 API (`windows-sys` crate for Windows topmost hardening)
 - **Background Scheduler**: Tokio interval loop in Rust (`src-tauri`)
 
 ---

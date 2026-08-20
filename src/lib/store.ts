@@ -256,6 +256,39 @@ export function subscribeLogUpdated(callback: () => void): () => void {
   };
 }
 
+/**
+ * Subscribes to backend system timezone/DST shift events (`waqt:timezone-changed`).
+ * Invokes the callback whenever the background scheduler detects a system offset change.
+ */
+export function subscribeTimezoneChanged(callback: () => void): () => void {
+  const handleCustomEvent = () => callback();
+
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+    window.addEventListener("waqt:timezone-changed", handleCustomEvent);
+  }
+
+  let unlistenTauri: (() => void) | null = null;
+
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    import("@tauri-apps/api/event")
+      .then(({ listen }) => {
+        listen("waqt:timezone-changed", () => callback()).then((unlistenFn) => {
+          unlistenTauri = unlistenFn;
+        });
+      })
+      .catch((err) => console.warn("Failed to listen for Tauri timezone-changed event:", err));
+  }
+
+  return () => {
+    if (typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+      window.removeEventListener("waqt:timezone-changed", handleCustomEvent);
+    }
+    if (unlistenTauri) {
+      unlistenTauri();
+    }
+  };
+}
+
 export async function addLogEntry(entry: PrayerLogItem): Promise<PrayerLogItem[]> {
   const updated = addLogEntryToStorage(entry);
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {

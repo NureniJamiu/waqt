@@ -165,9 +165,45 @@ fn harden_window(win: &tauri::WebviewWindow) {
             harden_macos(&win_for_closure);
         });
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        harden_windows(win);
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = win;
+    }
+}
+
+/// Applies Win32 top-most Z-order elevation and toolwindow style flags on Windows.
+#[cfg(target_os = "windows")]
+fn harden_windows(win: &tauri::WebviewWindow) {
+    use windows_sys::Win32::Foundation::HWND;
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        GetWindowLongPtrW, SetWindowLongPtrW, SetWindowPos, GWL_EXSTYLE, HWND_TOPMOST,
+        SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, WS_EX_TOOLWINDOW, WS_EX_TOPMOST,
+    };
+
+    if let Ok(hwnd_raw) = win.hwnd() {
+        let hwnd = hwnd_raw.0 as HWND;
+        unsafe {
+            let ex_style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+            SetWindowLongPtrW(
+                hwnd,
+                GWL_EXSTYLE,
+                ex_style | (WS_EX_TOOLWINDOW | WS_EX_TOPMOST) as isize,
+            );
+
+            SetWindowPos(
+                hwnd,
+                HWND_TOPMOST,
+                0,
+                0,
+                0,
+                0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW,
+            );
+        }
     }
 }
 

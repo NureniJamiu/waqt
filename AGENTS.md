@@ -76,10 +76,12 @@ waqt/
 ### 4.2 Multi-Monitor Overlay Spawning
 - At T-0 (after a 10s countdown toast), Tauri's Rust backend queries connected monitors (`app_handle.available_monitors()`).
 - Tauri creates/opens one borderless, always-on-top, fullscreen overlay window per monitor to prevent bypassing the overlay on secondary screens.
+- **Cross-Platform Elevation & Hardening**: On macOS, windows are elevated to `NSMainMenuWindowLevel + 1` via AppKit FFI with workspace behaviors and window minimization. On Windows, `HWND_TOPMOST` Z-order positioning and `WS_EX_TOOLWINDOW` / `WS_EX_TOPMOST` extended styles are applied via Win32 FFI (`windows-sys`).
 
 ### 4.3 Edge Case Constraints
 - **`fireableUntil` Window**: Each prayer's window is fireable until the start of the next prayer. If current time is past `fireableUntil` (e.g. laptop opened at 3 PM when Dhuhr was at 1 PM and Asr is 3:30 PM), log as `missed` without popping retroactive overlays.
 - **Sleep / Wake Recovery**: Listen to OS wake events. Re-evaluate current time against scheduled prayer times. If a prayer's T-0 passed during sleep and current time is still before `fireableUntil`, trigger the overlay immediately upon wake.
+- **Timezone & DST Dynamic Shift Recovery**: System timezone offset (`Local::now().offset()`) is monitored continuously. If a user changes timezones mid-day or a DST shift occurs, cached notification keys are cleared, schedules recalculate instantly, and `waqt:timezone-changed` is emitted to refresh frontend state.
 - **Multiple Overlays**: Only ever display one overlay sequence at a time; queue subsequent overlays if necessary.
 
 ---
