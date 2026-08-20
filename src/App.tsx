@@ -14,6 +14,7 @@ import {
   triggerOverlayCommand,
   syncAutostart,
 } from "./lib/store";
+import { getEffectivePrayerDateString } from "./lib/adhanCalc";
 import { SplashScreen } from "./screens/SplashScreen/SplashScreen";
 import { Onboarding } from "./screens/Onboarding/Onboarding";
 import { Dashboard } from "./screens/Dashboard/Dashboard";
@@ -76,8 +77,8 @@ export function App() {
       setLogs(hydratedLogs);
     });
 
-    const todayStr = getLocalDateString();
-    hasUsedEmergencyDismiss(todayStr, activePrayer).then((used) => {
+    const effectiveDateStr = getEffectivePrayerDateString(activePrayer);
+    hasUsedEmergencyDismiss(effectiveDateStr, activePrayer).then((used) => {
       if (used || urlParams.emergencyExhausted) {
         setIsEmergencyExhausted(true);
       }
@@ -85,7 +86,8 @@ export function App() {
 
     const unsubscribe = subscribeLogUpdated(() => {
       loadLogs().then((updated) => setLogs(updated));
-      hasUsedEmergencyDismiss(todayStr, activePrayer).then((used) => {
+      const currentEffectiveDateStr = getEffectivePrayerDateString(activePrayer);
+      hasUsedEmergencyDismiss(currentEffectiveDateStr, activePrayer).then((used) => {
         if (used || urlParams.emergencyExhausted) {
           setIsEmergencyExhausted(true);
         }
@@ -137,9 +139,10 @@ export function App() {
 
   const handleConfirmPrayed = async () => {
     const now = new Date();
+    const prayerDateStr = getEffectivePrayerDateString(activePrayer, now);
     const newEntry: PrayerLogItem = {
       id: Date.now().toString(),
-      date: getLocalDateString(now),
+      date: prayerDateStr,
       prayer: activePrayer,
       scheduledTime: now.toISOString(),
       status: "confirmed",
@@ -158,12 +161,12 @@ export function App() {
 
   const handleEmergencyDismiss = async () => {
     const now = new Date();
-    const todayStr = getLocalDateString(now);
+    const prayerDateStr = getEffectivePrayerDateString(activePrayer, now);
     const expiresAt = new Date(now.getTime() + 30 * 60 * 1000).toISOString();
 
     const newEntry: PrayerLogItem = {
       id: Date.now().toString(),
-      date: todayStr,
+      date: prayerDateStr,
       prayer: activePrayer,
       scheduledTime: now.toISOString(),
       status: "emergency_dismissed",
@@ -172,7 +175,7 @@ export function App() {
 
     const extensionItem = {
       id: `ext-${Date.now()}`,
-      date: todayStr,
+      date: prayerDateStr,
       prayer: activePrayer,
       dismissedAt: now.toISOString(),
       expiresAt,

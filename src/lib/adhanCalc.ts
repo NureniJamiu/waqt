@@ -168,3 +168,17 @@ export function getFireableWindow(
   };
 }
 
+export function getEffectivePrayerDateString(prayerName: PrayerName, now: Date = new Date()): string {
+  const d = new Date(now.getTime());
+  // If prayer is Isha and current time is late night / early morning (00:00 - 05:00 AM),
+  // attribute it to yesterday's date schedule.
+  if (prayerName === "Isha" && d.getHours() < 5) {
+    d.setDate(d.getDate() - 1);
+  }
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+

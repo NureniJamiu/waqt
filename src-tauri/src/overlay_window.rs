@@ -70,6 +70,48 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhau
     Ok(())
 }
 
+pub fn has_active_overlay(app: &AppHandle) -> bool {
+    app.webview_windows().keys().any(|k| k.starts_with("overlay-"))
+}
+
+pub fn get_active_overlay_info(app: &AppHandle) -> Option<(String, bool)> {
+    let windows = app.webview_windows();
+    for (label, win) in windows {
+        if label.starts_with("overlay-") {
+            if let Ok(url_val) = win.url() {
+                let url_str = url_val.as_str();
+                let is_emergency = url_str.contains("emergency_exhausted=true");
+                if let Some(pos) = url_str.find("prayer=") {
+                    let after = &url_str[pos + 7..];
+                    let prayer = after.split('&').next().unwrap_or("Dhuhr").to_string();
+                    return Some((prayer, is_emergency));
+                }
+            }
+        }
+    }
+    None
+}
+
+pub fn sync_overlay_monitors(app: &AppHandle) {
+    if let Some((prayer_name, emergency_exhausted)) = get_active_overlay_info(app) {
+        let _ = spawn_overlay_windows(app, &prayer_name, emergency_exhausted);
+        if let Ok(monitors) = app.available_monitors() {
+            let active_count = monitors.len();
+            for (label, win) in app.webview_windows() {
+                if let Some(idx_str) = label.strip_prefix("overlay-monitor-") {
+                    if let Ok(idx) = idx_str.parse::<usize>() {
+                        if idx >= active_count {
+                            let _ = win.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
 fn spawn_single_overlay(app: &AppHandle, label: &str, url: &str) -> Result<(), String> {
     if let Some(existing) = app.get_webview_window(label) {
         let _ = existing.show();

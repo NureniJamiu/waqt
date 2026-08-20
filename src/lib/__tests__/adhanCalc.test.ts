@@ -6,6 +6,7 @@ import {
   getPrayerTimeByDateAndName,
   getFireableWindow,
   getUpcomingPrayer,
+  getEffectivePrayerDateString,
 } from "../adhanCalc";
 import { AppSettings } from "../../types";
 
@@ -182,5 +183,23 @@ describe("adhanCalc Engine", () => {
       expect(prayers[3].time.getTime()).toBeLessThan(prayers[4].time.getTime());
     });
   });
+
+  it("should attribute Isha confirmed post-midnight (00:00 - 05:00) to yesterday's date schedule", () => {
+    // Aug 21, 2026 at 01:30 AM
+    const lateNightIsha = new Date(2026, 7, 21, 1, 30, 0);
+    const dateStr = getEffectivePrayerDateString("Isha", lateNightIsha);
+    expect(dateStr).toBe("2026-08-20");
+
+    // Aug 21, 2026 at 10:00 PM
+    const normalIsha = new Date(2026, 7, 21, 22, 0, 0);
+    const normalDateStr = getEffectivePrayerDateString("Isha", normalIsha);
+    expect(normalDateStr).toBe("2026-08-21");
+
+    // Aug 21, 2026 at 01:30 AM for Dhuhr (non-Isha)
+    const lateNightDhuhr = new Date(2026, 7, 21, 1, 30, 0);
+    const dhuhrDateStr = getEffectivePrayerDateString("Dhuhr", lateNightDhuhr);
+    expect(dhuhrDateStr).toBe("2026-08-21");
+  });
 });
+
 

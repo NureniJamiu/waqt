@@ -315,19 +315,30 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                         ext.relocked = true;
                         let _ = store_mgr.update_emergency_extension(&ext);
 
-                        if settings.notifications_enabled {
-                            let _ = app_handle
-                                .notification()
-                                .builder()
-                                .title(format!("Emergency Prolongation Expired: {}", ext.prayer))
-                                .body(format!("30-minute grace period for {} has ended. Re-locking system.", ext.prayer))
-                                .show();
-                        }
+                        // If extension expired while laptop slept (now_ts > exp_ts + 15m), mark as missed instead of locking retroactively
+                        if now_ts > (exp_ts + 15 * 60) {
+                            println!("[Waqt Scheduler] Emergency extension expired while OS was asleep for {}. Marking as missed.", ext.prayer);
+                            let _ = store_mgr.mark_missed_prayer(&ext.date, &ext.prayer, &ext.dismissed_at);
+                        } else {
+                            if settings.notifications_enabled {
+                                let _ = app_handle
+                                    .notification()
+                                    .builder()
+                                    .title(format!("Emergency Prolongation Expired: {}", ext.prayer))
+                                    .body(format!("30-minute grace period for {} has ended. Re-locking system.", ext.prayer))
+                                    .show();
+                            }
 
-                        let _ = overlay_window::spawn_overlay_windows(&app_handle, &ext.prayer, true);
+                            let _ = overlay_window::spawn_overlay_windows(&app_handle, &ext.prayer, true);
+                        }
                     }
                 }
             }
+        }
+
+        // 4. Dynamic Multi-Monitor Overlay Synchronization (Handles monitor plug/unplug mid-overlay)
+        if overlay_window::has_active_overlay(&app_handle) {
+            overlay_window::sync_overlay_monitors(&app_handle);
         }
     }
 }
