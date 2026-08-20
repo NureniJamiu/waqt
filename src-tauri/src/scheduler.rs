@@ -1,7 +1,7 @@
 use crate::overlay_window;
 use crate::prayer_calc;
 use crate::store::StoreManager;
-use chrono::Local;
+use chrono::{Local, TimeZone};
 use std::collections::HashSet;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_notification::NotificationExt;
@@ -14,6 +14,69 @@ fn get_config_dir(app_handle: &AppHandle) -> std::path::PathBuf {
         .unwrap_or_else(|_| std::path::PathBuf::from("./"))
 }
 
+pub fn check_and_mark_missed_prayers(app_handle: &AppHandle) {
+    let config_dir = get_config_dir(app_handle);
+    let store_mgr = StoreManager::new(config_dir);
+    let settings = store_mgr.load_settings();
+
+    if !settings.onboarding_completed {
+        return;
+    }
+
+    let now = Local::now();
+    let now_ts = now.timestamp();
+
+    let start_date = if let Some(ref created_str) = settings.created_at {
+        chrono::NaiveDate::parse_from_str(created_str, "%Y-%m-%d")
+            .unwrap_or_else(|_| now.naive_local().date())
+    } else {
+        now.naive_local().date()
+    };
+
+    let today_date = now.naive_local().date();
+    let max_days_back = 7;
+    let mut added_any_missed = false;
+
+    for days_back in (0..=max_days_back).rev() {
+        let check_date_naive = today_date - chrono::Duration::days(days_back);
+        if check_date_naive < start_date {
+            continue;
+        }
+
+        if let Some(check_datetime) = check_date_naive.and_hms_opt(12, 0, 0)
+            .and_then(|ndt| Local.from_local_datetime(&ndt).single())
+        {
+            let date_str = check_date_naive.format("%Y-%m-%d").to_string();
+            let prayers = prayer_calc::get_today_prayer_items(
+                settings.latitude,
+                settings.longitude,
+                &settings.calculation_method,
+                &settings.asr_school,
+                check_datetime,
+            );
+
+            for item in &prayers {
+                if now_ts >= item.next_timestamp {
+                    if !store_mgr.has_logged_prayer(&date_str, &item.name) {
+                        let sched_iso = chrono::DateTime::from_timestamp(item.timestamp, 0)
+                            .map(|dt| dt.to_rfc3339())
+                            .unwrap_or_else(|| date_str.clone());
+                        if store_mgr.mark_missed_prayer(&date_str, &item.name, &sched_iso).is_ok() {
+                            println!("[Waqt Scheduler] Prayer {} for {} window elapsed -> marked as missed", item.name, date_str);
+                            added_any_missed = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if added_any_missed {
+        use tauri::Emitter;
+        let _ = app_handle.emit("waqt:log-updated", ());
+    }
+}
+
 pub async fn start_background_scheduler(app_handle: AppHandle) {
     let mut last_tick_instant = Instant::now();
     let mut notified_events: HashSet<String> = HashSet::new();
@@ -24,6 +87,7 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
     // launches. Only prayers whose T-0 crosses zero *while the scheduler is
     // running* will produce an overlay.
     {
+        check_and_mark_missed_prayers(&app_handle);
         let config_dir = get_config_dir(&app_handle);
         let store_mgr = StoreManager::new(config_dir);
         let settings = store_mgr.load_settings();
@@ -77,6 +141,8 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
         if is_sleep_wake {
             println!("[Waqt Scheduler] OS sleep-wake detected! Elapsed: {:?}", elapsed);
         }
+
+        check_and_mark_missed_prayers(&app_handle);
 
         let config_dir = get_config_dir(&app_handle);
         let store_mgr = StoreManager::new(config_dir);
@@ -141,14 +207,6 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
             let in_fireable_window = now_ts >= item.timestamp && now_ts < item.next_timestamp;
 
             if is_past_fireable_window {
-                // If prayer window has elapsed and was never logged, mark as missed
-                if !store_mgr.has_logged_prayer(&today_str, p_name) {
-                    let sched_iso = chrono::DateTime::from_timestamp(item.timestamp, 0)
-                        .map(|dt| dt.to_rfc3339())
-                        .unwrap_or_else(|| today_str.clone());
-                    let _ = store_mgr.mark_missed_prayer(&today_str, p_name, &sched_iso);
-                    println!("[Waqt Scheduler] Prayer {} for {} window elapsed -> marked as missed", p_name, today_str);
-                }
                 notified_events.insert(overlay_key);
             } else if in_fireable_window && !notified_events.contains(&overlay_key) {
                 // Check if user already logged this prayer today
