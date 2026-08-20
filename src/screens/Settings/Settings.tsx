@@ -412,8 +412,8 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                 <div className="flex items-center gap-3">
                   <Volume2 className="w-4 h-4 text-emerald-400" />
                   <div>
-                    <div className="text-sm font-bold">Chime Audio</div>
-                    <div className="text-xs text-slate-400">Play chime during T-0 countdown toast</div>
+                    <div className="text-sm font-bold">Audio Notifications</div>
+                    <div className="text-xs text-slate-400">Play sound alert during T-0 countdown toast</div>
                   </div>
                 </div>
                 <input
@@ -433,9 +433,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                       className="select-control flex-1 max-w-xs text-xs py-2"
                     >
                       <option value="chime">Resonant Chime (MP3)</option>
-                      <option value="takbeer">Deep Takbeer Tone (MP3)</option>
-                      <option value="oscillator">Sine Oscillator (Subtle Synthesized)</option>
-                      <option value="mute">Mute Audio</option>
+                      <option value="takbeer">Takbir / Call to Prayer (MP3)</option>
                     </select>
 
                     <button

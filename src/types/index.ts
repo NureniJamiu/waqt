@@ -14,7 +14,7 @@ export type CalculationMethodName =
 
 export type AsrSchool = "Standard" | "Hanafi";
 
-export type SoundOption = "chime" | "takbeer" | "oscillator" | "mute";
+export type SoundOption = "chime" | "takbeer";
 
 export interface AppSettings {
   latitude: number;

@@ -37,15 +37,9 @@ export function playSineOscillator(): void {
 
 export function playSound(option?: SoundOption, enabled: boolean = true): void {
   if (!enabled) return;
-  const sound = option || "chime";
-  if (sound === "mute") return;
-
-  if (sound === "oscillator") {
-    playSineOscillator();
-    return;
-  }
-
+  const sound = option === "takbeer" ? "takbeer" : "chime";
   const audioPath = `/assets/${sound}.mp3`;
+
   try {
     const audio = new Audio(audioPath);
     audio.volume = 0.6;
