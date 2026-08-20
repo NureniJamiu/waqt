@@ -219,7 +219,7 @@ export function App() {
         (entry) => entry.date === todayStr && entry.prayer === activePrayer
       );
       if (!isAlreadyLogged) {
-        setCurrentScreen("overlay");
+        triggerOverlayCommand(activePrayer, isEmergencyExhausted);
       }
     }, 5 * 60 * 1000);
   };
@@ -267,7 +267,10 @@ export function App() {
             <CountdownToast
               prayerName={activePrayer}
               soundEnabled={settings.soundEnabled}
-              onComplete={() => setCurrentScreen("overlay")}
+              onComplete={() => {
+                setCurrentScreen("dashboard");
+                triggerOverlayCommand(activePrayer, isEmergencyExhausted);
+              }}
             />
           )}
 

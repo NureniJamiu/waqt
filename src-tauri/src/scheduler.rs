@@ -84,42 +84,49 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
 
     // ── Startup initialization pass ────────────────────────────────────────
     {
-        check_and_mark_missed_prayers(&app_handle);
         let config_dir = get_config_dir(&app_handle);
         let store_mgr = StoreManager::new(config_dir);
         let settings = store_mgr.load_settings();
-        let now = Local::now();
-        let today_str = now.format("%Y-%m-%d").to_string();
-        let now_ts = now.timestamp();
 
-        let prayers = prayer_calc::get_today_prayer_items(
-            settings.latitude,
-            settings.longitude,
-            &settings.calculation_method,
-            &settings.asr_school,
-            settings.pre_lock_minutes,
-            now,
-        );
+        if settings.onboarding_completed {
+            check_and_mark_missed_prayers(&app_handle);
+            let now = Local::now();
+            let today_str = now.format("%Y-%m-%d").to_string();
+            let now_ts = now.timestamp();
 
-        for item in &prayers {
-            // If we're currently inside a pre-lock window OR past it, pre-seed the overlay key
-            if now_ts >= item.lock_timestamp {
-                let overlay_key = format!("{}:{}:overlay", today_str, item.name);
-                notified_events.insert(overlay_key);
-                println!(
-                    "[Waqt Scheduler] Startup: pre-seeding overlay key for {} (already at or past lock_timestamp)",
-                    item.name
-                );
-            }
-            for (label, seconds_before) in [("30m", 30 * 60i64), ("15m", 15 * 60), ("5m", 5 * 60)] {
-                let pre_ts = item.timestamp - seconds_before;
-                if now_ts >= item.lock_timestamp || now_ts >= (pre_ts + 300) {
-                    let key = format!("{}:{}:pre:{}", today_str, item.name, label);
-                    notified_events.insert(key);
+            let prayers = prayer_calc::get_today_prayer_items(
+                settings.latitude,
+                settings.longitude,
+                &settings.calculation_method,
+                &settings.asr_school,
+                settings.pre_lock_minutes,
+                now,
+            );
+
+            for item in &prayers {
+                // If we're currently inside a pre-lock window OR past it, pre-seed overlay and toast keys
+                if now_ts >= item.lock_timestamp {
+                    let overlay_key = format!("{}:{}:overlay", today_str, item.name);
+                    let toast_key = format!("{}:{}:toast", today_str, item.name);
+                    notified_events.insert(overlay_key);
+                    notified_events.insert(toast_key);
+                    println!(
+                        "[Waqt Scheduler] Startup: pre-seeding overlay & toast keys for {} (already at or past lock_timestamp)",
+                        item.name
+                    );
+                }
+                for (label, seconds_before) in [("30m", 30 * 60i64), ("15m", 15 * 60), ("5m", 5 * 60)] {
+                    let pre_ts = item.timestamp - seconds_before;
+                    if now_ts >= item.lock_timestamp || now_ts >= (pre_ts + 300) {
+                        let key = format!("{}:{}:pre:{}", today_str, item.name, label);
+                        notified_events.insert(key);
+                    }
                 }
             }
+            println!("[Waqt Scheduler] Startup initialization complete. Pre-seeded {} event keys.", notified_events.len());
+        } else {
+            println!("[Waqt Scheduler] Startup: Onboarding not completed. Skipping scheduler initialization pass.");
         }
-        println!("[Waqt Scheduler] Startup initialization complete. Pre-seeded {} event keys.", notified_events.len());
     }
     // ──────────────────────────────────────────────────────────────────────
 
@@ -135,11 +142,15 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
             println!("[Waqt Scheduler] OS sleep-wake detected! Elapsed: {:?}", elapsed);
         }
 
-        check_and_mark_missed_prayers(&app_handle);
-
         let config_dir = get_config_dir(&app_handle);
         let store_mgr = StoreManager::new(config_dir);
         let settings = store_mgr.load_settings();
+
+        if !settings.onboarding_completed {
+            continue;
+        }
+
+        check_and_mark_missed_prayers(&app_handle);
 
         let now = Local::now();
         let today_str = now.format("%Y-%m-%d").to_string();
@@ -193,14 +204,18 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                 }
             }
 
-            // 2. Toast warning (10 seconds before lock_timestamp)
+            // 2. Toast warning (strictly 10 seconds before lock_timestamp)
             let toast_key = format!("{}:{}:toast", today_str, p_name);
-            if now_ts >= (item.lock_timestamp - 10) && now_ts < item.next_lock_timestamp && !notified_events.contains(&toast_key) {
-                if !store_mgr.has_logged_prayer(&today_str, p_name) {
+            if !notified_events.contains(&toast_key) {
+                if now_ts >= item.lock_timestamp {
                     notified_events.insert(toast_key);
-                    use tauri::Emitter;
-                    let _ = app_handle.emit("waqt:trigger-toast", p_name.clone());
-                    println!("[Waqt Scheduler] Emitted waqt:trigger-toast event for {}", p_name);
+                } else if now_ts >= (item.lock_timestamp - 10) && now_ts < item.lock_timestamp {
+                    if !store_mgr.has_logged_prayer(&today_str, p_name) {
+                        notified_events.insert(toast_key);
+                        use tauri::Emitter;
+                        let _ = app_handle.emit("waqt:trigger-toast", p_name.clone());
+                        println!("[Waqt Scheduler] Emitted waqt:trigger-toast event for {}", p_name);
+                    }
                 }
             }
 
@@ -335,19 +350,24 @@ mod tests {
     }
 
     #[test]
-    fn test_startup_pre_seeding_condition() {
-        let prayer_ts = 10000i64;
-        let pre_30m = prayer_ts - 30 * 60; // 8200
+    fn test_toast_trigger_window_strict() {
+        let lock_ts = 10000i64;
 
-        // If app starts 2 minutes after 30m boundary (now = 8320 < 8200 + 300 = 8500), it should NOT be pre-seeded
-        let now_recent = 8320i64;
-        let should_pre_seed_recent = now_recent >= prayer_ts || now_recent >= (pre_30m + 300);
-        assert!(!should_pre_seed_recent);
+        // 15 seconds before lock: toast should not trigger yet
+        let now_early = 9985i64;
+        let should_toast_early = now_early >= (lock_ts - 10) && now_early < lock_ts;
+        assert!(!should_toast_early);
 
-        // If app starts 10 minutes after 30m boundary (now = 8800 >= 8500), it SHOULD be pre-seeded
-        let now_old = 8800i64;
-        let should_pre_seed_old = now_old >= prayer_ts || now_old >= (pre_30m + 300);
-        assert!(should_pre_seed_old);
+        // 5 seconds before lock: toast SHOULD trigger
+        let now_exact = 9995i64;
+        let should_toast_exact = now_exact >= (lock_ts - 10) && now_exact < lock_ts;
+        assert!(should_toast_exact);
+
+        // At or after lock time (e.g. 10005i64): toast MUST NOT trigger retroactively
+        let now_past = 10005i64;
+        let should_toast_past = now_past >= (lock_ts - 10) && now_past < lock_ts;
+        assert!(!should_toast_past);
     }
 }
+
 
