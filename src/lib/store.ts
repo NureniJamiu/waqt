@@ -317,6 +317,28 @@ export async function addLogEntry(entry: PrayerLogItem): Promise<PrayerLogItem[]
   return updated;
 }
 
+export async function clearLogs(): Promise<void> {
+  clearLogsFromStorage();
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("clear_logs");
+    } catch (err) {
+      console.error("Failed to invoke clear_logs:", err);
+    }
+  }
+  const store = await getTauriStore();
+  if (store) {
+    try {
+      await store.set("log", []);
+      await store.save();
+    } catch (err) {
+      console.error("Failed to clear log in Tauri Store:", err);
+    }
+  }
+  notifyLogUpdated();
+}
+
 export async function addEmergencyExtension(ext: import("../types").EmergencyExtension): Promise<void> {
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     try {

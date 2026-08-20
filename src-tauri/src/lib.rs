@@ -37,6 +37,12 @@ fn add_log_entry(app: AppHandle, entry: PrayerLogItem) -> Result<Vec<PrayerLogIt
 }
 
 #[tauri::command]
+fn clear_logs(app: AppHandle) -> Result<(), String> {
+    let mgr = StoreManager::new(get_config_dir(&app));
+    mgr.clear_logs()
+}
+
+#[tauri::command]
 fn add_emergency_extension(app: AppHandle, ext: EmergencyExtension) -> Result<(), String> {
     let mgr = StoreManager::new(get_config_dir(&app));
     mgr.add_emergency_extension(ext)
@@ -101,6 +107,7 @@ pub fn run() {
             save_settings,
             get_logs,
             add_log_entry,
+            clear_logs,
             add_emergency_extension,
             has_used_emergency_dismiss,
             trigger_overlay,

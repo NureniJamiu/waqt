@@ -170,6 +170,12 @@ impl StoreManager {
         Ok(store.log)
     }
 
+    pub fn clear_logs(&self) -> Result<(), String> {
+        let mut store = self.load_store();
+        store.log.clear();
+        self.save_store(&store)
+    }
+
     pub fn has_logged_prayer(&self, date: &str, prayer: &str) -> bool {
         let logs = self.load_logs();
         logs.iter().any(|item| item.date == date && item.prayer == prayer)
