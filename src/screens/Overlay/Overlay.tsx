@@ -241,7 +241,7 @@ export const Overlay: React.FC<OverlayProps> = ({
         <div className="space-y-2">
           {isEmergencyExhausted ? (
             <span className="text-xs uppercase font-extrabold tracking-widest text-amber-300 bg-amber-500/10 px-3.5 py-1 rounded-full border border-amber-500/25">
-              Emergency Prolongation Expired • System Lock Active
+              System Lock Active
             </span>
           ) : (
             <span className="text-xs uppercase font-extrabold tracking-widest text-emerald-300 bg-emerald-500/10 px-3.5 py-1 rounded-full border border-emerald-500/25">
