@@ -35,14 +35,31 @@ export function playSineOscillator(): void {
   }
 }
 
+let currentAudio: HTMLAudioElement | null = null;
+
+export function stopSound(): void {
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch {
+      // Ignore pause errors
+    }
+    currentAudio = null;
+  }
+}
+
 export function playSound(option?: SoundOption, enabled: boolean = true): void {
   if (!enabled) return;
+  stopSound();
+
   const sound = option === "takbeer" ? "takbeer" : "chime";
   const audioPath = `/assets/${sound}.mp3`;
 
   try {
     const audio = new Audio(audioPath);
     audio.volume = 0.6;
+    currentAudio = audio;
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch((err) => {

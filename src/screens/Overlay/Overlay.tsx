@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AppSettings, PrayerName } from "../../types";
-import { CheckCircle2, AlertTriangle, Moon, ShieldAlert, AlarmClock, Clock, Lock } from "lucide-react";
-import { playSound } from "../../lib/sound";
+import { CheckCircle2, AlertTriangle, Moon, ShieldAlert, AlarmClock, Clock, Lock, Volume2, VolumeX } from "lucide-react";
+import { playSound, stopSound } from "../../lib/sound";
 
 interface OverlayProps {
   prayerName: PrayerName;
@@ -26,10 +26,27 @@ export const Overlay: React.FC<OverlayProps> = ({
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState<boolean>(false);
   const [snoozed, setSnoozed] = useState<boolean>(hasSnoozed);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(settings.soundEnabled);
 
   useEffect(() => {
-    playSound("takbeer", settings.soundEnabled);
+    if (settings.soundEnabled) {
+      playSound("takbeer", true);
+      setIsPlayingAudio(true);
+    }
+    return () => {
+      stopSound();
+    };
   }, [settings.soundEnabled]);
+
+  const handleToggleAudio = () => {
+    if (isPlayingAudio) {
+      stopSound();
+      setIsPlayingAudio(false);
+    } else {
+      playSound("takbeer", true);
+      setIsPlayingAudio(true);
+    }
+  };
 
   useEffect(() => {
     const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -118,37 +135,66 @@ export const Overlay: React.FC<OverlayProps> = ({
 
       {/* Top Bar */}
       <div className="flex justify-between items-center w-full max-w-5xl mx-auto relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-300 bg-slate-900/90 px-4 py-2 rounded-md border border-slate-700/80">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm font-black tracking-tight text-white">
             <Moon className="w-4 h-4 text-emerald-400" />
             <span>Waqt Forced Pause</span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/60 px-4 py-2 rounded-md border border-slate-800/80">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-slate-700 text-sm font-light">|</span>
+
+          <div className="flex items-center gap-1.5 text-xs font-mono font-medium text-slate-400">
+            <Clock className="w-3.5 h-3.5 text-slate-500" />
             <span>{currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
           </div>
         </div>
 
-        {/* Emergency Dismiss Button */}
-        {isEmergencyExhausted ? (
+        {/* Top Right Action Controls */}
+        <div className="flex items-center gap-3">
+          {/* Stop / Toggle Audio Control */}
           <button
-            disabled
-            title="Emergency grace period has already been used for this prayer session."
-            className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-900/80 px-4 py-2 rounded-md border border-slate-800 cursor-not-allowed opacity-70"
+            type="button"
+            onClick={handleToggleAudio}
+            title={isPlayingAudio ? "Stop Takbeer Audio" : "Play Takbeer Audio"}
+            className={`flex items-center gap-2 text-xs font-bold px-3.5 py-2 rounded-lg border transition-all cursor-pointer active:scale-95 ${
+              isPlayingAudio
+                ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                : "bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-800"
+            }`}
           >
-            <ShieldAlert className="w-4 h-4 text-amber-500/60" />
-            <span>Emergency Grace Used</span>
+            {isPlayingAudio ? (
+              <>
+                <Volume2 className="w-4 h-4 text-emerald-400 animate-pulse" />
+                <span>Stop Takbeer</span>
+              </>
+            ) : (
+              <>
+                <VolumeX className="w-4 h-4 text-slate-400" />
+                <span>Audio Muted</span>
+              </>
+            )}
           </button>
-        ) : (
-          <button
-            onClick={() => setShowEmergencyConfirm(true)}
-            className="flex items-center gap-2 text-xs font-bold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/15 px-4 py-2 rounded-md border border-amber-500/35 transition-all cursor-pointer"
-          >
-            <AlertTriangle className="w-4 h-4" />
-            <span>Emergency Dismiss</span>
-          </button>
-        )}
+
+          {/* Enhanced Emergency Dismiss Button */}
+          {isEmergencyExhausted ? (
+            <button
+              disabled
+              title="Emergency grace period has already been used for this prayer session."
+              className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-900/60 px-4 py-2 rounded-lg border border-slate-800/80 cursor-not-allowed opacity-60"
+            >
+              <ShieldAlert className="w-4 h-4 text-amber-500/50" />
+              <span>Emergency Grace Used</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowEmergencyConfirm(true)}
+              className="group flex items-center gap-2 text-xs font-bold text-amber-300 hover:text-amber-100 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/15 hover:from-amber-500/25 hover:to-amber-500/25 px-4 py-2 rounded-lg border border-amber-500/40 hover:border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.15)] transition-all cursor-pointer active:scale-95"
+            >
+              <AlertTriangle className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+              <span>Emergency Dismiss</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="line-surface rounded-md flex flex-col items-center justify-center text-center max-w-md mx-auto space-y-6 relative z-10 px-6 py-8 border border-slate-700/70">
