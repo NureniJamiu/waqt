@@ -56,14 +56,16 @@ pub fn check_and_mark_missed_prayers(app_handle: &AppHandle) {
                 check_datetime,
             );
 
+            let grace_secs = std::cmp::max(settings.forced_pause_seconds, 15 * 60) as i64;
             for item in &prayers {
-                if now_ts >= item.next_lock_timestamp {
+                let missed_cutoff = item.timestamp + grace_secs;
+                if now_ts >= missed_cutoff {
                     if !store_mgr.has_logged_prayer(&date_str, &item.name) {
                         let sched_iso = chrono::DateTime::from_timestamp(item.timestamp, 0)
                             .map(|dt| dt.to_rfc3339())
                             .unwrap_or_else(|| date_str.clone());
                         if store_mgr.mark_missed_prayer(&date_str, &item.name, &sched_iso).is_ok() {
-                            println!("[Waqt Scheduler] Prayer {} for {} window elapsed -> marked as missed", item.name, date_str);
+                            println!("[Waqt Scheduler] Prayer {} for {} active window elapsed -> marked as missed", item.name, date_str);
                             added_any_missed = true;
                         }
                     }
@@ -103,15 +105,18 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                 now,
             );
 
+            let grace_secs = std::cmp::max(settings.forced_pause_seconds, 15 * 60) as i64;
             for item in &prayers {
-                // If we're currently inside a pre-lock window OR past it, pre-seed overlay and toast keys
+                let active_expiry = item.timestamp + grace_secs;
                 if now_ts >= item.lock_timestamp {
-                    let overlay_key = format!("{}:{}:overlay", today_str, item.name);
                     let toast_key = format!("{}:{}:toast", today_str, item.name);
-                    notified_events.insert(overlay_key);
                     notified_events.insert(toast_key);
+                }
+                if now_ts >= active_expiry {
+                    let overlay_key = format!("{}:{}:overlay", today_str, item.name);
+                    notified_events.insert(overlay_key);
                     println!(
-                        "[Waqt Scheduler] Startup: pre-seeding overlay & toast keys for {} (already at or past lock_timestamp)",
+                        "[Waqt Scheduler] Startup: pre-seeding overlay key for {} (already past active lock window)",
                         item.name
                     );
                 }
@@ -169,6 +174,7 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
             now,
         );
 
+        let grace_secs = std::cmp::max(settings.forced_pause_seconds, 15 * 60) as i64;
         for item in &prayers {
             let p_name = &item.name;
 
@@ -219,14 +225,15 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                 }
             }
 
-            // 3. Overlay / Forced Pause at lock_timestamp & fireableUntil Window Rule
+            // 3. Overlay / Forced Pause at lock_timestamp during active lock window
             let overlay_key = format!("{}:{}:overlay", today_str, p_name);
-            let is_past_fireable_window = now_ts >= item.next_lock_timestamp;
-            let in_fireable_window = now_ts >= item.lock_timestamp && now_ts < item.next_lock_timestamp;
+            let active_expiry = item.timestamp + grace_secs;
+            let is_past_active_window = now_ts >= active_expiry;
+            let in_active_lock_window = now_ts >= item.lock_timestamp && now_ts < active_expiry;
 
-            if is_past_fireable_window {
+            if is_past_active_window {
                 notified_events.insert(overlay_key);
-            } else if in_fireable_window && !notified_events.contains(&overlay_key) {
+            } else if in_active_lock_window && !notified_events.contains(&overlay_key) {
                 if store_mgr.has_logged_prayer(&today_str, p_name) {
                     notified_events.insert(overlay_key);
                 } else {
@@ -368,6 +375,28 @@ mod tests {
         let should_toast_past = now_past >= (lock_ts - 10) && now_past < lock_ts;
         assert!(!should_toast_past);
     }
+
+    #[test]
+    fn test_active_lock_window_expiry_and_missed_cutoff() {
+        let timestamp = 10000i64; // Adhan time
+        let lock_ts = 9580i64;    // 7 mins (420s) pre-lock
+        let grace_secs = 15 * 60i64; // 900s
+        let active_expiry = timestamp + grace_secs; // 10900
+
+        // During active lock window (e.g. 10000 -> 10 mins after lock trigger): overlay SHOULD fire
+        let now_active = 9980i64;
+        let in_active_window = now_active >= lock_ts && now_active < active_expiry;
+        assert!(in_active_window);
+
+        // Past active lock window (e.g. 11000 -> 16 mins after Adhan): SHOULD be past active window & marked missed
+        let now_past = 11000i64;
+        let is_past_active_window = now_past >= active_expiry;
+        assert!(is_past_active_window);
+
+        let in_active_window_past = now_past >= lock_ts && now_past < active_expiry;
+        assert!(!in_active_window_past);
+    }
 }
+
 
 
