@@ -7,22 +7,33 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v3.4-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **Waqt** is a minimalist, privacy-first personal accountability desktop application designed to interrupt work sessions smoothly at prayer times, enforce a brief forced pause, and foster consistent habits without trapping the user.
+> **Waqt** is a minimalist, privacy-first personal accountability desktop application built to smoothly interrupt work sessions at prayer times, enforce a brief forced pause, and encourage consistent daily habits while keeping you in full control.
 
 ---
 
-## Technical Article (Coming Soon)
+## How It Works
 
-A comprehensive deep-dive article will be published soon covering:
-* **Motivation & Philosophy**: Why Waqt was built and how the unbreakable honor system works.
-* **Plain-English Mechanics**: How schedule calculations, forced pause friction, and emergency prolongations function under the hood.
-* **Architecture & Native Hardening**: Multi-monitor window elevation (`NSMainMenuWindowLevel + 1` Cocoa FFI and Win32 `HWND_TOPMOST`), dynamic scale factors, and physical-to-logical pixel mappings.
-* **Edge Cases & Resilience**: Handling OS sleep/wake recovery, mid-day timezone and DST shifts, and retroactive 7-day missed prayer backfills.
-* **Engineering Trade-offs**: Lessons learned building an offline-first desktop app with Rust and Tauri v2.
+Here is how Waqt fits seamlessly into your daily workflow to help you stay accountable without disruption:
+
+1. **Background Schedule Calculation**:
+   When you launch Waqt or when midnight strikes, the app calculates your exact daily prayer times locally using your location and preferred calculation method. It schedules desktop notifications at **T-30m**, **T-15m**, and **T-5m**.
+
+2. **The 10-Second Heads-Up**:
+   When prayer time arrives (T-0), Waqt displays a subtle 10-second countdown toast in the bottom-right corner of your screen, giving you a moment to wrap up your immediate task or save open files.
+
+3. **Multi-Monitor Forced Pause**:
+   Once the countdown ends, full-screen lock overlays spawn seamlessly across all connected monitors. The screen enforces a brief, configurable pause (e.g., 7 minutes). The "I've Prayed" button remains disabled until the timer reaches zero, creating friction-free time to step away and pray.
+
+4. **Resolution or Emergency Prolongation**:
+   * **Completing Prayer**: After the timer completes, click **"I've Prayed"** to instantly unlock your screen and log the prayer as confirmed.
+   * **Real Emergency**: If an urgent situation arises, click **Emergency Dismiss** to immediately unlock your screens and log `emergency_dismissed`. This grants a single 30-minute delay with reminder toasts before automatically re-locking your screen so you don't lose track of time.
+
+5. **Automatic Offline Backfill**:
+   If your computer was asleep or closed during a prayer window, Waqt automatically reconciles unconfirmed prayers retroactively for up to 7 days upon waking up.
 
 ---
 
-## Impressive Features at a Glance
+## Key Features
 
 * **Native Multi-Monitor Overlay Hardening**: Spawns physical borderless lock screens across all connected monitors using macOS Objective-C Cocoa FFI (`NSMainMenuWindowLevel + 1`) and Win32 extended window styles (`HWND_TOPMOST`, `WS_EX_TOOLWINDOW`) on Windows.
 * **Fail-Safe Honor System & Re-Lock Protocol**: Enforces a configurable pause (default 7 mins). Emergency dismissal grants a single 30-minute delay with reminders at T-15m, T-10m, and T-5m, automatically re-locking with `emergencyExhausted = true` to prevent perpetual shortcuts.
@@ -33,7 +44,7 @@ A comprehensive deep-dive article will be published soon covering:
 
 ---
 
-## System Design & Execution Flow
+## System Design
 
 Below is the architectural workflow showing how **Waqt** computes schedules, handles notifications, manages emergency prolongations, spawns multi-monitor overlays, and processes user responses:
 
@@ -173,7 +184,7 @@ To configure automatic code signing and releases, add these secrets under **Sett
 
 ---
 
-## Areas of Improvement & Future Roadmap
+## Future Roadmap
 
 Waqt is evolving from a specialized prayer tracker into a universal **Ergonomic Work-Break & Screen Pause Enforcer** for long sitters and desk workers.
 
@@ -186,7 +197,19 @@ Waqt is evolving from a specialized prayer tracker into a universal **Ergonomic 
 
 ---
 
+## Technical Article (Coming Soon)
+
+A comprehensive deep-dive article will be published soon covering:
+* **Motivation & Philosophy**: Why Waqt was built and how the unbreakable honor system works.
+* **Plain-English Mechanics**: How schedule calculations, forced pause friction, and emergency prolongations function under the hood.
+* **Architecture & Native Hardening**: Multi-monitor window elevation (`NSMainMenuWindowLevel + 1` Cocoa FFI and Win32 `HWND_TOPMOST`), dynamic scale factors, and physical-to-logical pixel mappings.
+* **Edge Cases & Resilience**: Handling OS sleep/wake recovery, mid-day timezone and DST shifts, and retroactive 7-day missed prayer backfills.
+* **Engineering Trade-offs**: Lessons learned building an offline-first desktop app with Rust and Tauri v2.
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
 
