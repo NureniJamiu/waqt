@@ -11,6 +11,7 @@ interface OverlayProps {
   onSnooze?: () => void;
   hasSnoozed?: boolean;
   isEmergencyExhausted?: boolean;
+  isTest?: boolean;
 }
 
 export const Overlay: React.FC<OverlayProps> = ({
@@ -21,8 +22,13 @@ export const Overlay: React.FC<OverlayProps> = ({
   onSnooze,
   hasSnoozed = false,
   isEmergencyExhausted = false,
+  isTest = false,
 }) => {
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(settings.forcedPauseSeconds);
+  const isDevelopment = import.meta.env.DEV;
+  const isTestMode = isTest || isDevelopment || isEmergencyExhausted;
+  const initialSeconds = isTestMode ? 60 : settings.forcedPauseSeconds;
+
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(initialSeconds);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState<boolean>(false);
   const [snoozed, setSnoozed] = useState<boolean>(hasSnoozed);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());

@@ -280,7 +280,7 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                         }
                     }
 
-                    let _ = overlay_window::spawn_overlay_windows(&app_handle, p_name, false);
+                    let _ = overlay_window::spawn_overlay_windows(&app_handle, p_name, false, false);
                 }
             }
         }
@@ -357,7 +357,7 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                                     .show();
                             }
 
-                            let _ = overlay_window::spawn_overlay_windows(&app_handle, &ext.prayer, true);
+                            let _ = overlay_window::spawn_overlay_windows(&app_handle, &ext.prayer, true, false);
                         }
                     }
                 }

@@ -49,9 +49,10 @@ fn has_used_emergency_dismiss(app: AppHandle, date: String, prayer: String) -> R
 }
 
 #[tauri::command]
-fn trigger_overlay(app: AppHandle, prayer_name: String, emergency_exhausted: Option<bool>) -> Result<(), String> {
+fn trigger_overlay(app: AppHandle, prayer_name: String, emergency_exhausted: Option<bool>, is_test: Option<bool>) -> Result<(), String> {
     let exhausted = emergency_exhausted.unwrap_or(false);
-    overlay_window::spawn_overlay_windows(&app, &prayer_name, exhausted)
+    let test_mode = is_test.unwrap_or(false);
+    overlay_window::spawn_overlay_windows(&app, &prayer_name, exhausted, test_mode)
 }
 
 #[tauri::command]

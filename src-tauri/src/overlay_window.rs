@@ -1,16 +1,19 @@
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
-pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhausted: bool) -> Result<(), String> {
+pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhausted: bool, is_test: bool) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
         minimize_all_other_windows();
     }
 
-    let url = if emergency_exhausted {
-        format!("index.html?screen=overlay&prayer={}&emergency_exhausted=true", prayer_name)
-    } else {
-        format!("index.html?screen=overlay&prayer={}", prayer_name)
-    };
+    let mut query = vec![format!("screen=overlay"), format!("prayer={}", prayer_name)];
+    if emergency_exhausted {
+        query.push("emergency_exhausted=true".to_string());
+    }
+    if is_test {
+        query.push("is_test=true".to_string());
+    }
+    let url = format!("index.html?{}", query.join("&"));
 
     let monitors_res = app.available_monitors();
 
@@ -75,17 +78,18 @@ pub fn has_active_overlay(app: &AppHandle) -> bool {
     app.webview_windows().keys().any(|k| k.starts_with("overlay-"))
 }
 
-pub fn get_active_overlay_info(app: &AppHandle) -> Option<(String, bool)> {
+pub fn get_active_overlay_info(app: &AppHandle) -> Option<(String, bool, bool)> {
     let windows = app.webview_windows();
     for (label, win) in windows {
         if label.starts_with("overlay-") {
             if let Ok(url_val) = win.url() {
                 let url_str = url_val.as_str();
                 let is_emergency = url_str.contains("emergency_exhausted=true");
+                let is_test = url_str.contains("is_test=true");
                 if let Some(pos) = url_str.find("prayer=") {
                     let after = &url_str[pos + 7..];
                     let prayer = after.split('&').next().unwrap_or("Dhuhr").to_string();
-                    return Some((prayer, is_emergency));
+                    return Some((prayer, is_emergency, is_test));
                 }
             }
         }
@@ -94,8 +98,8 @@ pub fn get_active_overlay_info(app: &AppHandle) -> Option<(String, bool)> {
 }
 
 pub fn sync_overlay_monitors(app: &AppHandle) {
-    if let Some((prayer_name, emergency_exhausted)) = get_active_overlay_info(app) {
-        let _ = spawn_overlay_windows(app, &prayer_name, emergency_exhausted);
+    if let Some((prayer_name, emergency_exhausted, is_test)) = get_active_overlay_info(app) {
+        let _ = spawn_overlay_windows(app, &prayer_name, emergency_exhausted, is_test);
         if let Ok(monitors) = app.available_monitors() {
             let active_count = monitors.len();
             for (label, win) in app.webview_windows() {

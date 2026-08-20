@@ -32,12 +32,13 @@ function getLocalDateString(d: Date = new Date()): string {
 }
 
 // ── URL-based overlay detection ──────────────────────────────────────────────
-function getUrlParams(): { screen: string | null; prayer: string | null; emergencyExhausted: boolean } {
+function getUrlParams(): { screen: string | null; prayer: string | null; emergencyExhausted: boolean; isTest: boolean } {
   const params = new URLSearchParams(window.location.search);
   return {
     screen: params.get("screen"),
     prayer: params.get("prayer"),
     emergencyExhausted: params.get("emergency_exhausted") === "true",
+    isTest: params.get("is_test") === "true",
   };
 }
 
@@ -59,6 +60,7 @@ export function App() {
   );
   const [snoozedPrayers, setSnoozedPrayers] = useState<Set<string>>(new Set());
   const [isEmergencyExhausted, setIsEmergencyExhausted] = useState<boolean>(urlParams.emergencyExhausted);
+  const [isTestOverlay, setIsTestOverlay] = useState<boolean>(urlParams.isTest);
 
   useEffect(() => {
     loadSettings()
@@ -206,7 +208,9 @@ export function App() {
   };
 
   const handleTriggerTestOverlay = () => {
-    triggerOverlayCommand("Dhuhr", isEmergencyExhausted);
+    setIsTestOverlay(true);
+    setCurrentScreen("overlay");
+    triggerOverlayCommand("Dhuhr", isEmergencyExhausted, true);
   };
 
   const handleToggleNotifications = () => {
@@ -293,6 +297,7 @@ export function App() {
               onSnooze={handleSnooze}
               hasSnoozed={hasSnoozedForCurrentPrayer}
               isEmergencyExhausted={isEmergencyExhausted}
+              isTest={isTestOverlay || urlParams.isTest || isDevelopment}
             />
           )}
         </>
