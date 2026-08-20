@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { AppSettings, CalculationMethodName, AsrSchool } from "../../types";
-import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock, Sparkles, CheckCircle2 } from "lucide-react";
+import { AppSettings, CalculationMethodName, AsrSchool, SoundOption } from "../../types";
+import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock, Sparkles, CheckCircle2, Play } from "lucide-react";
 import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
 import { sendTestNotificationCommand } from "../../lib/store";
+import { playSound } from "../../lib/sound";
 
 interface SettingsProps {
   settings: AppSettings;
@@ -35,45 +36,8 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
   const [bannerPreview, setBannerPreview] = useState<{ title: string; body: string } | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<string>("Custom / Manual Input");
 
-  const playChime = () => {
-    try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        const ctx = new AudioCtx();
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc1.type = "sine";
-        osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-        osc2.type = "sine";
-        osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
-
-        gain.gain.setValueAtTime(0.15, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc1.start();
-        osc2.start();
-        osc1.stop(ctx.currentTime + 1.2);
-        osc2.stop(ctx.currentTime + 1.2);
-
-        setTimeout(() => {
-          ctx.close().catch(() => {});
-        }, 1500);
-      }
-    } catch {
-      // Ignore audio errors
-    }
-  };
-
   const handleSendTestNotif = async (mins: number) => {
-    if (form.soundEnabled) {
-      playChime();
-    }
+    playSound(form.soundOption ?? "chime", form.soundEnabled);
     const title = "Upcoming Prayer: Dhuhr";
     const body = `Dhuhr is in ${mins} minutes.`;
     setBannerPreview({ title, body });
@@ -438,20 +402,47 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               )}
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-800/80 pt-3.5">
-              <div className="flex items-center gap-3">
-                <Volume2 className="w-4 h-4 text-emerald-400" />
-                <div>
-                  <div className="text-sm font-bold">Chime Audio</div>
-                  <div className="text-xs text-slate-400">Play subtle chime during T-0 countdown toast</div>
+            <div className="space-y-3 border-t border-slate-800/80 pt-3.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Volume2 className="w-4 h-4 text-emerald-400" />
+                  <div>
+                    <div className="text-sm font-bold">Chime Audio</div>
+                    <div className="text-xs text-slate-400">Play chime during T-0 countdown toast</div>
+                  </div>
                 </div>
+                <input
+                  type="checkbox"
+                  checked={form.soundEnabled}
+                  onChange={(e) => handleFormChange("soundEnabled", e.target.checked)}
+                  className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
+                />
               </div>
-              <input
-                type="checkbox"
-                checked={form.soundEnabled}
-                onChange={(e) => handleFormChange("soundEnabled", e.target.checked)}
-                className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
-              />
+
+              {form.soundEnabled && (
+                <div className="pl-7 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={form.soundOption ?? "chime"}
+                      onChange={(e) => handleFormChange("soundOption", e.target.value as SoundOption)}
+                      className="select-control flex-1 max-w-xs text-xs py-2"
+                    >
+                      <option value="chime">Resonant Chime (MP3)</option>
+                      <option value="takbeer">Deep Takbeer Tone (MP3)</option>
+                      <option value="oscillator">Sine Oscillator (Subtle Synthesized)</option>
+                      <option value="mute">Mute Audio</option>
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => playSound(form.soundOption ?? "chime", true)}
+                      className="line-button px-3 py-1.5 text-xs font-bold rounded-full text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
+                    >
+                      <Play className="w-3.5 h-3.5" /> Test Sound
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between border-t border-slate-800/80 pt-3.5">

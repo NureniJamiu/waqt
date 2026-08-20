@@ -14,6 +14,8 @@ export type CalculationMethodName =
 
 export type AsrSchool = "Standard" | "Hanafi";
 
+export type SoundOption = "chime" | "takbeer" | "oscillator" | "mute";
+
 export interface AppSettings {
   latitude: number;
   longitude: number;
@@ -23,6 +25,7 @@ export interface AppSettings {
   forcedPauseSeconds: number; // default 420 (7 mins)
   preLockMinutes: number; // default 15 mins (lock offset before prayer)
   soundEnabled: boolean;
+  soundOption?: SoundOption; // default "chime"
   snoozeEnabled: boolean;
   notificationsEnabled: boolean;
   launchAtLogin: boolean;

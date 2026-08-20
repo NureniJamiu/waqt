@@ -153,6 +153,25 @@ waqt/
 
 ---
 
+## Release Pipeline, Code Signing & Auto-Updater
+
+Waqt includes an automated production release pipeline via GitHub Actions (`.github/workflows/release.yml`):
+
+* **Apple Developer Code Signing & Notarization**: Automatically signs `.app` and `.dmg` binaries with your Apple Developer ID Certificate and submits them to Apple's Notary Service via `notarytool` to ensure Gatekeeper compliance without warning prompts.
+* **Auto-Updater with `tauri-plugin-updater`**: Generates signed update manifests (`latest.json`) and bundles (`.app.tar.gz`, `.sig`) uploaded to GitHub Releases for seamless, secure background app updates.
+
+### Required GitHub CI Secrets
+To configure automatic code signing and releases, add these secrets under **Settings -> Secrets and variables -> Actions**:
+* `APPLE_CERTIFICATE`: Base64-encoded Apple Developer `.p12` certificate.
+* `APPLE_CERTIFICATE_PASSWORD`: Password for the `.p12` certificate.
+* `APPLE_TEAM_ID`: 10-character Apple Developer Team ID.
+* `APPLE_ID`: Apple ID email address.
+* `APPLE_PASSWORD`: App-specific password generated at [appleid.apple.com](https://appleid.apple.com).
+* `TAURI_SIGNING_PRIVATE_KEY`: Private key generated via `tauri signer generate`.
+* `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: Password for the Tauri signing key.
+
+---
+
 ## Areas of Improvement & Future Roadmap
 
 Waqt is evolving from a specialized prayer tracker into a universal **Ergonomic Work-Break & Screen Pause Enforcer** for long sitters and desk workers.

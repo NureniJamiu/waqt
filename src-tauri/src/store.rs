@@ -14,6 +14,8 @@ pub struct AppSettings {
     #[serde(default = "default_pre_lock_minutes")]
     pub pre_lock_minutes: u64,
     pub sound_enabled: bool,
+    #[serde(default = "default_sound_option")]
+    pub sound_option: String,
     pub snooze_enabled: bool,
     pub notifications_enabled: bool,
     pub launch_at_login: bool,
@@ -24,6 +26,10 @@ pub struct AppSettings {
 
 fn default_pre_lock_minutes() -> u64 {
     15
+}
+
+fn default_sound_option() -> String {
+    "chime".to_string()
 }
 
 impl Default for AppSettings {
@@ -37,6 +43,7 @@ impl Default for AppSettings {
             forced_pause_seconds: 420,
             pre_lock_minutes: 15,
             sound_enabled: true,
+            sound_option: "chime".to_string(),
             snooze_enabled: false,
             notifications_enabled: true,
             launch_at_login: true,

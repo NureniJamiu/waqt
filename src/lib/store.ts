@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   forcedPauseSeconds: 420, // 7 minutes
   preLockMinutes: 15, // 15 minutes before prayer time
   soundEnabled: true,
+  soundOption: "chime",
   snoozeEnabled: false,
   notificationsEnabled: true,
   launchAtLogin: true,

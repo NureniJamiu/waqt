@@ -1,57 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { PrayerName } from "../../types";
+import { PrayerName, SoundOption } from "../../types";
 import { Sparkles } from "lucide-react";
+import { playSound } from "../../lib/sound";
 
 interface CountdownToastProps {
   prayerName: PrayerName;
   onComplete: () => void;
   soundEnabled?: boolean;
+  soundOption?: SoundOption;
 }
 
 export const CountdownToast: React.FC<CountdownToastProps> = ({
   prayerName,
   onComplete,
   soundEnabled = true,
+  soundOption = "chime",
 }) => {
   const [seconds, setSeconds] = useState<number>(10);
 
   useEffect(() => {
-    if (soundEnabled) {
-      try {
-        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        if (AudioCtx) {
-          const ctx = new AudioCtx();
-          const osc1 = ctx.createOscillator();
-          const osc2 = ctx.createOscillator();
-          const gain = ctx.createGain();
-
-          osc1.type = "sine";
-          osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-          osc2.type = "sine";
-          osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
-
-          gain.gain.setValueAtTime(0.15, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-
-          osc1.connect(gain);
-          osc2.connect(gain);
-          gain.connect(ctx.destination);
-
-          osc1.start();
-          osc2.start();
-          osc1.stop(ctx.currentTime + 1.2);
-          osc2.stop(ctx.currentTime + 1.2);
-
-          const closeTimer = setTimeout(() => {
-            ctx.close().catch(() => {});
-          }, 1500);
-          return () => clearTimeout(closeTimer);
-        }
-      } catch {
-        // Ignore audio context errors
-      }
-    }
-  }, [soundEnabled]);
+    playSound(soundOption, soundEnabled);
+  }, [soundEnabled, soundOption]);
 
   useEffect(() => {
     if (seconds <= 0) {
