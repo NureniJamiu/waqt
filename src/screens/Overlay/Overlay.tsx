@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AppSettings, PrayerName } from "../../types";
 import { CheckCircle2, AlertTriangle, Moon, ShieldAlert, AlarmClock, Clock, Lock } from "lucide-react";
+import { playSound } from "../../lib/sound";
 
 interface OverlayProps {
   prayerName: PrayerName;
@@ -25,6 +26,10 @@ export const Overlay: React.FC<OverlayProps> = ({
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState<boolean>(false);
   const [snoozed, setSnoozed] = useState<boolean>(hasSnoozed);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    playSound("takbeer", settings.soundEnabled);
+  }, [settings.soundEnabled]);
 
   useEffect(() => {
     const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);

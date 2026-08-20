@@ -277,7 +277,6 @@ export function App() {
             <CountdownToast
               prayerName={activePrayer}
               soundEnabled={settings.soundEnabled}
-              soundOption={settings.soundOption}
               onComplete={() => {
                 setCurrentScreen("dashboard");
                 triggerOverlayCommand(activePrayer, isEmergencyExhausted);

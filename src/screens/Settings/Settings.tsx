@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AppSettings, CalculationMethodName, AsrSchool, SoundOption } from "../../types";
+import { AppSettings, CalculationMethodName, AsrSchool } from "../../types";
 import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock, Sparkles, CheckCircle2, Play } from "lucide-react";
 import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
 import { sendTestNotificationCommand } from "../../lib/store";
@@ -412,8 +412,8 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                 <div className="flex items-center gap-3">
                   <Volume2 className="w-4 h-4 text-emerald-400" />
                   <div>
-                    <div className="text-sm font-bold">Audio Notifications</div>
-                    <div className="text-xs text-slate-400">Play sound alert during T-0 countdown toast</div>
+                    <div className="text-sm font-bold">Audio Alerts & Sound Effects</div>
+                    <div className="text-xs text-slate-400">Play chime during notifications, and Takbir call to prayer during forced pause overlay</div>
                   </div>
                 </div>
                 <input
@@ -425,25 +425,22 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
               </div>
 
               {form.soundEnabled && (
-                <div className="pl-7 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <select
-                      value={form.soundOption ?? "chime"}
-                      onChange={(e) => handleFormChange("soundOption", e.target.value as SoundOption)}
-                      className="select-control flex-1 max-w-xs text-xs py-2"
-                    >
-                      <option value="chime">Resonant Chime (MP3)</option>
-                      <option value="takbeer">Takbir / Call to Prayer (MP3)</option>
-                    </select>
+                <div className="pl-7 pt-1 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => playSound("chime", true)}
+                    className="line-button px-3 py-1.5 text-xs font-bold rounded-md text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
+                  >
+                    <Play className="w-3.5 h-3.5" /> Test Notification Chime
+                  </button>
 
-                    <button
-                      type="button"
-                      onClick={() => playSound(form.soundOption ?? "chime", true)}
-                      className="line-button px-3 py-1.5 text-xs font-bold rounded-full text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
-                    >
-                      <Play className="w-3.5 h-3.5" /> Test Sound
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => playSound("takbeer", true)}
+                    className="line-button px-3 py-1.5 text-xs font-bold rounded-md text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
+                  >
+                    <Play className="w-3.5 h-3.5" /> Test Overlay Takbir
+                  </button>
                 </div>
               )}
             </div>

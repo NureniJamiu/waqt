@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { PrayerName, SoundOption } from "../../types";
+import { PrayerName } from "../../types";
 import { Sparkles } from "lucide-react";
 import { playSound } from "../../lib/sound";
 
@@ -7,20 +7,18 @@ interface CountdownToastProps {
   prayerName: PrayerName;
   onComplete: () => void;
   soundEnabled?: boolean;
-  soundOption?: SoundOption;
 }
 
 export const CountdownToast: React.FC<CountdownToastProps> = ({
   prayerName,
   onComplete,
   soundEnabled = true,
-  soundOption = "chime",
 }) => {
   const [seconds, setSeconds] = useState<number>(10);
 
   useEffect(() => {
-    playSound(soundOption, soundEnabled);
-  }, [soundEnabled, soundOption]);
+    playSound("chime", soundEnabled);
+  }, [soundEnabled]);
 
   useEffect(() => {
     if (seconds <= 0) {
