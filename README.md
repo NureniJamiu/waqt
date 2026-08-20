@@ -29,6 +29,7 @@ A comprehensive deep-dive article will be published soon covering:
 * **Continuous Background Tokio Daemon**: Runs continuously in Rust, independently monitoring time, system sleep/wake events, and mid-day timezone/DST shifts (`Local::now().offset()`) to immediately recalculate schedules.
 * **Offline & Zero-Telemetry Privacy**: Calculates prayer times client-side using `adhan-js` across 12 calculation methods and Asr schools. All settings and history logs remain strictly local (`~/Library/Application Support/waqt/store.json`).
 * **Automated 7-Day Backfill**: Automatically reconciles unconfirmed prayer windows retroactively up to 7 days upon app launch or OS wake.
+* **Automated Auto-Updater & Gatekeeper Compliance**: Includes built-in background update engine with cryptographic signature verification (`tauri-plugin-updater`) and Apple Developer ID notarization via GitHub Actions CI.
 
 ---
 
