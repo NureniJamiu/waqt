@@ -209,8 +209,11 @@ export function App() {
       setTimeout(() => {
         setIsTestOverlay(true);
         setIsEmergencyExhausted(true);
-        setCurrentScreen("overlay");
-        triggerOverlayCommand(activePrayer, true, true);
+        if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+          triggerOverlayCommand(activePrayer, true, true);
+        } else {
+          setCurrentScreen("overlay");
+        }
       }, 10000);
       return;
     }
@@ -255,8 +258,11 @@ export function App() {
   const handleTriggerTestOverlay = () => {
     setIsTestOverlay(true);
     setIsEmergencyExhausted(false);
-    setCurrentScreen("overlay");
-    triggerOverlayCommand("Dhuhr", false, true);
+    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+      triggerOverlayCommand("Dhuhr", false, true);
+    } else {
+      setCurrentScreen("overlay");
+    }
   };
 
   const handleToggleNotifications = () => {
