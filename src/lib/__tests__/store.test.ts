@@ -123,4 +123,17 @@ describe("store.ts Persistence Layer", () => {
     clearLogsFromStorage();
     expect(loadLogsFromStorage()).toEqual([]);
   });
+
+  it("should generate and seed realistic demo logs", async () => {
+    const { generateDemoLogs, seedDemoLogs } = await import("../store");
+    const demoLogs = generateDemoLogs();
+    expect(demoLogs.length).toBeGreaterThan(10);
+    expect(demoLogs.some((l) => l.status === "confirmed")).toBe(true);
+    expect(demoLogs.some((l) => l.status === "emergency_dismissed")).toBe(true);
+    expect(demoLogs.some((l) => l.status === "missed")).toBe(true);
+
+    const seeded = await seedDemoLogs();
+    expect(seeded.length).toEqual(demoLogs.length);
+    expect(loadLogsFromStorage().length).toEqual(demoLogs.length);
+  });
 });

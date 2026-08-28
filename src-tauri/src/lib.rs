@@ -54,16 +54,33 @@ fn has_used_emergency_dismiss(app: AppHandle, date: String, prayer: String) -> R
     Ok(mgr.has_used_emergency_dismiss(&date, &prayer))
 }
 
-#[tauri::command]
+/// Declared `async` so Tauri runs it on the worker pool instead of the main
+/// thread. `spawn_overlay_windows` now blocks while the desktop is cleared, and
+/// blocking the main thread would freeze the UI and stall the very AppleScript
+/// sweep we are waiting on.
+#[tauri::command(async)]
 fn trigger_overlay(app: AppHandle, prayer_name: String, emergency_exhausted: Option<bool>, is_test: Option<bool>) -> Result<(), String> {
     let exhausted = emergency_exhausted.unwrap_or(false);
     let test_mode = is_test.unwrap_or(false);
     overlay_window::spawn_overlay_windows(&app, &prayer_name, exhausted, test_mode)
 }
 
-#[tauri::command]
+/// Also off the main thread: dismissing now kicks off the window-restore sweep.
+#[tauri::command(async)]
 fn dismiss_overlay(app: AppHandle) -> Result<(), String> {
     overlay_window::close_all_overlays(&app);
+    Ok(())
+}
+
+#[tauri::command]
+fn trigger_toast(app: AppHandle, prayer_name: String, is_test: Option<bool>) -> Result<(), String> {
+    let test_mode = is_test.unwrap_or(false);
+    overlay_window::spawn_toast_window(&app, &prayer_name, test_mode)
+}
+
+#[tauri::command]
+fn dismiss_toast(app: AppHandle) -> Result<(), String> {
+    overlay_window::close_toast_window(&app);
     Ok(())
 }
 
@@ -88,9 +105,21 @@ fn check_accessibility_permission() -> bool {
     overlay_window::has_accessibility_permission()
 }
 
-#[tauri::command]
+/// Opens System Settings and registers the app in the Accessibility list.
+/// `async` because it shells out to `open` and a probe script.
+#[tauri::command(async)]
 fn request_accessibility_permission() -> bool {
     overlay_window::request_accessibility_permission()
+}
+
+/// The flag `tauri_plugin_autostart` passes to the login item it installs.
+/// Must stay in step with the argument registered in `run()`.
+const AUTOSTART_FLAG: &str = "--autostart";
+
+/// True when this process was started by the login item rather than by the user
+/// opening the app.
+pub fn launched_by_autostart() -> bool {
+    std::env::args().any(|arg| arg == AUTOSTART_FLAG)
 }
 
 pub fn run() {
@@ -99,7 +128,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec!["--autostart"]),
+            Some(vec![AUTOSTART_FLAG]),
         ))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
@@ -112,12 +141,31 @@ pub fn run() {
             has_used_emergency_dismiss,
             trigger_overlay,
             dismiss_overlay,
+            trigger_toast,
+            dismiss_toast,
             send_test_notification,
             check_accessibility_permission,
             request_accessibility_permission
         ])
         .setup(|app| {
             let handle = app.handle().clone();
+
+            // ── Tray-first launch ──────────────────────────────────────────
+            // The autostart plugin is registered with `--autostart`, but until
+            // now nothing read it, and the main window was configured
+            // `visible: true` — so logging in popped the dashboard every boot.
+            // The window is now created hidden and shown here, except when the
+            // login item is what launched us. Creating it hidden (rather than
+            // hiding it after the fact) also avoids a frame of dashboard
+            // flashing on screen at login.
+            if !launched_by_autostart() {
+                if let Some(win) = app.get_webview_window("main") {
+                    let _ = win.show();
+                    let _ = win.set_focus();
+                }
+            } else {
+                println!("[Waqt] Launched at login — staying in the tray.");
+            }
 
             if let Ok(show_item) = tauri::menu::MenuItemBuilder::with_id("show_dashboard", "Show Waqt Dashboard").build(app) {
                 if let Ok(quit_item) = tauri::menu::MenuItemBuilder::with_id("quit", "Quit Waqt").build(app) {

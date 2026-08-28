@@ -255,6 +255,11 @@ export const Overlay: React.FC<OverlayProps> = ({
               ? "Your 30-minute emergency extension has ended. Please step away from your screen and perform prayer."
               : "Take a respectful pause from your screen, perform wudu, and prepare for prayer."}
           </p>
+          {isEmergencyExhausted && (
+            <p className="text-slate-600 text-[10px] leading-relaxed">
+              Genuine emergency? Force Quit Waqt (⌘⌥Esc) from the system menu.
+            </p>
+          )}
         </div>
 
         <div className="pt-2 flex flex-col items-center gap-3 w-full">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AppSettings, PrayerLogItem, PrayerName } from "./types";
+import { AppSettings, DesktopPrepOutcome, PrayerLogItem, PrayerName } from "./types";
 import {
   loadSettingsFromStorage,
   loadSettings,
@@ -11,8 +11,12 @@ import {
   hasUsedEmergencyDismiss,
   subscribeLogUpdated,
   subscribeTimezoneChanged,
+  subscribeDesktopPrep,
+  subscribeScheduleRefreshed,
   dismissOverlayCommand,
   triggerOverlayCommand,
+  triggerToastCommand,
+  dismissToastCommand,
   syncAutostart,
 } from "./lib/store";
 import { getEffectivePrayerDateString } from "./lib/adhanCalc";
@@ -23,6 +27,8 @@ import { Settings } from "./screens/Settings/Settings";
 import { PrayerLog } from "./screens/Log/PrayerLog";
 import { CountdownToast } from "./screens/CountdownToast/CountdownToast";
 import { Overlay } from "./screens/Overlay/Overlay";
+import { LandingPage } from "./screens/Landing/LandingPage";
+import { DesktopPrepNotice } from "./components/DesktopPrepNotice";
 
 function getLocalDateString(d: Date = new Date()): string {
   const year = d.getFullYear();
@@ -31,7 +37,7 @@ function getLocalDateString(d: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
-// ── URL-based overlay detection ──────────────────────────────────────────────
+// ── URL-based window detection ──────────────────────────────────────────────
 function getUrlParams(): { screen: string | null; prayer: string | null; emergencyExhausted: boolean; isTest: boolean } {
   const params = new URLSearchParams(window.location.search);
   return {
@@ -44,23 +50,31 @@ function getUrlParams(): { screen: string | null; prayer: string | null; emergen
 
 const urlParams = getUrlParams();
 const isOverlayWindow = urlParams.screen === "overlay";
+const isToastWindow = urlParams.screen === "toast";
+const isLandingWindow =
+  urlParams.screen === "landing" ||
+  (!urlParams.screen && typeof window !== "undefined" && !(window as any).__TAURI_INTERNALS__);
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function App() {
   const isDevelopment = import.meta.env.DEV;
-  const [showSplash, setShowSplash] = useState<boolean>(!isOverlayWindow);
+  const [showSplash, setShowSplash] = useState<boolean>(!isOverlayWindow && !isToastWindow && !isLandingWindow);
   const [isHydrating, setIsHydrating] = useState<boolean>(true);
   const [settings, setSettings] = useState<AppSettings>(() => loadSettingsFromStorage());
   const [logs, setLogs] = useState<PrayerLogItem[]>(() => loadLogsFromStorage());
-  const [currentScreen, setCurrentScreen] = useState<"dashboard" | "settings" | "log" | "onboarding" | "toast" | "overlay">(
-    isOverlayWindow ? "overlay" : "dashboard"
+  const [currentScreen, setCurrentScreen] = useState<"dashboard" | "settings" | "log" | "onboarding" | "toast" | "overlay" | "landing">(
+    isLandingWindow ? "landing" : isOverlayWindow ? "overlay" : isToastWindow ? "toast" : "dashboard"
   );
   const [activePrayer, _setActivePrayer] = useState<PrayerName>(
-    isOverlayWindow && urlParams.prayer ? (urlParams.prayer as PrayerName) : "Dhuhr"
+    (isOverlayWindow || isToastWindow) && urlParams.prayer ? (urlParams.prayer as PrayerName) : "Dhuhr"
   );
   const [snoozedPrayers, setSnoozedPrayers] = useState<Set<string>>(new Set());
   const [isEmergencyExhausted, setIsEmergencyExhausted] = useState<boolean>(urlParams.emergencyExhausted);
   const [isTestOverlay, setIsTestOverlay] = useState<boolean>(urlParams.isTest);
+  // Last failed desktop sweep, surfaced in the dashboard window. Kept in state
+  // rather than shown immediately because the main window is usually hidden in
+  // the tray when the sweep runs — the user sees it next time they open Waqt.
+  const [desktopPrepIssue, setDesktopPrepIssue] = useState<DesktopPrepOutcome | null>(null);
 
   useEffect(() => {
     loadSettings()
@@ -106,11 +120,30 @@ export function App() {
       loadLogs().then((l) => setLogs(l));
     });
 
+    // The OS slept through one or more scheduler ticks; every countdown on
+    // screen is stale.
+    const unsubscribeWake = subscribeScheduleRefreshed(() => {
+      loadSettings().then((s) => setSettings(s));
+      loadLogs().then((l) => setLogs(l));
+    });
+
+    // The desktop sweep reports itself here. Only the main window renders the
+    // notice — putting it over the prayer overlay would be the wrong moment,
+    // and the toast window has no room for it.
+    const unsubscribePrep = subscribeDesktopPrep((outcome) => {
+      if (isOverlayWindow || isToastWindow || isLandingWindow) return;
+      if (outcome.status === "completed" || outcome.status === "skipped") {
+        setDesktopPrepIssue(null);
+      } else {
+        setDesktopPrepIssue(outcome);
+      }
+    });
+
     let unlistenToast: (() => void) | null = null;
     if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
       import("@tauri-apps/api/event").then(({ listen }) => {
         listen<string>("waqt:trigger-toast", (event) => {
-          if (event.payload) {
+          if (event.payload && isToastWindow) {
             _setActivePrayer(event.payload as PrayerName);
             setCurrentScreen("toast");
           }
@@ -123,6 +156,8 @@ export function App() {
     return () => {
       unsubscribeLog();
       unsubscribeTz();
+      unsubscribeWake();
+      unsubscribePrep();
       if (unlistenToast) {
         unlistenToast();
       }
@@ -132,7 +167,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (isOverlayWindow || isHydrating) return;
+    if (isOverlayWindow || isToastWindow || isHydrating) return;
 
     if (!settings.onboardingCompleted) {
       setCurrentScreen("onboarding");
@@ -140,7 +175,7 @@ export function App() {
       setCurrentScreen((prev) => (prev === "onboarding" ? "dashboard" : prev));
       syncAutostart(settings.launchAtLogin);
     }
-  }, [isOverlayWindow, isHydrating, settings.onboardingCompleted, settings.launchAtLogin]);
+  }, [isOverlayWindow, isToastWindow, isHydrating, settings.onboardingCompleted, settings.launchAtLogin]);
 
   const handleSaveSettings = (updated: AppSettings) => {
     setSettings(updated);
@@ -169,10 +204,12 @@ export function App() {
     setIsTestOverlay(false);
     setIsEmergencyExhausted(false);
 
-    if (isOverlayWindow) {
+    if (isOverlayWindow || isToastWindow) {
       dismissOverlayCommand();
+      dismissToastCommand();
     } else {
       dismissOverlayCommand();
+      dismissToastCommand();
       setCurrentScreen("dashboard");
     }
   };
@@ -180,6 +217,7 @@ export function App() {
   const handleEmergencyDismiss = async () => {
     if (isTestOverlay || urlParams.isTest) {
       dismissOverlayCommand();
+      dismissToastCommand();
       setCurrentScreen("dashboard");
 
       if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
@@ -247,10 +285,12 @@ export function App() {
     const updatedLogs = await addLogEntry(newEntry);
     setLogs(updatedLogs);
 
-    if (isOverlayWindow) {
+    if (isOverlayWindow || isToastWindow) {
       dismissOverlayCommand();
+      dismissToastCommand();
     } else {
       dismissOverlayCommand();
+      dismissToastCommand();
       setCurrentScreen("dashboard");
     }
   };
@@ -265,6 +305,16 @@ export function App() {
     }
   };
 
+  const handleTriggerTestToast = () => {
+    setIsTestOverlay(true);
+    setIsEmergencyExhausted(false);
+    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+      triggerToastCommand("Dhuhr", true);
+    } else {
+      setCurrentScreen("toast");
+    }
+  };
+
   const handleToggleNotifications = () => {
     const updated = { ...settings, notificationsEnabled: !settings.notificationsEnabled };
     setSettings(updated);
@@ -273,6 +323,7 @@ export function App() {
 
   const handleSnooze = () => {
     dismissOverlayCommand();
+    dismissToastCommand();
     const todayStr = getLocalDateString();
     const snoozeKey = `${todayStr}:${activePrayer}`;
 
@@ -295,13 +346,25 @@ export function App() {
   const hasSnoozedForCurrentPrayer = snoozedPrayers.has(activeSnoozeKey);
 
   return (
-    <div className="w-full min-h-screen bg-[#070a11] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+    <div className={`w-full min-h-screen ${isToastWindow ? "bg-transparent overflow-hidden flex items-center justify-center p-2" : "bg-[#070a11] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200"}`}>
       {showSplash && (
         <SplashScreen durationMs={1800} onFinish={() => setShowSplash(false)} />
       )}
 
       {!showSplash && (
         <>
+          {desktopPrepIssue &&
+            (currentScreen === "dashboard" ||
+              currentScreen === "settings" ||
+              currentScreen === "log") && (
+              <div className="px-4 pt-4">
+                <DesktopPrepNotice
+                  outcome={desktopPrepIssue}
+                  onDismiss={() => setDesktopPrepIssue(null)}
+                />
+              </div>
+            )}
+
           {currentScreen === "onboarding" && (
             <Onboarding settings={settings} onComplete={handleSaveSettings} />
           )}
@@ -311,6 +374,7 @@ export function App() {
               settings={settings}
               onNavigate={(screen) => setCurrentScreen(screen)}
               onTriggerTestOverlay={isDevelopment ? handleTriggerTestOverlay : undefined}
+              onTriggerTestToast={isDevelopment ? handleTriggerTestToast : undefined}
               onToggleNotifications={handleToggleNotifications}
               onPreviewSplash={isDevelopment ? () => setShowSplash(true) : undefined}
             />
@@ -333,11 +397,22 @@ export function App() {
             <CountdownToast
               prayerName={activePrayer}
               soundEnabled={settings.soundEnabled}
+              isToastWindow={isToastWindow}
               onComplete={() => {
-                setCurrentScreen("dashboard");
-                triggerOverlayCommand(activePrayer, isEmergencyExhausted);
+                if (isToastWindow) {
+                  triggerOverlayCommand(activePrayer, isEmergencyExhausted, isTestOverlay || urlParams.isTest);
+                  dismissToastCommand();
+                } else {
+                  dismissToastCommand();
+                  setCurrentScreen("dashboard");
+                  triggerOverlayCommand(activePrayer, isEmergencyExhausted, isTestOverlay || urlParams.isTest);
+                }
               }}
             />
+          )}
+
+          {currentScreen === "landing" && (
+            <LandingPage />
           )}
 
           {currentScreen === "overlay" && (

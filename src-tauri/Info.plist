@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Tauri merges this file into the generated Info.plist at bundle time.
+
+	  macOS refuses an Apple Event outright, with no user prompt, when the
+	  sending app has no usage description for it. This string is what the
+	  user sees in the "Waqt wants to control other applications" dialog.
+	-->
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Waqt minimises your open windows so the prayer overlay is not hidden behind a full-screen app.</string>
+</dict>
+</plist>

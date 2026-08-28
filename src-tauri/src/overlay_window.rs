@@ -1,6 +1,637 @@
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+use serde::Serialize;
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 
-pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhausted: bool, is_test: bool) -> Result<(), String> {
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Mutex;
+
+#[cfg(target_os = "macos")]
+use std::sync::atomic::AtomicBool;
+#[cfg(target_os = "macos")]
+use std::time::{Duration, Instant};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Desktop preparation (minimize-before-overlay)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Outcome of the "clear the desktop before the overlay appears" sweep.
+/// Emitted to the frontend on `waqt:desktop-prep` so the UI can surface a
+/// permission problem instead of failing silently.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum DesktopPrepOutcome {
+    /// Test-mode overlay, or a platform with no sweep implemented.
+    Skipped,
+    /// macOS Accessibility permission is not granted — nothing was minimized.
+    PermissionDenied,
+    /// The sweep ran past its deadline and was killed. Some windows may have
+    /// been minimized; the overlay is shown anyway rather than hanging.
+    TimedOut,
+    /// osascript could not be run or returned an unexpected error.
+    Failed { message: String },
+    /// Sweep completed. `windows` is the number of windows actually changed.
+    Completed { windows: usize },
+}
+
+/// One window the sweep actually changed, recorded so it can be put back.
+/// Windows the user had *already* minimized are never recorded, so restoring
+/// never un-minimizes something the user minimized themselves.
+#[cfg(target_os = "macos")]
+#[derive(Debug, Clone, PartialEq)]
+struct RestoreTarget {
+    /// `M` = we miniaturized it. `F` = we took it out of fullscreen.
+    op: char,
+    process: String,
+    index: usize,
+    title: String,
+}
+
+/// True while an overlay session owns the desktop. Prevents the sweep from
+/// running once per monitor, and prevents `sync_overlay_monitors` (which fires
+/// every scheduler tick) from re-running it every 10 seconds.
+#[cfg(target_os = "macos")]
+static SWEEP_ACTIVE: AtomicBool = AtomicBool::new(false);
+
+#[cfg(target_os = "macos")]
+static RESTORE_TARGETS: Mutex<Vec<RestoreTarget>> = Mutex::new(Vec::new());
+
+/// How long the minimize sweep may run before we give up and show the overlay
+/// anyway. Exiting fullscreen is animated and costs ~0.5s per window, so this
+/// needs headroom for a few fullscreen apps.
+#[cfg(target_os = "macos")]
+const SWEEP_TIMEOUT: Duration = Duration::from_secs(15);
+
+#[cfg(target_os = "macos")]
+const RESTORE_TIMEOUT: Duration = Duration::from_secs(20);
+
+/// Minimizes every other application's windows, taking fullscreen windows out
+/// of their Space first.
+///
+/// **This blocks until the sweep finishes.** That is the point: the overlay must
+/// not appear until the desktop is clear. Callers must therefore invoke it from
+/// a worker thread, never the main thread — see `spawn_overlay_windows`.
+///
+/// Idempotent per overlay session: the second and subsequent calls (one per
+/// extra monitor, plus every `sync_overlay_monitors` tick) return `Skipped`.
+pub fn prepare_desktop_for_overlay(app: &AppHandle, is_test: bool) -> DesktopPrepOutcome {
+    let outcome = prepare_desktop_inner(is_test);
+    if outcome != DesktopPrepOutcome::Skipped {
+        let _ = app.emit("waqt:desktop-prep", outcome.clone());
+    }
+    outcome
+}
+
+#[cfg(target_os = "macos")]
+fn prepare_desktop_inner(is_test: bool) -> DesktopPrepOutcome {
+    if is_test {
+        return DesktopPrepOutcome::Skipped;
+    }
+
+    // Claim the session. `Err` means a sweep already ran for this overlay.
+    if SWEEP_ACTIVE
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+        .is_err()
+    {
+        return DesktopPrepOutcome::Skipped;
+    }
+
+    // Cheap, non-prompting, in-process check. Unlike the old System Events
+    // probe this tests Accessibility (which `set miniaturized` needs), not
+    // Automation.
+    if !has_accessibility_permission() {
+        eprintln!(
+            "[Waqt] Accessibility permission not granted — cannot minimize windows before the overlay."
+        );
+        return DesktopPrepOutcome::PermissionDenied;
+    }
+
+    let script = build_minimize_script(std::process::id());
+
+    match run_osascript(&script, SWEEP_TIMEOUT) {
+        Ok(stdout) => {
+            let targets = parse_sweep_output(&stdout);
+            let count = targets.len();
+            if let Ok(mut guard) = RESTORE_TARGETS.lock() {
+                *guard = targets;
+            }
+            println!("[Waqt] Desktop sweep complete: {count} window(s) minimized.");
+            DesktopPrepOutcome::Completed { windows: count }
+        }
+        Err(OsaError::TimedOut) => {
+            eprintln!("[Waqt] Desktop sweep exceeded {SWEEP_TIMEOUT:?} and was killed.");
+            DesktopPrepOutcome::TimedOut
+        }
+        Err(OsaError::PermissionDenied(msg)) => {
+            // AXIsProcessTrusted said yes but the Apple Event was still
+            // refused — this is the hardened-runtime / missing-usage-string
+            // case, or Automation consent was revoked for System Events.
+            eprintln!("[Waqt] Desktop sweep denied by macOS: {msg}");
+            DesktopPrepOutcome::PermissionDenied
+        }
+        Err(OsaError::Other(msg)) => {
+            eprintln!("[Waqt] Desktop sweep failed: {msg}");
+            DesktopPrepOutcome::Failed { message: msg }
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn prepare_desktop_inner(_is_test: bool) -> DesktopPrepOutcome {
+    // Windows/Linux rely on always-on-top + topmost Z-order instead.
+    DesktopPrepOutcome::Skipped
+}
+
+/// Puts back exactly the windows `prepare_desktop_for_overlay` changed, and
+/// releases the sweep guard so the next overlay can sweep again.
+///
+/// Best-effort and fire-and-forget: unlike the sweep there is no ordering
+/// requirement on the way out, so this runs on a detached thread.
+pub fn restore_desktop_after_overlay() {
+    #[cfg(target_os = "macos")]
+    {
+        if !SWEEP_ACTIVE.swap(false, Ordering::SeqCst) {
+            return;
+        }
+
+        let targets = match RESTORE_TARGETS.lock() {
+            Ok(mut guard) => std::mem::take(&mut *guard),
+            Err(_) => return,
+        };
+
+        if targets.is_empty() {
+            return;
+        }
+
+        std::thread::spawn(move || {
+            let script = build_restore_script(&targets);
+            if let Err(e) = run_osascript(&script, RESTORE_TIMEOUT) {
+                eprintln!("[Waqt] Failed to restore windows after overlay: {e:?}");
+            } else {
+                println!("[Waqt] Restored {} window(s) after overlay.", targets.len());
+            }
+        });
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AppleScript generation
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Builds the sweep script.
+///
+/// Three things the previous version got wrong, fixed here:
+///
+/// 1. **Fullscreen windows are not miniaturizable.** A window in a native
+///    fullscreen Space rejects `set miniaturized to true`. It has to leave
+///    fullscreen first via the `AXFullScreen` accessibility attribute, and the
+///    Space-collapse animation has to finish before the miniaturize will take.
+/// 2. **`every application process` includes agents and daemons**, most of
+///    which throw on `windows`. `whose background only is false` skips them and
+///    makes the sweep several times faster.
+/// 3. **Only genuine changes are recorded.** A window the user had already
+///    minimized is left out of the restore list, so dismissing the overlay
+///    never un-minimizes something they minimized themselves.
+///
+/// Output is one line per changed window: `OP \t process \t index \t title`.
+/// `OP` comes first so the title (which may itself contain a tab) can be the
+/// unbounded final field.
+#[cfg(target_os = "macos")]
+fn build_minimize_script(own_pid: u32) -> String {
+    format!(
+        r#"
+set changedList to {{}}
+set myPid to {own_pid}
+tell application "System Events"
+    repeat with proc in (every application process whose background only is false)
+        try
+            if (unix id of proc) is not myPid then
+                set procName to name of proc
+                set winCount to 0
+                try
+                    set winCount to count of windows of proc
+                end try
+                repeat with i from 1 to winCount
+                    set wTitle to ""
+                    try
+                        set wTitle to name of window i of proc
+                    end try
+
+                    -- 1. Leave the fullscreen Space, if any. Must happen before
+                    --    the miniaturize below or the miniaturize is rejected.
+                    try
+                        if (value of attribute "AXFullScreen" of window i of proc) is true then
+                            set value of attribute "AXFullScreen" of window i of proc to false
+                            set end of changedList to "F" & tab & procName & tab & i & tab & wTitle
+                            delay 0.5
+                        end if
+                    end try
+
+                    -- 2. Miniaturize, but only if the user had not already done so.
+                    try
+                        if (miniaturized of window i of proc) is false then
+                            set miniaturized of window i of proc to true
+                            set end of changedList to "M" & tab & procName & tab & i & tab & wTitle
+                        end if
+                    end try
+                end repeat
+            end if
+        end try
+    end repeat
+end tell
+
+set AppleScript's text item delimiters to linefeed
+set outText to changedList as text
+set AppleScript's text item delimiters to ""
+return outText
+"#
+    )
+}
+
+/// Builds the restore script from the recorded targets.
+///
+/// Un-miniaturizes first, then re-enters fullscreen, so a window that was both
+/// un-fullscreened and minimized comes back the way it started. Windows are
+/// looked up by title where possible because indices shift as windows are
+/// minimized; the recorded index is the fallback for untitled windows.
+#[cfg(target_os = "macos")]
+fn build_restore_script(targets: &[RestoreTarget]) -> String {
+    let mut body = String::from("tell application \"System Events\"\n");
+
+    // Un-miniaturize before re-fullscreening: a miniaturized window cannot
+    // enter fullscreen.
+    for op in ['M', 'F'] {
+        for t in targets.iter().filter(|t| t.op == op) {
+            let proc = escape_applescript(&t.process);
+            let title = escape_applescript(&t.title);
+            let lookup = if t.title.is_empty() {
+                format!("set _w to window {} of _p", t.index)
+            } else {
+                format!(
+                    "try\n                set _w to (first window of _p whose name is \"{title}\")\n            end try\n            if _w is missing value then set _w to window {} of _p",
+                    t.index
+                )
+            };
+            let action = if op == 'M' {
+                "set miniaturized of _w to false"
+            } else {
+                "set value of attribute \"AXFullScreen\" of _w to true"
+            };
+            body.push_str(&format!(
+                "    try\n        set _p to application process \"{proc}\"\n        set _w to missing value\n            {lookup}\n        {action}\n    end try\n"
+            ));
+        }
+        if op == 'M' && targets.iter().any(|t| t.op == 'F') {
+            body.push_str("    delay 0.3\n");
+        }
+    }
+
+    body.push_str("end tell\n");
+    body
+}
+
+/// Escapes a string for embedding in an AppleScript double-quoted literal.
+#[cfg(target_os = "macos")]
+fn escape_applescript(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
+/// Parses `OP \t process \t index \t title` lines emitted by the sweep.
+#[cfg(target_os = "macos")]
+fn parse_sweep_output(stdout: &str) -> Vec<RestoreTarget> {
+    stdout
+        .lines()
+        .filter_map(|line| {
+            let line = line.trim_end_matches('\r');
+            if line.is_empty() {
+                return None;
+            }
+            let mut parts = line.splitn(4, '\t');
+            let op = match parts.next()? {
+                "M" => 'M',
+                "F" => 'F',
+                _ => return None,
+            };
+            let process = parts.next()?.to_string();
+            let index = parts.next()?.trim().parse::<usize>().ok()?;
+            let title = parts.next().unwrap_or("").to_string();
+            Some(RestoreTarget {
+                op,
+                process,
+                index,
+                title,
+            })
+        })
+        .collect()
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// osascript execution
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[cfg(target_os = "macos")]
+#[derive(Debug)]
+enum OsaError {
+    TimedOut,
+    PermissionDenied(String),
+    Other(String),
+}
+
+/// Runs an AppleScript with a hard deadline, killing the child if it overruns.
+///
+/// A sweep that hangs (a wedged app not answering Apple Events, a modal system
+/// dialog) must never wedge the prayer overlay, so the deadline is enforced
+/// rather than relying on osascript to return.
+#[cfg(target_os = "macos")]
+fn run_osascript(script: &str, timeout: Duration) -> Result<String, OsaError> {
+    use std::process::{Command, Stdio};
+
+    let mut child = Command::new("/usr/bin/osascript")
+        .arg("-e")
+        .arg(script)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| OsaError::Other(format!("could not spawn osascript: {e}")))?;
+
+    let deadline = Instant::now() + timeout;
+    loop {
+        match child.try_wait() {
+            Ok(Some(_)) => break,
+            Ok(None) => {
+                if Instant::now() >= deadline {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return Err(OsaError::TimedOut);
+                }
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            Err(e) => return Err(OsaError::Other(format!("osascript wait failed: {e}"))),
+        }
+    }
+
+    let output = child
+        .wait_with_output()
+        .map_err(|e| OsaError::Other(format!("could not read osascript output: {e}")))?;
+
+    if output.status.success() {
+        return Ok(String::from_utf8_lossy(&output.stdout).into_owned());
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+    if is_permission_error(&stderr) {
+        Err(OsaError::PermissionDenied(stderr))
+    } else {
+        Err(OsaError::Other(stderr))
+    }
+}
+
+/// The macOS error codes that mean "TCC said no", as opposed to a script bug.
+///
+/// -1743 errAEEventNotPermitted — Automation consent missing, or the app is
+///        under hardened runtime without `NSAppleEventsUsageDescription`.
+/// -1728 errAENoSuchObject      — usually a genuine script bug, not included.
+/// -25211 kAXErrorAPIDisabled   — Accessibility is off globally.
+#[cfg(target_os = "macos")]
+fn is_permission_error(stderr: &str) -> bool {
+    let lower = stderr.to_lowercase();
+    stderr.contains("-1743")
+        || stderr.contains("-25211")
+        || lower.contains("not allowed assistive")
+        || lower.contains("not authorized")
+        || lower.contains("accessibility")
+        || lower.contains("assistive access")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Accessibility permission
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[cfg(target_os = "macos")]
+#[link(name = "ApplicationServices", kind = "framework")]
+extern "C" {
+    /// Returns the calling process's Accessibility trust state without
+    /// prompting. Returns a C `Boolean` (`unsigned char`), hence `u8`.
+    fn AXIsProcessTrusted() -> u8;
+}
+
+/// True when this process is trusted for Accessibility.
+///
+/// The previous implementation ran `tell application "System Events" to return
+/// name of every application process`, which only exercises the **Automation**
+/// TCC bucket. `set miniaturized` and the `AXFullScreen` attribute need
+/// **Accessibility**, a different bucket — so the old check returned `true`
+/// while every window write silently failed.
+#[cfg(target_os = "macos")]
+pub fn has_accessibility_permission() -> bool {
+    unsafe { AXIsProcessTrusted() != 0 }
+}
+
+/// Opens System Settings → Privacy & Security → Accessibility.
+///
+/// An app does not appear in that list until it has *attempted* an
+/// accessibility call, so a throwaway AX request is fired first — otherwise the
+/// user arrives at a pane with no Waqt row to toggle.
+#[cfg(target_os = "macos")]
+pub fn request_accessibility_permission() -> bool {
+    if has_accessibility_permission() {
+        return true;
+    }
+
+    // Registers this app in the Accessibility list. Expected to fail.
+    let _ = run_osascript(
+        r#"tell application "System Events" to tell (first application process whose frontmost is true) to get value of attribute "AXFocused" of window 1"#,
+        Duration::from_secs(5),
+    );
+
+    open_accessibility_settings();
+    false
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn has_accessibility_permission() -> bool {
+    true
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn request_accessibility_permission() -> bool {
+    true
+}
+
+#[cfg(target_os = "macos")]
+fn open_accessibility_settings() {
+    let _ = std::process::Command::new("open")
+        .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+        .status();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Toast window
+// ═══════════════════════════════════════════════════════════════════════════
+
+pub fn spawn_toast_window(app: &AppHandle, prayer_name: &str, is_test: bool) -> Result<(), String> {
+    let label = "toast-window";
+
+    let mut query = vec![format!("screen=toast"), format!("prayer={}", prayer_name)];
+    if is_test {
+        query.push("is_test=true".to_string());
+    }
+    let url = format!("index.html?{}", query.join("&"));
+
+    if let Some(existing) = app.get_webview_window(label) {
+        let _ = existing.show();
+        let _ = existing.set_focus();
+        harden_toast_window(&existing);
+        return Ok(());
+    }
+
+    let toast_width = 360.0;
+    let toast_height = 140.0;
+    let margin = 24.0;
+
+    let mut toast_x = 100.0;
+    let mut toast_y = 100.0;
+
+    if let Ok(Some(primary)) = app.primary_monitor() {
+        let scale_factor = primary.scale_factor();
+        let pos = primary.position().to_logical::<f64>(scale_factor);
+        let size = primary.size().to_logical::<f64>(scale_factor);
+
+        toast_x = pos.x + size.width - toast_width - margin;
+        toast_y = pos.y + size.height - toast_height - margin;
+    }
+
+    let builder = WebviewWindowBuilder::new(app, label, WebviewUrl::App(url.into()))
+        .title("Waqt Countdown Toast")
+        .position(toast_x, toast_y)
+        .inner_size(toast_width, toast_height)
+        .decorations(false)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .fullscreen(false)
+        .minimizable(false)
+        .maximizable(false)
+        .closable(false)
+        .resizable(false)
+        .shadow(false);
+
+    let win = builder.build().map_err(|e| e.to_string())?;
+    let _ = win.set_focus();
+
+    harden_toast_window(&win);
+
+    Ok(())
+}
+
+pub fn close_toast_window(app: &AppHandle) {
+    if let Some(win) = app.get_webview_window("toast-window") {
+        let _ = win.close();
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Overlay windows
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// What the currently displayed overlay is for.
+#[derive(Debug, Clone, PartialEq)]
+struct OverlaySession {
+    generation: u64,
+    prayer: String,
+    emergency_exhausted: bool,
+    is_test: bool,
+}
+
+/// Source of truth for the live overlay.
+///
+/// This replaces reading `prayer=` back out of the window URL. That scheme had
+/// two problems: the URL was never updated when a window was reused, so a
+/// second prayer's overlay kept displaying the first prayer's name; and any
+/// navigation inside the webview would have desynced it.
+static ACTIVE_OVERLAY: Mutex<Option<OverlaySession>> = Mutex::new(None);
+
+/// Bumped whenever a genuinely different overlay is shown. Window labels carry
+/// the generation, so replacing one prayer's overlay with another never
+/// collides with labels still being torn down.
+static OVERLAY_GENERATION: AtomicU64 = AtomicU64::new(0);
+
+fn overlay_label(generation: u64, monitor_index: usize) -> String {
+    format!("overlay-{}-{}", generation, monitor_index)
+}
+
+fn parse_overlay_label(label: &str) -> Option<(u64, usize)> {
+    let rest = label.strip_prefix("overlay-")?;
+    let (generation, index) = rest.split_once('-')?;
+    Some((generation.parse().ok()?, index.parse().ok()?))
+}
+
+/// Whether an incoming overlay request can reuse the live overlay's windows.
+///
+/// Reuse is only safe when every URL-borne parameter matches, because a reused
+/// window keeps the URL it was built with.
+fn needs_new_generation(
+    current: Option<&OverlaySession>,
+    prayer: &str,
+    emergency_exhausted: bool,
+    is_test: bool,
+) -> bool {
+    match current {
+        Some(session) => {
+            session.prayer != prayer
+                || session.emergency_exhausted != emergency_exhausted
+                || session.is_test != is_test
+        }
+        None => true,
+    }
+}
+
+/// Clears the desktop, then puts one overlay window on every monitor.
+///
+/// # Threading
+///
+/// This blocks for as long as the minimize sweep takes (up to `SWEEP_TIMEOUT`).
+/// **It must not be called on the main thread.** The Tauri commands that reach
+/// it are declared `#[tauri::command(async)]` so they run on the worker pool,
+/// and the scheduler wraps its calls in `spawn_blocking`.
+pub fn spawn_overlay_windows(
+    app: &AppHandle,
+    prayer_name: &str,
+    emergency_exhausted: bool,
+    is_test: bool,
+) -> Result<(), String> {
+    // ── Step 0: decide whether this is the overlay already on screen (a
+    //    re-show or a monitor re-sync) or a different one.
+    let current = ACTIVE_OVERLAY.lock().ok().and_then(|guard| guard.clone());
+    let generation = if needs_new_generation(
+        current.as_ref(),
+        prayer_name,
+        emergency_exhausted,
+        is_test,
+    ) {
+        // Retire the old windows rather than calling `.show()` on them: the
+        // reused window would still be rendering the previous prayer.
+        // `close_overlay_windows_only` deliberately leaves the desktop cleared
+        // and the restore snapshot intact — we are swapping overlays, not
+        // dismissing one.
+        close_overlay_windows_only(app);
+        OVERLAY_GENERATION.fetch_add(1, Ordering::SeqCst) + 1
+    } else {
+        current.as_ref().map(|s| s.generation).unwrap_or(0)
+    };
+
+    // ── Step 1: clear the desktop. Runs to completion before any overlay
+    //    window exists, which is the whole ordering guarantee. Failure is not
+    //    fatal — a prayer overlay that cannot minimize is still better than no
+    //    overlay — but it is reported to the frontend. The sweep guard makes
+    //    this a no-op when an overlay is merely being replaced or re-synced.
+    let prep = prepare_desktop_for_overlay(app, is_test);
+    if matches!(
+        prep,
+        DesktopPrepOutcome::PermissionDenied | DesktopPrepOutcome::Failed { .. }
+    ) {
+        eprintln!("[Waqt] Showing overlay without a cleared desktop: {prep:?}");
+    }
+
+    // ── Step 2: build the overlay windows.
     let mut query = vec![format!("screen=overlay"), format!("prayer={}", prayer_name)];
     if emergency_exhausted {
         query.push("emergency_exhausted=true".to_string());
@@ -10,40 +641,95 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhau
     }
     let url = format!("index.html?{}", query.join("&"));
 
-    let monitors_res = app.available_monitors();
+    let outcome = build_overlay_windows(app, &url, generation);
 
-    let monitors = match monitors_res {
-        Ok(m) if !m.is_empty() => m,
-        _ => {
-            return spawn_single_overlay(app, "overlay-primary", &url, is_test);
+    // ── Step 3: record what is on screen, so the next call can tell whether it
+    //    is the same overlay.
+    if outcome.is_ok() {
+        if let Ok(mut guard) = ACTIVE_OVERLAY.lock() {
+            *guard = Some(OverlaySession {
+                generation,
+                prayer: prayer_name.to_string(),
+                emergency_exhausted,
+                is_test,
+            });
         }
+    }
+
+    outcome
+}
+
+fn build_overlay_windows(app: &AppHandle, url: &str, generation: u64) -> Result<(), String> {
+    let monitors = match app.available_monitors() {
+        Ok(m) if !m.is_empty() => m,
+        _ => return spawn_single_overlay(app, &overlay_label(generation, 0), url),
     };
 
     let mut spawned_any = false;
+    let mut created_any = false;
+
     for (idx, monitor) in monitors.iter().enumerate() {
-        let label = format!("overlay-monitor-{}", idx);
+        let label = overlay_label(generation, idx);
         if let Some(existing) = app.get_webview_window(&label) {
             let _ = existing.show();
-            let _ = existing.set_focus();
-            harden_window(&existing, is_test);
+            // Re-assert level and Space behavior, but do NOT re-activate the
+            // app: this branch is hit by `sync_overlay_monitors` on every
+            // scheduler tick, and activating there stole focus every 10s.
+            // Reaching here means the label matched, which now implies the
+            // generation matched, which implies the URL is already correct.
+            harden_window(&existing, false);
             spawned_any = true;
             continue;
         }
 
-        let pos = monitor.position();
-        let size = monitor.size();
         let scale_factor = monitor.scale_factor();
-        let logical_pos = pos.to_logical::<f64>(scale_factor);
-        let logical_size = size.to_logical::<f64>(scale_factor);
+        let logical_pos = monitor.position().to_logical::<f64>(scale_factor);
+        let logical_size = monitor.size().to_logical::<f64>(scale_factor);
 
-        let window_result = WebviewWindowBuilder::new(
-            app,
-            &label,
-            WebviewUrl::App(url.clone().into()),
-        )
+        let window_result =
+            WebviewWindowBuilder::new(app, &label, WebviewUrl::App(url.to_string().into()))
+                .title("Waqt Overlay")
+                .position(logical_pos.x, logical_pos.y)
+                .inner_size(logical_size.width, logical_size.height)
+                .decorations(false)
+                .always_on_top(true)
+                .skip_taskbar(true)
+                .fullscreen(false)
+                .minimizable(false)
+                .maximizable(false)
+                .closable(false)
+                .resizable(false)
+                .shadow(false)
+                .build();
+
+        if let Ok(win) = window_result {
+            harden_window(&win, false);
+            spawned_any = true;
+            created_any = true;
+        }
+    }
+
+    if !spawned_any {
+        return spawn_single_overlay(app, &overlay_label(generation, 0), url);
+    }
+
+    // One activation for the whole set, not one per monitor.
+    if created_any {
+        activate_app(app);
+    }
+
+    Ok(())
+}
+
+fn spawn_single_overlay(app: &AppHandle, label: &str, url: &str) -> Result<(), String> {
+    if let Some(existing) = app.get_webview_window(label) {
+        let _ = existing.show();
+        harden_window(&existing, false);
+        return Ok(());
+    }
+
+    let mut builder = WebviewWindowBuilder::new(app, label, WebviewUrl::App(url.into()))
         .title("Waqt Overlay")
-        .position(logical_pos.x, logical_pos.y)
-        .inner_size(logical_size.width, logical_size.height)
         .decorations(false)
         .always_on_top(true)
         .skip_taskbar(true)
@@ -52,126 +738,151 @@ pub fn spawn_overlay_windows(app: &AppHandle, prayer_name: &str, emergency_exhau
         .maximizable(false)
         .closable(false)
         .resizable(false)
-        .shadow(false)
-        .build();
-
-        if let Ok(win) = window_result {
-            let _ = win.set_focus();
-            harden_window(&win, is_test);
-            spawned_any = true;
-        }
-    }
-
-    if !spawned_any {
-        return spawn_single_overlay(app, "overlay-primary", &url, is_test);
-    }
-
-    Ok(())
-}
-
-pub fn has_active_overlay(app: &AppHandle) -> bool {
-    app.webview_windows().keys().any(|k| k.starts_with("overlay-"))
-}
-
-pub fn get_active_overlay_info(app: &AppHandle) -> Option<(String, bool, bool)> {
-    let windows = app.webview_windows();
-    for (label, win) in windows {
-        if label.starts_with("overlay-") {
-            if let Ok(url_val) = win.url() {
-                let url_str = url_val.as_str();
-                let is_emergency = url_str.contains("emergency_exhausted=true");
-                let is_test = url_str.contains("is_test=true");
-                if let Some(pos) = url_str.find("prayer=") {
-                    let after = &url_str[pos + 7..];
-                    let prayer = after.split('&').next().unwrap_or("Dhuhr").to_string();
-                    return Some((prayer, is_emergency, is_test));
-                }
-            }
-        }
-    }
-    None
-}
-
-pub fn sync_overlay_monitors(app: &AppHandle) {
-    if let Some((prayer_name, emergency_exhausted, is_test)) = get_active_overlay_info(app) {
-        let _ = spawn_overlay_windows(app, &prayer_name, emergency_exhausted, is_test);
-        if let Ok(monitors) = app.available_monitors() {
-            let active_count = monitors.len();
-            for (label, win) in app.webview_windows() {
-                if let Some(idx_str) = label.strip_prefix("overlay-monitor-") {
-                    if let Ok(idx) = idx_str.parse::<usize>() {
-                        if idx >= active_count {
-                            let _ = win.close();
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-
-fn spawn_single_overlay(app: &AppHandle, label: &str, url: &str, is_test: bool) -> Result<(), String> {
-    if let Some(existing) = app.get_webview_window(label) {
-        let _ = existing.show();
-        let _ = existing.set_focus();
-        harden_window(&existing, is_test);
-        return Ok(());
-    }
-
-    let mut builder = WebviewWindowBuilder::new(
-        app,
-        label,
-        WebviewUrl::App(url.into()),
-    )
-    .title("Waqt Overlay")
-    .decorations(false)
-    .always_on_top(true)
-    .skip_taskbar(true)
-    .fullscreen(false)
-    .minimizable(false)
-    .maximizable(false)
-    .closable(false)
-    .resizable(false)
-    .shadow(false);
+        .shadow(false);
 
     if let Ok(Some(primary)) = app.primary_monitor() {
         let scale_factor = primary.scale_factor();
         let pos = primary.position().to_logical::<f64>(scale_factor);
         let size = primary.size().to_logical::<f64>(scale_factor);
-        builder = builder.position(pos.x, pos.y).inner_size(size.width, size.height);
+        builder = builder
+            .position(pos.x, pos.y)
+            .inner_size(size.width, size.height);
     }
 
     let win = builder.build().map_err(|e| e.to_string())?;
-
-    harden_window(&win, is_test);
+    harden_window(&win, false);
+    activate_app(app);
 
     Ok(())
 }
+
+pub fn has_active_overlay(app: &AppHandle) -> bool {
+    app.webview_windows()
+        .keys()
+        .any(|k| k.starts_with("overlay-"))
+}
+
+/// The prayer the live overlay is for, if any.
+///
+/// Read from `ACTIVE_OVERLAY` rather than parsed out of a window URL, and
+/// cross-checked against the windows actually being open so a stale session
+/// record can never make the scheduler think an overlay is up.
+pub fn get_active_overlay_info(app: &AppHandle) -> Option<(String, bool, bool)> {
+    if !has_active_overlay(app) {
+        return None;
+    }
+    let session = ACTIVE_OVERLAY.lock().ok()?.clone()?;
+    Some((session.prayer, session.emergency_exhausted, session.is_test))
+}
+
+pub fn sync_overlay_monitors(app: &AppHandle) {
+    let Some((prayer_name, emergency_exhausted, is_test)) = get_active_overlay_info(app) else {
+        return;
+    };
+
+    // Params match the live session by construction, so this reuses the current
+    // generation: no desktop sweep, no rebuild, no re-activation.
+    let _ = spawn_overlay_windows(app, &prayer_name, emergency_exhausted, is_test);
+
+    let current_generation = OVERLAY_GENERATION.load(Ordering::SeqCst);
+    if let Ok(monitors) = app.available_monitors() {
+        let active_count = monitors.len();
+        for (label, win) in app.webview_windows() {
+            if let Some((generation, index)) = parse_overlay_label(&label) {
+                // Close windows for monitors that went away, and any stragglers
+                // left over from a previous overlay generation.
+                if generation != current_generation || index >= active_count {
+                    let _ = win.close();
+                }
+            }
+        }
+    }
+}
+
+/// Closes the overlay windows and leaves the desktop alone.
+///
+/// Used when one overlay replaces another (a different prayer, or the emergency
+/// re-lock): the windows must be rebuilt to pick up the new URL, but the
+/// desktop should stay cleared and the restore snapshot must survive.
+fn close_overlay_windows_only(app: &AppHandle) {
+    for (label, win) in app.webview_windows() {
+        if label.starts_with("overlay-") {
+            let _ = win.close();
+        }
+    }
+}
+
+pub fn close_all_overlays(app: &AppHandle) {
+    close_overlay_windows_only(app);
+
+    if let Ok(mut guard) = ACTIVE_OVERLAY.lock() {
+        *guard = None;
+    }
+
+    // Replaces the old NSWorkspace `unhide()` loop, which reversed Cmd+H
+    // hiding — something the app never did — and left every window it
+    // minimized sitting in the Dock. It also ran AppKit calls on whatever
+    // thread the Tauri command landed on; this path touches no AppKit at all.
+    restore_desktop_after_overlay();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Native window hardening
+// ═══════════════════════════════════════════════════════════════════════════
 
 /// Dispatches NSWindow hardening to the main thread.
 /// All AppKit/NSWindow APIs are main-thread-only on macOS; calling them from
 /// any other thread causes SIGILL. `run_on_main_thread` guarantees the closure
 /// executes on the UI thread regardless of where `harden_window` was called from.
-fn harden_window(win: &tauri::WebviewWindow, is_test: bool) {
+fn harden_window(win: &tauri::WebviewWindow, bring_to_front: bool) {
     #[cfg(target_os = "macos")]
     {
         let win_for_closure = win.clone();
-        // Ignore errors — if the dispatch fails the window still shows,
-        // just without the extra NSWindow hardening.
         let _ = win.run_on_main_thread(move || {
-            harden_macos(&win_for_closure, is_test);
+            harden_macos(&win_for_closure, bring_to_front);
         });
     }
     #[cfg(target_os = "windows")]
     {
-        let _ = is_test;
+        let _ = bring_to_front;
         harden_windows(win);
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        let _ = (win, is_test);
+        let _ = (win, bring_to_front);
+    }
+}
+
+fn activate_app(app: &AppHandle) {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app.run_on_main_thread(|| unsafe {
+            use objc2_app_kit::NSApplication;
+            let mtm = objc2::MainThreadMarker::new_unchecked();
+            NSApplication::sharedApplication(mtm).activate();
+        });
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+    }
+}
+
+fn harden_toast_window(win: &tauri::WebviewWindow) {
+    #[cfg(target_os = "macos")]
+    {
+        let win_for_closure = win.clone();
+        let _ = win.run_on_main_thread(move || {
+            harden_macos(&win_for_closure, true);
+        });
+    }
+    #[cfg(target_os = "windows")]
+    {
+        harden_windows(win);
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        let _ = win;
     }
 }
 
@@ -180,8 +891,8 @@ fn harden_window(win: &tauri::WebviewWindow, is_test: bool) {
 fn harden_windows(win: &tauri::WebviewWindow) {
     use windows_sys::Win32::Foundation::HWND;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        GetWindowLongPtrW, SetWindowLongPtrW, SetWindowPos, GWL_EXSTYLE, HWND_TOPMOST,
-        SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, WS_EX_TOOLWINDOW, WS_EX_TOPMOST,
+        GetWindowLongPtrW, SetWindowLongPtrW, SetWindowPos, GWL_EXSTYLE, HWND_TOPMOST, SWP_NOMOVE,
+        SWP_NOSIZE, SWP_SHOWWINDOW, WS_EX_TOOLWINDOW, WS_EX_TOPMOST,
     };
 
     if let Ok(hwnd_raw) = win.hwnd() {
@@ -210,24 +921,15 @@ fn harden_windows(win: &tauri::WebviewWindow) {
 /// Called exclusively from within `run_on_main_thread`, so the main-thread
 /// invariant required by AppKit is always satisfied.
 #[cfg(target_os = "macos")]
-fn harden_macos(win: &tauri::WebviewWindow, is_test: bool) {
-    use objc2_app_kit::{NSApplication, NSWindow};
+fn harden_macos(win: &tauri::WebviewWindow, bring_to_front: bool) {
+    use objc2_app_kit::NSWindow;
 
     // NSWindowLevel: i32::MAX (2147483647) = Maximum Window Level (CGShieldingWindowLevel)
-    // Sits above Dock, Spotlight, menu bar, notification banners, Mission Control,
-    // Space transition animations, and all Fullscreen Spaces.
     const MAXIMUM_WINDOW_LEVEL: isize = i32::MAX as isize;
 
-    // NSWindowCollectionBehavior flags (values are NSUInteger / usize):
-    // CanJoinAllSpaces    = 1 << 0 = 1   → visible on every Space
-    // Stationary         = 1 << 4 = 16  → pinned; doesn't move in Mission Control or Space transitions
-    // IgnoresCycle       = 1 << 6 = 64  → excluded from ⌘+Tab switcher
-    // FullScreenAuxiliary = 1 << 8 = 256 → floats above fullscreen spaces without entering a separate space
+    // CanJoinAllSpaces (1) | Stationary (16) | IgnoresCycle (64) | FullScreenAuxiliary (256)
     const COLLECTION_BEHAVIOR: usize = 1 | 16 | 64 | 256;
 
-    // NSWindowStyleMask bits to strip:
-    // Miniaturizable = 1 << 2 = 4  → ⌘+M becomes a no-op
-    // Resizable      = 1 << 3 = 8
     const MASK_MINIATURIZABLE: usize = 1 << 2;
     const MASK_RESIZABLE: usize = 1 << 3;
 
@@ -240,8 +942,6 @@ fn harden_macos(win: &tauri::WebviewWindow, is_test: bool) {
     };
 
     // SAFETY: We are on the main thread (enforced by run_on_main_thread).
-    // ns_window() returns a valid, retained *mut NSWindow pointer that is alive
-    // for the duration of this closure because the WebviewWindow clone keeps it so.
     unsafe {
         let ns_win: *mut NSWindow = ns_window_ptr as *mut NSWindow;
         if ns_win.is_null() {
@@ -249,175 +949,217 @@ fn harden_macos(win: &tauri::WebviewWindow, is_test: bool) {
         }
         let ns_win_ref = &*ns_win;
 
-        // 1. Elevate to Maximum Window Level (2147483647) — sits above everything in macOS
-        //    including Fullscreen Spaces, Space transitions, Dock, and Mission Control.
         ns_win_ref.setLevel(MAXIMUM_WINDOW_LEVEL);
+        ns_win_ref.setCollectionBehavior(objc2_app_kit::NSWindowCollectionBehavior(
+            COLLECTION_BEHAVIOR,
+        ));
 
-        // 2. Exclude from Mission Control / Exposé / ⌘+Tab; appear on all Spaces.
-        ns_win_ref.setCollectionBehavior(
-            objc2_app_kit::NSWindowCollectionBehavior(COLLECTION_BEHAVIOR),
-        );
-
-        // 3. Strip Miniaturizable + Resizable from the style mask so ⌘+M is inert.
         let current_mask = ns_win_ref.styleMask();
         let new_mask = objc2_app_kit::NSWindowStyleMask(
             current_mask.0 & !(MASK_MINIATURIZABLE | MASK_RESIZABLE),
         );
         ns_win_ref.setStyleMask(new_mask);
 
-        // 4. Prevent hiding on app switch or ⌘+H
         ns_win_ref.setCanHide(false);
         ns_win_ref.setHidesOnDeactivate(false);
 
-        // 5. Before bringing overlay to front, minimize all other app windows asynchronously if not in test mode.
-        if !is_test {
-            std::thread::spawn(|| {
-                minimize_all_other_windows();
-            });
-        }
-
-        // 6. Bring to front unconditionally (works even when app is not active).
         ns_win_ref.orderFrontRegardless();
 
-        // 7. Activate our app so keyboard events route here.
-        let mtm = objc2::MainThreadMarker::new_unchecked();
-        let app = NSApplication::sharedApplication(mtm);
-        app.activate();
+        if bring_to_front {
+            use objc2_app_kit::NSApplication;
+            let mtm = objc2::MainThreadMarker::new_unchecked();
+            NSApplication::sharedApplication(mtm).activate();
+        }
     }
 }
 
-#[cfg(target_os = "macos")]
-pub fn build_minimize_all_windows_script() -> String {
-    r#"
-    tell application "System Events"
-        repeat with proc in every application process
-            if name of proc is not "waqt" then
-                try
-                    repeat with aWindow in windows of proc
-                        set miniaturized of aWindow to true
-                    end repeat
-                end try
-            end if
-        end repeat
-    end tell
-    "#
-    .trim()
-    .to_string()
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// Tests
+// ═══════════════════════════════════════════════════════════════════════════
 
-#[cfg(target_os = "macos")]
-pub fn has_accessibility_permission() -> bool {
-    let result = std::process::Command::new("osascript")
-        .arg("-e")
-        .arg("tell application \"System Events\" to return name of every application process")
-        .output();
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    use super::*;
 
-    match result {
-        Ok(output) => output.status.success(),
-        Err(_) => false,
-    }
-}
+    #[test]
+    fn sweep_script_exits_fullscreen_before_miniaturizing() {
+        let script = build_minimize_script(4242);
 
-/// Trigger the native macOS "Allow Accessibility Access" dialog by calling
-/// AXIsProcessTrustedWithOptions with kAXTrustedCheckOptionPrompt = true.
-/// If the permission is already granted it returns true immediately.
-/// If not, it shows the system prompt and opens System Preferences to the
-/// Accessibility pane so the user can grant it, then returns false (the user
-/// must toggle the switch in System Preferences — we cannot grant it for them).
-#[cfg(target_os = "macos")]
-pub fn request_accessibility_permission() -> bool {
-    // Call AXIsProcessTrustedWithOptions via osascript to avoid linking against
-    // ApplicationServices directly. The osascript attempt itself triggers the prompt.
-    // First try the direct CF approach via a small osascript that accesses System Events
-    // (which forces the AX prompt), then open System Preferences for manual granting.
-    let already_granted = has_accessibility_permission();
-    if already_granted {
-        return true;
-    }
-
-    // Opening System Preferences to the Accessibility pane causes macOS to
-    // show the "Allow Waqt to control your computer" system alert.
-    open_accessibility_settings();
-    false
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn has_accessibility_permission() -> bool {
-    // Non-macOS platforms don't need this permission.
-    true
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn request_accessibility_permission() -> bool {
-    true
-}
-
-#[cfg(target_os = "macos")]
-fn open_accessibility_settings() {
-    let _ = std::process::Command::new("open")
-        .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
-        .status();
-}
-
-#[cfg(target_os = "macos")]
-fn minimize_all_other_windows() {
-    if !has_accessibility_permission() {
-        eprintln!(
-            "[Waqt] macOS Accessibility permission is required to minimize fullscreen windows before an overlay is shown."
+        // The bug this replaces: `set miniaturized` alone cannot touch a window
+        // in a native fullscreen Space.
+        let fullscreen_at = script
+            .find("set value of attribute \"AXFullScreen\"")
+            .expect("script must clear AXFullScreen");
+        let miniaturize_at = script
+            .find("set miniaturized of window i of proc to true")
+            .expect("script must miniaturize");
+        assert!(
+            fullscreen_at < miniaturize_at,
+            "fullscreen must be exited before miniaturizing"
         );
-        open_accessibility_settings();
-        return;
     }
 
-    let script = build_minimize_all_windows_script();
-    let result = std::process::Command::new("osascript")
-        .arg("-e")
-        .arg(&script)
-        .output();
-
-    match result {
-        Ok(output) => {
-            if !output.status.success() {
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                eprintln!("[Waqt] Failed to minimize other app windows: {}", stderr);
-                if stderr.to_lowercase().contains("not authorized") || stderr.to_lowercase().contains("accessibility") {
-                    open_accessibility_settings();
-                }
-            }
-        }
-        Err(err) => {
-            eprintln!("[Waqt] Could not execute osascript to minimize apps: {}", err);
-        }
-    }
-}
-
-pub fn close_all_overlays(app: &AppHandle) {
-    let windows = app.webview_windows();
-    for (label, win) in windows {
-        if label.starts_with("overlay-") {
-            let _ = win.close();
-        }
+    #[test]
+    fn sweep_script_skips_daemons_and_our_own_process() {
+        let script = build_minimize_script(4242);
+        assert!(script.contains("whose background only is false"));
+        assert!(script.contains("set myPid to 4242"));
+        assert!(script.contains("(unix id of proc) is not myPid"));
     }
 
-    #[cfg(target_os = "macos")]
-    {
-        use objc2_app_kit::NSWorkspace;
-        let workspace = NSWorkspace::sharedWorkspace();
-        let running_apps = workspace.runningApplications();
-        for running_app in running_apps {
-            let _ = running_app.unhide();
-        }
+    #[test]
+    fn sweep_script_only_records_windows_it_changed() {
+        let script = build_minimize_script(1);
+        // Already-minimized windows must not enter the restore list, or
+        // dismissing the overlay would un-minimize the user's own windows.
+        assert!(script.contains("if (miniaturized of window i of proc) is false then"));
+    }
+
+    #[test]
+    fn parses_sweep_output() {
+        let out = "M\tSafari\t1\tApple\nF\tCode\t2\tmain.rs\nM\tTerminal\t3\t\n";
+        let targets = parse_sweep_output(out);
+        assert_eq!(targets.len(), 3);
+        assert_eq!(targets[0].op, 'M');
+        assert_eq!(targets[0].process, "Safari");
+        assert_eq!(targets[0].index, 1);
+        assert_eq!(targets[0].title, "Apple");
+        assert_eq!(targets[1].op, 'F');
+        assert_eq!(targets[2].title, "");
+    }
+
+    #[test]
+    fn parses_titles_containing_tabs() {
+        let targets = parse_sweep_output("M\tSafari\t1\tA\tB\n");
+        assert_eq!(targets.len(), 1);
+        assert_eq!(targets[0].title, "A\tB");
+    }
+
+    #[test]
+    fn ignores_malformed_sweep_lines() {
+        assert!(parse_sweep_output("\n\nnonsense\nX\tA\t1\tT\n").is_empty());
+    }
+
+    #[test]
+    fn restore_unminimizes_before_re_entering_fullscreen() {
+        let targets = vec![
+            RestoreTarget {
+                op: 'F',
+                process: "Code".into(),
+                index: 2,
+                title: "main.rs".into(),
+            },
+            RestoreTarget {
+                op: 'M',
+                process: "Code".into(),
+                index: 2,
+                title: "main.rs".into(),
+            },
+        ];
+        let script = build_restore_script(&targets);
+        let unmin = script.find("set miniaturized of _w to false").unwrap();
+        let refull = script.find("AXFullScreen\" of _w to true").unwrap();
+        assert!(
+            unmin < refull,
+            "a miniaturized window cannot enter fullscreen"
+        );
+    }
+
+    #[test]
+    fn restore_escapes_quotes_in_window_titles() {
+        let targets = vec![RestoreTarget {
+            op: 'M',
+            process: "Note\"s".into(),
+            index: 1,
+            title: "a \"quoted\" title".into(),
+        }];
+        let script = build_restore_script(&targets);
+        assert!(script.contains("Note\\\"s"));
+        assert!(script.contains("a \\\"quoted\\\" title"));
+    }
+
+    #[test]
+    fn restore_falls_back_to_index_for_untitled_windows() {
+        let targets = vec![RestoreTarget {
+            op: 'M',
+            process: "Preview".into(),
+            index: 7,
+            title: String::new(),
+        }];
+        let script = build_restore_script(&targets);
+        assert!(script.contains("set _w to window 7 of _p"));
+        assert!(!script.contains("whose name is"));
+    }
+
+    #[test]
+    fn detects_tcc_denials_but_not_ordinary_script_errors() {
+        assert!(is_permission_error(
+            "execution error: Not authorized to send Apple events to System Events. (-1743)"
+        ));
+        assert!(is_permission_error("osascript is not allowed assistive access. (-25211)"));
+        assert!(!is_permission_error(
+            "execution error: System Events got an error: Can't get window 1. (-1728)"
+        ));
     }
 }
 
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn test_minimize_all_windows_script_targets_all_application_windows() {
-        let script = super::build_minimize_all_windows_script();
+mod overlay_session_tests {
+    use super::*;
 
-        assert!(script.contains("every application process"));
-        assert!(script.contains("if name of proc is not \"waqt\""));
-        assert!(script.contains("set miniaturized of aWindow to true"));
+    fn session(prayer: &str, emergency: bool, test: bool) -> OverlaySession {
+        OverlaySession {
+            generation: 7,
+            prayer: prayer.to_string(),
+            emergency_exhausted: emergency,
+            is_test: test,
+        }
+    }
+
+    #[test]
+    fn same_overlay_reuses_its_windows() {
+        let live = session("Dhuhr", false, false);
+        assert!(!needs_new_generation(Some(&live), "Dhuhr", false, false));
+    }
+
+    #[test]
+    fn a_different_prayer_forces_a_rebuild() {
+        // The bug this guards: `.show()` on a reused window left the previous
+        // prayer's URL — and therefore the previous prayer's name — on screen.
+        let live = session("Dhuhr", false, false);
+        assert!(needs_new_generation(Some(&live), "Asr", false, false));
+    }
+
+    #[test]
+    fn emergency_relock_forces_a_rebuild() {
+        // Same prayer, but `emergency_exhausted=true` must reach the webview.
+        let live = session("Maghrib", false, false);
+        assert!(needs_new_generation(Some(&live), "Maghrib", true, false));
+    }
+
+    #[test]
+    fn test_mode_change_forces_a_rebuild() {
+        let live = session("Isha", false, true);
+        assert!(needs_new_generation(Some(&live), "Isha", false, false));
+    }
+
+    #[test]
+    fn no_live_overlay_always_needs_a_generation() {
+        assert!(needs_new_generation(None, "Fajr", false, false));
+    }
+
+    #[test]
+    fn overlay_labels_round_trip() {
+        assert_eq!(overlay_label(3, 2), "overlay-3-2");
+        assert_eq!(parse_overlay_label("overlay-3-2"), Some((3, 2)));
+        assert_eq!(parse_overlay_label("overlay-12-0"), Some((12, 0)));
+    }
+
+    #[test]
+    fn non_overlay_labels_are_ignored() {
+        assert_eq!(parse_overlay_label("main"), None);
+        assert_eq!(parse_overlay_label("toast-window"), None);
+        // The old fallback label must not parse as a generation.
+        assert_eq!(parse_overlay_label("overlay-primary"), None);
     }
 }

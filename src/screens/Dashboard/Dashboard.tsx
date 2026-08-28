@@ -14,8 +14,9 @@ import {
 
 interface DashboardProps {
   settings: AppSettings;
-  onNavigate: (screen: "dashboard" | "settings" | "log") => void;
+  onNavigate: (screen: "dashboard" | "settings" | "log" | "toast" | "overlay") => void;
   onTriggerTestOverlay?: () => void;
+  onTriggerTestToast?: () => void;
   onToggleNotifications?: () => void;
   onPreviewSplash?: () => void;
 }
@@ -24,12 +25,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   settings,
   onNavigate,
   onTriggerTestOverlay,
+  onTriggerTestToast,
   onToggleNotifications,
   onPreviewSplash,
 }) => {
   const isDevelopment = import.meta.env.DEV;
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [prayers, setPrayers] = useState<PrayerTime[]>([]);
+
+  const [demoTargetTime, setDemoTargetTime] = useState<Date>(() => new Date(Date.now() + 10000));
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -38,15 +42,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   useEffect(() => {
     setPrayers(calculateDailyPrayerTimes(settings, currentTime, currentTime));
-    // Recalculate on every minute boundary (and hour, so we don't miss midnight rollover).
-    // The countdown display is handled by the 1s timer above; this effect only needs
-    // to update isPassed/isNext which change at prayer-time boundaries.
   }, [settings, currentTime.getHours(), currentTime.getMinutes()]);
-
 
   const nextPrayer = getUpcomingPrayer(settings, currentTime);
 
+  useEffect(() => {
+    if (!settings.demoModeEnabled) return;
+    if (currentTime >= demoTargetTime) {
+      setDemoTargetTime(new Date(Date.now() + 15000));
+      onNavigate("toast");
+    }
+  }, [settings.demoModeEnabled, currentTime, demoTargetTime, onNavigate]);
+
   const getTimeRemainingMs = (target: Date) => {
+    if (settings.demoModeEnabled) {
+      return Math.max(0, demoTargetTime.getTime() - currentTime.getTime());
+    }
     return Math.max(0, target.getTime() - currentTime.getTime());
   };
 
@@ -260,14 +271,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </span>
           </div>
 
-          {isDevelopment && onTriggerTestOverlay && (
-            <button
-              onClick={onTriggerTestOverlay}
-              className="line-button flex items-center gap-2 text-xs font-semibold text-emerald-300 px-4 py-2 rounded-full"
-            >
-              <PlayCircle className="w-4 h-4 text-emerald-400" />
-              <span>Test Overlay Screen</span>
-            </button>
+          {isDevelopment && !settings.demoModeEnabled && (
+            <div className="flex items-center gap-2">
+              {onTriggerTestToast && (
+                <button
+                  onClick={onTriggerTestToast}
+                  className="line-button flex items-center gap-2 text-xs font-semibold text-teal-300 px-4 py-2 rounded-full"
+                >
+                  <PlayCircle className="w-4 h-4 text-teal-400" />
+                  <span>Test Countdown Toast</span>
+                </button>
+              )}
+              {onTriggerTestOverlay && (
+                <button
+                  onClick={onTriggerTestOverlay}
+                  className="line-button flex items-center gap-2 text-xs font-semibold text-emerald-300 px-4 py-2 rounded-full"
+                >
+                  <PlayCircle className="w-4 h-4 text-emerald-400" />
+                  <span>Test Overlay Screen</span>
+                </button>
+              )}
+            </div>
           )}
         </footer>
       </div>
