@@ -170,7 +170,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (isOverlayWindow || isToastWindow || isHydrating) return;
+    if (isOverlayWindow || isToastWindow || isLandingWindow || isHydrating) return;
 
     if (!settings.onboardingCompleted) {
       setCurrentScreen("onboarding");

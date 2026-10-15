@@ -1,24 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
+import "./landing.css";
 import { HeroSection } from "./HeroSection";
-import { ProblemSolution } from "./ProblemSolution";
-import { FeaturesGrid } from "./FeaturesGrid";
 import { HowItWorks } from "./HowItWorks";
+import { OfflineDiagram } from "./OfflineDiagram";
+import { Customizer } from "./Customizer";
 import { HonorSystemManifesto } from "./HonorSystemManifesto";
 import { DownloadSection } from "./DownloadSection";
 import { FAQSection } from "./FAQSection";
 import { Footer } from "./Footer";
+import { City, guessCity, useReveal } from "./landingData";
 
 export const LandingPage: React.FC = () => {
+  // One city drives the hero cards and the customizer.
+  const [city, setCity] = useState<City>(guessCity);
+  useReveal();
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
-      <HeroSection />
-      <ProblemSolution />
-      <FeaturesGrid />
-      <HowItWorks />
-      <HonorSystemManifesto />
-      <DownloadSection />
-      <FAQSection />
-      <Footer />
+    <div className="lp min-h-screen text-slate-100 font-sans">
+      <div className="ak-rails" aria-hidden="true" />
+      <div className="relative">
+        <HeroSection city={city} />
+        <main>
+          <HowItWorks />
+          <OfflineDiagram />
+          <Customizer city={city} onCity={setCity} />
+          <HonorSystemManifesto />
+          <DownloadSection />
+          <FAQSection />
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 };
