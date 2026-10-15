@@ -438,6 +438,20 @@ apply: `release.yml`'s Apple notarization secrets (`APPLE_CERTIFICATE`,
 Apple Developer ID account behind them — unrelated to the updater key, and not
 something `gh secret set` alone can resolve.
 
+**Release state (2026-10-16).** Until those secrets exist, `release.yml` signs
+the macOS build **ad hoc** (`APPLE_SIGNING_IDENTITY=-`) and skips
+notarization; it only passes Apple variables to the bundler when the secrets
+are present, because blank values make it try to sign or notarize. Users approve
+the app once in System Settings → Privacy & Security → Open Anyway, and the
+website says so. Ad-hoc signatures change with every build, so macOS may ask
+for Accessibility again after an update. Releases are macOS only (universal);
+the website shows Windows as "coming soon" because the Windows keyboard hook
+above has never run. Each release is a draft that must be published by hand,
+and the workflow attaches a copy of the installer named `Waqt_macOS.dmg`, which
+is what the website's download button
+(`/releases/latest/download/Waqt_macOS.dmg`) points at. `createUpdaterArtifacts`
+is `true` (v2 updater format); nothing shipped before it, so no v1 clients exist.
+
 Closed since this list was written: the desktop-prep listener, the unused
 `is_sleep_wake` flag, `has_used_emergency_dismiss`'s string comparison, the
 scheduler's per-tick I/O churn, the `--autostart` flag, the null CSP, the §1.2

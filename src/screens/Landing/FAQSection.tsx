@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 const FAQS = [
   {
     q: "Can Waqt trap me in an emergency?",
-    a: "Once per prayer, Emergency Dismiss works at any moment, even mid-pause, and gives you thirty minutes. If the pause returns after that, the button is gone by design. Force Quit on a Mac (⌘⌥Esc) or Task Manager on Windows still closes Waqt.",
+    a: "Once per prayer, Emergency Dismiss works at any moment, even mid-pause, and gives you thirty minutes. If the pause returns after that, the button is gone by design. Force Quit (⌘⌥Esc) still closes Waqt.",
   },
   {
     q: "When exactly does the screen lock?",
@@ -22,6 +22,14 @@ const FAQS = [
   {
     q: "What if my laptop was asleep at prayer time?",
     a: "On waking, Waqt checks the clock. If the prayer's window is still open, the pause starts straight away. If it has closed, the prayer is logged as missed, with no surprise overlay.",
+  },
+  {
+    q: "Why does macOS warn me when I first open it?",
+    a: "Waqt isn't signed with a paid Apple Developer ID yet, so macOS can't verify who made it. Approve it once in System Settings → Privacy & Security → Open Anyway. The full source is on GitHub if you'd rather check it or build it yourself.",
+  },
+  {
+    q: "Does it work on Windows?",
+    a: "Not yet. The first release is for macOS. Windows support is written but hasn't been tested on real Windows machines, so it will follow once it has.",
   },
   {
     q: "Is it really free?",

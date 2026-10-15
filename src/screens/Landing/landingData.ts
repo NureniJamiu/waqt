@@ -4,6 +4,9 @@ import { AppSettings, CalculationMethodName, PrayerName } from "../../types";
 
 export const REPO_URL = "https://github.com/NureniJamiu/waqt";
 export const RELEASES_URL = `${REPO_URL}/releases`;
+// The release workflow uploads a copy of each macOS build under this fixed name,
+// so /releases/latest/download/ always points at the newest published installer.
+export const DMG_URL = `${REPO_URL}/releases/latest/download/Waqt_macOS.dmg`;
 
 export interface City {
   name: string;

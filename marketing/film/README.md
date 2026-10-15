@@ -22,6 +22,7 @@ A one-minute film of Waqt doing its job, rendered from code:
 ```sh
 sh build.sh              # everything (rendering takes ~15–20 min)
 sh build.sh --audio-only # re-mix and re-encode with existing frames (after a voice change)
+node render.mjs --from 52 # re-shoot only the frames from 52 s on (then run build.sh --audio-only)
 ```
 
 Outputs `marketing/waqt-film-master.mp4` (1080p) and the web cut used by the

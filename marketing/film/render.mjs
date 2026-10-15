@@ -16,6 +16,9 @@ const app = path.join(here, '.app');
 const FPS = 30;
 const atArg = process.argv.indexOf('--at');
 const stills = atArg > 0 ? process.argv[atArg + 1].split(',').map(Number) : null;
+// --from <seconds>: re-shoot only frames from this time on, keeping earlier ones in frames/
+const fromArg = process.argv.indexOf('--from');
+const fromT = fromArg > 0 ? Number(process.argv[fromArg + 1]) : 0;
 
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml' };
 const server = http.createServer((req, res) => {
@@ -101,7 +104,7 @@ async function step(t) {
   await page.clock.runFor(dt * rate);
 }
 
-const frames = stills ? stills.map((s) => Math.round(s * FPS)) : [...Array(Math.round(TL.dur * FPS)).keys()];
+const frames = stills ? stills.map((s) => Math.round(s * FPS)) : [...Array(Math.round(TL.dur * FPS)).keys()].filter((f) => f >= Math.round(fromT * FPS));
 fs.mkdirSync(path.join(here, stills ? 'work' : 'frames'), { recursive: true });
 let last = 0;
 for (const f of frames) {
