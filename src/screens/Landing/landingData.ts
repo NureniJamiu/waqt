@@ -102,7 +102,12 @@ export function mmss(totalSeconds: number): string {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
-/** Adds `is-in` to every [data-reveal] / .shutter under `root` as it scrolls into view, once. */
+/**
+ * Marks every [data-reveal] / .shutter under `.lp` with `data-in` as it scrolls
+ * into view, once. An attribute rather than a class: React rewrites `className`
+ * whenever an element's classes change (an FAQ item opening, say), which used to
+ * wipe a class added here and drop the element back to its hidden state.
+ */
 export function useReveal() {
   useEffect(() => {
     const root = document.querySelector(".lp");
@@ -110,7 +115,7 @@ export function useReveal() {
     root.classList.add("js");
     const targets = root.querySelectorAll("[data-reveal], .shutter");
     if (!("IntersectionObserver" in window)) {
-      targets.forEach((el) => el.classList.add("is-in"));
+      targets.forEach((el) => el.setAttribute("data-in", ""));
       return;
     }
     // A closed shutter is clipped to nothing, and IntersectionObserver honours
@@ -121,7 +126,7 @@ export function useReveal() {
       (entries) => {
         for (const e of entries) {
           if (e.isIntersecting) {
-            watched.get(e.target)?.classList.add("is-in");
+            watched.get(e.target)?.setAttribute("data-in", "");
             io.unobserve(e.target);
           }
         }

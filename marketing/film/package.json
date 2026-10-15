@@ -1,0 +1,12 @@
+{
+  "name": "waqt-film",
+  "private": true,
+  "type": "module",
+  "description": "Renders the Waqt product film (see README.md).",
+  "scripts": {
+    "build": "sh build.sh"
+  },
+  "dependencies": {
+    "playwright-core": "1.47.2"
+  }
+}

@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Bell, CheckCircle2, Lock, Timer, Volume2, VolumeX } from "lucide-react";
 
-// Chapters of /landing/waqt-demo.mp4 (seconds). The film is the real app on
-// 15 Oct 2026 in Lagos: Dhuhr 12:33, lock 12:23, button opens 12:38.
+// Chapters of /landing/waqt-demo.mp4 (seconds), matching window.TL in
+// marketing/film/stage.html. The film runs the real app on 15 Oct 2026 in Lagos:
+// Dhuhr 12:33, lock 12:23, button opens 12:38.
 const CHAPTERS = [
-  { at: 3.6, icon: Bell, label: "Reminders", detail: "30, 15 and 5 minutes before" },
-  { at: 10.2, icon: Timer, label: "10s warning", detail: "a countdown in the corner" },
-  { at: 14.3, icon: Lock, label: "Every screen locks", detail: "ten minutes before the adhan" },
-  { at: 15.0, icon: Volume2, label: "The adhan", detail: "takbeer plays on the overlay" },
-  { at: 35.8, icon: CheckCircle2, label: "I've prayed", detail: "after fifteen minutes" },
+  { at: 8.6, icon: Bell, label: "Reminders", detail: "30, 15 and 5 minutes before" },
+  { at: 14.2, icon: Timer, label: "10s warning", detail: "a countdown in the corner" },
+  { at: 18.8, icon: Lock, label: "Every screen locks", detail: "on every display, ten minutes early" },
+  { at: 25.6, icon: Volume2, label: "The adhan", detail: "takbeer plays on the overlay" },
+  { at: 47.4, icon: CheckCircle2, label: "I've prayed", detail: "after fifteen minutes" },
 ];
 
 function chapterAt(t: number) {
@@ -32,6 +33,64 @@ export const HowItWorks: React.FC = () => {
     return () => v.removeEventListener("timeupdate", onTime);
   }, []);
 
+  // Sound on by default, as far as browsers allow. Browsers refuse audible
+  // playback until the visitor has interacted with the page, so: try to play
+  // with sound when the film comes into view; if that is refused, play muted and
+  // unmute on the visitor's first click, tap or key press anywhere on the page.
+  useEffect(() => {
+    const v = video.current;
+    if (!v) return;
+    let started = false;
+    let disarm = () => {};
+
+    const armUnmute = () => {
+      const unmute = (e: Event) => {
+        // our own sound button and chapter tiles handle themselves
+        if ((e.target as Element | null)?.closest?.("[data-film-control]")) return;
+        v.muted = false;
+        setSound(true);
+        if (v.paused) void v.play();
+        disarm();
+      };
+      const events = ["pointerdown", "keydown", "touchstart"] as const;
+      events.forEach((ev) => window.addEventListener(ev, unmute, { capture: true }));
+      disarm = () => events.forEach((ev) => window.removeEventListener(ev, unmute, { capture: true }));
+    };
+
+    const start = () => {
+      v.currentTime = 0;
+      v.muted = false;
+      v.play()
+        .then(() => setSound(true))
+        .catch(() => {
+          v.muted = true;
+          setSound(false);
+          void v.play().catch(() => {});
+          armUnmute();
+        });
+    };
+
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting && e.intersectionRatio >= 0.5) {
+          if (!started) {
+            started = true;
+            start();
+          } else if (v.paused) void v.play().catch(() => {});
+        } else if (started && !v.paused && e.intersectionRatio < 0.2) {
+          // don't keep talking once the film has scrolled away
+          v.pause();
+        }
+      },
+      { threshold: [0, 0.2, 0.5] }
+    );
+    io.observe(v);
+    return () => {
+      io.disconnect();
+      disarm();
+    };
+  }, []);
+
   const seek = (t: number) => {
     const v = video.current;
     if (!v) return;
@@ -42,16 +101,9 @@ export const HowItWorks: React.FC = () => {
   const toggleSound = () => {
     const v = video.current;
     if (!v) return;
-    if (sound) {
-      v.muted = true;
-      setSound(false);
-      return;
-    }
-    // Start over so the adhan is heard from its first takbir.
-    v.currentTime = 0;
-    v.muted = false;
-    void v.play();
-    setSound(true);
+    v.muted = sound;
+    setSound(!sound);
+    if (!sound && v.paused) void v.play();
   };
 
   return (
@@ -69,7 +121,7 @@ export const HowItWorks: React.FC = () => {
           to “I've prayed”.
         </h2>
         <p data-reveal style={{ ["--i" as string]: 2 }} className="mt-5 text-slate-400 max-w-lg mx-auto leading-relaxed">
-          Forty-five seconds of the real app. Pick a moment, or turn the sound on and hear the adhan as the pause begins.
+          One minute of the real app taking over a laptop and two monitors, with the adhan as the pause begins. Pick a moment to jump to it.
         </p>
       </div>
 
@@ -78,7 +130,7 @@ export const HowItWorks: React.FC = () => {
         <div className="absolute left-[10%] right-[10%] top-7 h-px bg-slate-700/60" aria-hidden="true" />
         {CHAPTERS.map((c, i) => (
           <li key={c.label} className="relative flex flex-col items-center text-center">
-            <button type="button" onClick={() => seek(c.at)} className="ak-tile relative" data-on={i === active} aria-label={`Jump to: ${c.label}`}>
+            <button type="button" onClick={() => seek(c.at)} className="ak-tile relative" data-on={i === active} data-film-control aria-label={`Jump to: ${c.label}`}>
               <c.icon className="w-5 h-5" strokeWidth={1.75} />
             </button>
             <span className={`mt-3 text-[13px] transition-colors ${i === active ? "text-white" : "text-slate-400"}`}>{c.label}</span>
@@ -104,9 +156,7 @@ export const HowItWorks: React.FC = () => {
               height={900}
               muted
               loop
-              autoPlay
               playsInline
-              controls={sound}
               preload="metadata"
               className="absolute inset-0 h-full w-full object-cover"
               aria-label="Demo film: the Waqt dashboard, a fifteen-minute reminder, the ten-second warning, then the full-screen prayer overlay with the adhan, and the button unlocking after the pause."
@@ -114,15 +164,20 @@ export const HowItWorks: React.FC = () => {
             <button
               type="button"
               onClick={toggleSound}
-              className="absolute left-3 bottom-3 md:left-4 md:bottom-4 inline-flex items-center gap-2 rounded-full bg-[#070a11]/85 border border-slate-700 px-3.5 py-2 text-xs font-medium text-slate-200 hover:border-emerald-400/50 transition-colors"
+              data-film-control
+              className={`absolute left-3 bottom-3 md:left-4 md:bottom-4 inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-medium transition-colors ${
+                sound
+                  ? "bg-[#070a11]/85 border-slate-700 text-slate-200 hover:border-slate-500"
+                  : "bg-emerald-500 border-emerald-400 text-emerald-950 hover:bg-emerald-400 animate-pulse"
+              }`}
             >
-              {sound ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-300" />}
-              {sound ? "Mute" : "Play with the adhan"}
+              {sound ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+              {sound ? "Mute" : "Tap for sound"}
             </button>
           </div>
         </figure>
         <p className="mt-4 text-center text-xs text-slate-500">
-          Recorded from the app in Lagos. The adhan is the same recording Waqt plays on the overlay.
+          The overlay and warning are the real app, recorded frame by frame. The adhan is the same recording Waqt plays on the overlay.
         </p>
       </div>
     </section>

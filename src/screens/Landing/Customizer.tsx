@@ -142,33 +142,43 @@ export const Customizer: React.FC<{ city: City; onCity: (c: City) => void }> = (
             <div className="order-1 lg:order-2 line-surface rounded-2xl overflow-hidden">
               <div className="px-5 md:px-6 pt-6 pb-5 border-b border-slate-800/80">
                 <div className="flex justify-between items-start gap-4">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-widest text-slate-400 font-bold">Upcoming Prayer</div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] uppercase tracking-widest text-slate-400 font-bold whitespace-nowrap">Upcoming Prayer</div>
                     <div className="text-4xl md:text-5xl font-black font-display tracking-tight text-white mt-2">{next.name}</div>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 pt-1">
+                  <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 pt-1 shrink-0">
                     <MapPin className="w-3 h-3 text-emerald-400" />
                     {city.name.split(",")[0]}
                   </span>
                 </div>
-                <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+                {/* Phones: three rows. Wider: three tiles. */}
+                <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
                     ["Screen locks", clock(next.lockTime, city.tz), "text-amber-300"],
                     ["Adhan", clock(next.time, city.tz), "text-white"],
                     ["Button opens", clock(opens, city.tz), "text-emerald-300"],
                   ].map(([k, v, c]) => (
-                    <div key={k} className="rounded-lg border border-slate-800 bg-surface/50 py-3">
-                      <div className="text-[10px] uppercase tracking-widest font-bold text-slate-500">{k}</div>
-                      <div className={`mt-1 font-mono text-xl md:text-2xl font-bold ${c}`}>{v}</div>
+                    <div
+                      key={k}
+                      className="min-w-0 rounded-lg border border-slate-800 bg-surface/50 px-4 py-2.5 sm:px-2 sm:py-3 flex items-center justify-between sm:flex-col sm:justify-center sm:text-center"
+                    >
+                      <div className="text-[10px] lg:text-[9px] xl:text-[10px] uppercase tracking-wider lg:tracking-normal xl:tracking-wider font-bold text-slate-500 whitespace-nowrap">{k}</div>
+                      <div className={`sm:mt-1 font-mono text-lg sm:text-xl lg:text-lg xl:text-2xl font-bold tabular-nums whitespace-nowrap ${c}`}>{v}</div>
                     </div>
                   ))}
                 </div>
               </div>
-              <ul className="px-5 md:px-6 py-4 grid grid-cols-5 gap-1 text-center">
+              {/* Phones: a list. Wider: a five-column strip. */}
+              <ul className="px-3 sm:px-5 md:px-6 py-3 sm:py-4 grid grid-cols-1 sm:grid-cols-5 gap-1">
                 {prayers.map((p) => (
-                  <li key={p.name} className={`rounded-lg py-2 ${p.name === next.name ? "bg-emerald-500/[0.08] border border-emerald-500/30" : ""}`}>
-                    <div className={`text-[11px] font-semibold ${p.name === next.name ? "text-emerald-300" : "text-slate-400"}`}>{p.name}</div>
-                    <div className="font-mono text-sm text-white mt-0.5">{clock(p.time, city.tz)}</div>
+                  <li
+                    key={p.name}
+                    className={`min-w-0 rounded-lg border px-3 py-2 sm:px-1 flex items-center justify-between sm:flex-col sm:justify-center sm:text-center ${
+                      p.name === next.name ? "bg-emerald-500/[0.08] border-emerald-500/30" : "border-transparent"
+                    }`}
+                  >
+                    <div className={`text-xs sm:text-[11px] font-semibold truncate ${p.name === next.name ? "text-emerald-300" : "text-slate-400"}`}>{p.name}</div>
+                    <div className="font-mono text-sm text-white sm:mt-0.5 tabular-nums">{clock(p.time, city.tz)}</div>
                   </li>
                 ))}
               </ul>
