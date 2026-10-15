@@ -85,6 +85,18 @@ enforcement tool.
   high-latitude rule in one is a bug unless it is mirrored in the other. The
   scheduler is the side that actually locks the screen, so a divergence shows up
   as an overlay firing at the wrong time while the Dashboard looks correct.
+
+  Since 2026-10-15 `prayer_calc.rs` is a **line-for-line port of adhan-js
+  3.0.0** (including its per-method minute adjustments, minute rounding,
+  middle-of-the-night high-latitude rule and Moonsighting Committee seasonal
+  twilight), and the two are pinned to each other by
+  `fixtures/prayer_times.json`, which is generated from adhan-js. The vitest
+  `prayerFixtures.test.ts` checks the UI side reproduces it; the Rust
+  `fixture_matches_adhan_js` test requires every time to match **to the
+  second**. Upgrading `adhan` or changing `getCalculationMethodParams` means
+  regenerating the fixture
+  (`UPDATE_PRAYER_FIXTURES=1 npx vitest run src/lib/__tests__/prayerFixtures.test.ts`)
+  and porting whatever changed until the Rust test passes again.
 - **State & Storage**: Local JSON via `src-tauri/src/store.rs`
   (`tauri-plugin-store` is registered but the log and settings go through
   `StoreManager`).
@@ -222,8 +234,24 @@ to parsing the window URL.
   `Miniaturizable` and `Resizable` are stripped from the style mask so ⌘M is
   inert, and `canHide` / `hidesOnDeactivate` are disabled. All AppKit calls go
   through `run_on_main_thread` — calling them from any other thread is a SIGILL.
+- **macOS, Force Quit**: when an overlay window blurs and the frontmost app is
+  `com.apple.loginwindow` (owner of the ⌘⌥Esc panel), every overlay window
+  drops to normal level so the panel is visible; regaining focus restores
+  `i32::MAX`. `YIELDED_TO_FORCE_QUIT` makes `harden_macos` honor this, so the
+  per-tick `sync_overlay_monitors` does not cover the panel again.
 - **Windows**: `HWND_TOPMOST` Z-order plus `WS_EX_TOOLWINDOW` / `WS_EX_TOPMOST`
-  extended styles via `windows-sys`. There is no desktop sweep on Windows.
+  extended styles via `windows-sys`, and while an overlay is live a
+  `WH_KEYBOARD_LL` hook (`win_keyboard` in `overlay_window.rs`) swallows the
+  Windows keys, Alt+Tab, Alt+Esc, Ctrl+Esc and Alt+F4. Ctrl+Shift+Esc (Task
+  Manager) and Ctrl+Alt+Del stay open as the Windows escape hatch. There is no
+  desktop sweep on Windows, and touchpad virtual-desktop gestures are not
+  keyboard events, so the hook cannot stop them.
+
+**Forced-pause timer**: each overlay generation carries `started_at` (Unix ms,
+in `OverlaySession`, passed in the URL); `Overlay.tsx` counts down to
+`started_at + forcedPause` on the wall clock. Do not go back to decrementing
+state per `setInterval` tick: WebKit throttles timers in non-key windows (every
+secondary monitor).
 
 ### 4.3 Edge Case Constraints
 
@@ -319,6 +347,11 @@ omit it. Do not "fix" this by having the frontend send it.
 
 - **At most one row per `(date, prayer)`.** All writes go through
   `store::upsert_log_entry` — never append to `store.log` directly.
+- **Every read-modify-write goes through `StoreManager::modify`**, which holds
+  the process-wide `STORE_WRITE_LOCK`. Sync commands (main thread) and the
+  scheduler (tokio) race otherwise: the atomic rename prevents torn files, not
+  lost updates. The lock is not reentrant — never call a `StoreManager` write
+  from inside a `modify` closure.
 - Conflicts resolve by `store::status_rank`:
   `confirmed` (3) > `emergency_dismissed` (2) > `missed` (1) > unknown (0).
   Stronger overwrites weaker, weaker is discarded, equal refreshes. A new status
@@ -367,7 +400,9 @@ dev and be completely dead in the `.app`. Always verify against
    Rust.
 5. **Tests**: keep policy logic in pure functions so it can be unit-tested without
    a running app — `needs_new_generation`, `upsert_log_entry`, `status_rank`,
-   `has_live_extension`, and the AppleScript builders all follow this pattern.
+   `has_live_extension`, the AppleScript builders (which a test also runs through
+   `osacompile`), `should_yield_to`, `snooze_age`, and `win_keyboard::should_block`
+   all follow this pattern.
 
 ---
 
@@ -376,12 +411,17 @@ dev and be completely dead in the `.app`. Always verify against
 Recorded here so they are not mistaken for the intended design. Full detail and
 suggested fixes are in `HANDOFF.md`.
 
-**Unverified (2026-10-15):** §4.2's claim that kiosk
-`DisableProcessSwitching` blocks the Spaces three-finger swipe rests on
-Apple's "all Exposé functionality is also disabled" wording, not on a
-hand test; and §1.2's claim that Force Quit is usable on the re-lock overlay
-may not hold while the overlay sits at `i32::MAX`. Both are tracked in
-`HANDOFF.md` "Open items (added 2026-10-15)".
+**Unverified (2026-10-15)**, all needing a hand test on real hardware rather
+than a code change; tracked in `HANDOFF.md`:
+- §4.2's claim that kiosk `DisableProcessSwitching` blocks the Spaces
+  three-finger swipe rests on Apple's "all Exposé functionality is also
+  disabled" wording.
+- §4.2's Force Quit yield assumes the ⌘⌥Esc panel is owned by
+  `com.apple.loginwindow` and that the overlay's `blur` fires when it opens.
+- The Windows keyboard hook (§4.2) type-checks and is clippy-clean for
+  `x86_64-pc-windows-msvc` when checked as a standalone module, but has never
+  run on Windows. (The whole crate cannot be cross-checked from macOS: `ring`,
+  via the updater, needs the Windows SDK's C headers.)
 
 Before 2026-10-15: none open. The one item on this list as of 2026-08-24 — the
 updater's release workflow not having its signing secrets — was closed

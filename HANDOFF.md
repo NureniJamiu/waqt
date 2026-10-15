@@ -1,6 +1,6 @@
 # Waqt — Open Work
 
-Updated 2026-10-15 — see "Open items (added 2026-10-15)" below. Before that:
+Updated 2026-10-15 — see "Open items (updated 2026-10-15)" below. Before that:
 updated 2026-08-28, **nothing was open.** Everything tracked as of 2026-08-24 —
 the emergency-hatch decision, the updater key, Google Fonts, and (as of today)
 the last remaining item, the GitHub Actions secrets — is resolved. See "What
@@ -92,43 +92,52 @@ Accessibility before the first run, so you get a clean grant.
 
 ---
 
-## Open items (added 2026-10-15)
+## Open items (updated 2026-10-15)
 
-The fullscreen/Spaces bypass fix landed 2026-10-15 (see AGENTS.md §4.2). Its
-two halves still need a hand check on a packaged, Accessibility-trusted build:
-(a) kiosk `DisableProcessSwitching` actually blocks the three-finger swipe on
-the macOS versions you ship to, and (b) the off-Space sweep exits fullscreen
-apps on other Spaces. (a) can be checked with the dev Test Overlay (kiosk
-applies to test overlays; the sweep does not).
+Everything below needs a person: an Apple account, real hardware, or a
+release. The code-side items from this morning's list are fixed — see
+"What changed on 2026-10-15".
 
 1. **Developer ID signing + notarization.** An unsigned or ad-hoc app gets a new
    TCC identity every build, so each update silently drops the Accessibility
    grant and the sweep returns `PermissionDenied`. This is the biggest blocker
-   for distributing the macOS build.
-2. **Force Quit may be hidden under the overlay.** The overlay sits at
-   `i32::MAX`; the ⌘⌥Esc window is very likely drawn below that, so the
-   documented escape hatch on the re-lock overlay may open invisibly. Verify; if
-   so, drop the level to `kCGScreenSaverWindowLevel` (1000) or lower the overlay
-   level while Force Quit is frontmost.
-3. **`store.json` read-modify-write races.** Sync Tauri commands (main thread)
-   and the scheduler (tokio) each load → mutate → save with no lock. The atomic
-   rename prevents corruption but not lost updates (e.g. a confirm landing
-   between the scheduler's load and its `mark_missed_prayer` save). Put a
-   process-wide `Mutex` around `StoreManager` writes.
-4. **Forced-pause timer drift.** `Overlay.tsx` decrements state on
-   `setInterval`; WebKit throttles timers in occluded / non-key windows (every
-   secondary monitor), so the pause runs long and differs per monitor, and a
-   rebuilt window restarts it. Count down to a wall-clock end time instead,
-   ideally one the backend owns.
-5. **Two prayer-time engines** (`adhanCalc.ts` / `prayer_calc.rs`) have no
-   shared fixture test. Add a table of (lat, lon, method, school, date) →
-   expected times checked by both `cargo test` and vitest.
-6. **Windows has no equivalent hardening**: Alt+Tab, Win+Tab and virtual
-   desktops are only blocked inside the webview. Either document it as
-   best-effort or add a low-level keyboard hook scoped to the overlay.
-7. **Two clippy warnings** (`collapsible_if`, `scheduler.rs` ~372 and ~397) —
-   §7.4 says clippy-clean.
-8. **Updater never exercised end to end** against a tagged release.
+   for distributing the macOS build. Needs a paid Apple Developer account; the
+   `release.yml` plumbing is already there.
+2. **Hand-test the macOS lock on a packaged, Accessibility-trusted build:**
+   - kiosk mode blocks the three-finger Spaces swipe and ⌘Tab (the dev Test
+     Overlay is enough for this; it gets kiosk mode, not the sweep);
+   - the off-Space sweep un-fullscreens apps on other Spaces;
+   - ⌘⌥Esc on the overlay shows the Force Quit panel *above* it (the yield
+     assumes the panel belongs to `com.apple.loginwindow`; if it doesn't,
+     log `frontmostApplication` from `overlay_focus_changed` and fix
+     `FORCE_QUIT_OWNER`).
+3. **Run the Windows build once.** The keyboard hook module type-checks and is
+   clippy-clean for `x86_64-pc-windows-msvc` in isolation (the full crate can't
+   be cross-checked from macOS — `ring` needs Windows SDK headers), but it has
+   never executed. Check Win key, Alt+Tab,
+   Win+Tab are swallowed during an overlay and Ctrl+Shift+Esc still opens Task
+   Manager.
+4. **Updater never exercised end to end** against a tagged release.
+
+## What changed on 2026-10-15
+
+- **Fullscreen / Spaces bypass** — off-Space fullscreen apps found via
+  CGWindowList and swept; kiosk presentation mode while an overlay is up;
+  `AXMinimized` instead of `miniaturized`; `activateIgnoringOtherApps:` (the
+  old `-activate` crashed below macOS 14). Commit `770fdfa`.
+- **Snooze** moved to the backend (it used to die with the webview it lived
+  in); ⌘Q refused during a prayer overlay; swept windows restored on exit.
+- **Force Quit visibility** — overlay steps down to normal level while the
+  ⌘⌥Esc panel is frontmost (`overlay_focus_changed`).
+- **`store.json` lost updates** — `StoreManager::modify` + `STORE_WRITE_LOCK`;
+  `mark_missed_prayer`'s "already logged?" check now runs under the lock.
+- **Forced-pause drift** — wall-clock countdown to `started_at + pause`.
+- **Two prayer engines** — `prayer_calc.rs` is now a port of adhan-js and
+  matches `fixtures/prayer_times.json` to the second for all 364 cases (7
+  cities incl. Oslo, 4 dates, 12 methods, both Asr schools). Before the port
+  it was ~2 min off everywhere and hours off for summer high-latitude Isha.
+- **Windows** — `WH_KEYBOARD_LL` hook during overlays.
+- **Clippy** — the two `collapsible_if` warnings in `scheduler.rs`.
 
 ---
 

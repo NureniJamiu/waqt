@@ -39,7 +39,7 @@ function getLocalDateString(d: Date = new Date()): string {
 }
 
 // ── URL-based window detection ──────────────────────────────────────────────
-function getUrlParams(): { screen: string | null; prayer: string | null; emergencyExhausted: boolean; isTest: boolean; snoozed: boolean } {
+function getUrlParams(): { screen: string | null; prayer: string | null; emergencyExhausted: boolean; isTest: boolean; snoozed: boolean; startedAt: number | null } {
   const params = new URLSearchParams(window.location.search);
   return {
     screen: params.get("screen"),
@@ -47,6 +47,7 @@ function getUrlParams(): { screen: string | null; prayer: string | null; emergen
     emergencyExhausted: params.get("emergency_exhausted") === "true",
     isTest: params.get("is_test") === "true",
     snoozed: params.get("snoozed") === "true",
+    startedAt: Number(params.get("started_at")) || null,
   };
 }
 
@@ -419,6 +420,7 @@ export function App() {
               hasSnoozed={hasSnoozedForCurrentPrayer}
               isEmergencyExhausted={isEmergencyExhausted}
               isTest={isTestOverlay || urlParams.isTest}
+              startedAt={urlParams.startedAt ?? undefined}
             />
           )}
         </>

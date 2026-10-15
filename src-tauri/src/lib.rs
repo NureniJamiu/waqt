@@ -126,6 +126,12 @@ fn snooze_overlay(
     Ok(())
 }
 
+/// Overlay webview `blur` / `focus`. See `overlay_window::overlay_focus_changed`.
+#[tauri::command]
+fn overlay_focus_changed(app: AppHandle, focused: bool) {
+    overlay_window::overlay_focus_changed(&app, focused);
+}
+
 #[tauri::command]
 fn trigger_toast(app: AppHandle, prayer_name: String, is_test: Option<bool>) -> Result<(), String> {
     let test_mode = is_test.unwrap_or(false);
@@ -196,6 +202,7 @@ pub fn run() {
             trigger_overlay,
             dismiss_overlay,
             snooze_overlay,
+            overlay_focus_changed,
             trigger_toast,
             dismiss_toast,
             send_test_notification,

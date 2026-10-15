@@ -1,0 +1,5826 @@
+[
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452540,
+      "Dhuhr": 1768478220,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768503540
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452120,
+      "Dhuhr": 1768478220,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768503660
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452540,
+      "Dhuhr": 1768478220,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768503780
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452360,
+      "Dhuhr": 1768478160,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768504740
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452480,
+      "Dhuhr": 1768478340,
+      "Asr": 1768490460,
+      "Maghrib": 1768499520,
+      "Isha": 1768503840
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452540,
+      "Dhuhr": 1768478460,
+      "Asr": 1768490280,
+      "Maghrib": 1768499520,
+      "Isha": 1768503780
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768453260,
+      "Dhuhr": 1768478220,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768503000
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452540,
+      "Dhuhr": 1768478160,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768503660
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452540,
+      "Dhuhr": 1768478160,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768504740
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452000,
+      "Dhuhr": 1768478220,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768503780
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452540,
+      "Dhuhr": 1768478220,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768503540
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768452600,
+      "Dhuhr": 1768478220,
+      "Asr": 1768490280,
+      "Maghrib": 1768499340,
+      "Isha": 1768502760
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1768452540,
+      "Dhuhr": 1768478220,
+      "Asr": 1768493460,
+      "Maghrib": 1768499340,
+      "Isha": 1768503780
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981720,
+      "Dhuhr": 1774007700,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774033320
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981360,
+      "Dhuhr": 1774007700,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774033440
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981720,
+      "Dhuhr": 1774007700,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774033560
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981600,
+      "Dhuhr": 1774007640,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774034820
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981660,
+      "Dhuhr": 1774007820,
+      "Asr": 1774019280,
+      "Maghrib": 1774029600,
+      "Isha": 1774033620
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981720,
+      "Dhuhr": 1774007940,
+      "Asr": 1774019100,
+      "Maghrib": 1774029600,
+      "Isha": 1774033560
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773982440,
+      "Dhuhr": 1774007700,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774032840
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981720,
+      "Dhuhr": 1774007640,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774033440
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981720,
+      "Dhuhr": 1774007640,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774034820
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981240,
+      "Dhuhr": 1774007700,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774033560
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981720,
+      "Dhuhr": 1774007700,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774033320
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981780,
+      "Dhuhr": 1774007700,
+      "Asr": 1774019100,
+      "Maghrib": 1774029420,
+      "Isha": 1774032600
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1773981720,
+      "Dhuhr": 1774007700,
+      "Asr": 1774023120,
+      "Maghrib": 1774029420,
+      "Isha": 1774033560
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015420,
+      "Dhuhr": 1782042540,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782069300
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015000,
+      "Dhuhr": 1782042540,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782069480
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015420,
+      "Dhuhr": 1782042540,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782069600
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015300,
+      "Dhuhr": 1782042480,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782070380
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015360,
+      "Dhuhr": 1782042660,
+      "Asr": 1782055140,
+      "Maghrib": 1782065160,
+      "Isha": 1782069660
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015420,
+      "Dhuhr": 1782042780,
+      "Asr": 1782054960,
+      "Maghrib": 1782065160,
+      "Isha": 1782069540
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782016200,
+      "Dhuhr": 1782042540,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782068760
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015420,
+      "Dhuhr": 1782042480,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782069480
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015420,
+      "Dhuhr": 1782042480,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782070380
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782014880,
+      "Dhuhr": 1782042540,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782069600
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015420,
+      "Dhuhr": 1782042540,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782069300
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782015480,
+      "Dhuhr": 1782042540,
+      "Asr": 1782054960,
+      "Maghrib": 1782064980,
+      "Isha": 1782068520
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1782015420,
+      "Dhuhr": 1782042540,
+      "Asr": 1782058620,
+      "Maghrib": 1782064980,
+      "Isha": 1782069600
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038180,
+      "Dhuhr": 1792063980,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792089420
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792037820,
+      "Dhuhr": 1792063980,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792089540
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038180,
+      "Dhuhr": 1792063980,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792089660
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038060,
+      "Dhuhr": 1792063920,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792090920
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038120,
+      "Dhuhr": 1792064100,
+      "Asr": 1792076040,
+      "Maghrib": 1792085700,
+      "Isha": 1792089720
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038180,
+      "Dhuhr": 1792064220,
+      "Asr": 1792075860,
+      "Maghrib": 1792085700,
+      "Isha": 1792089660
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038900,
+      "Dhuhr": 1792063980,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792088940
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038180,
+      "Dhuhr": 1792063920,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792089540
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038180,
+      "Dhuhr": 1792063920,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792090920
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792037700,
+      "Dhuhr": 1792063980,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792089660
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038180,
+      "Dhuhr": 1792063980,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792089420
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038240,
+      "Dhuhr": 1792063980,
+      "Asr": 1792075860,
+      "Maghrib": 1792085520,
+      "Isha": 1792088700
+    }
+  },
+  {
+    "city": "Lagos",
+    "latitude": 6.5244,
+    "longitude": 3.3792,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1792038180,
+      "Dhuhr": 1792063980,
+      "Asr": 1792079460,
+      "Maghrib": 1792085520,
+      "Isha": 1792089660
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444980,
+      "Dhuhr": 1768469460,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768493580
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444560,
+      "Dhuhr": 1768469460,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768493700
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444980,
+      "Dhuhr": 1768469460,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768493820
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444860,
+      "Dhuhr": 1768469400,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768494540
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444920,
+      "Dhuhr": 1768469580,
+      "Asr": 1768480860,
+      "Maghrib": 1768489320,
+      "Isha": 1768493880
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444980,
+      "Dhuhr": 1768469700,
+      "Asr": 1768480680,
+      "Maghrib": 1768489320,
+      "Isha": 1768493820
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768445760,
+      "Dhuhr": 1768469460,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768493040
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444980,
+      "Dhuhr": 1768469400,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768493700
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444980,
+      "Dhuhr": 1768469400,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768494540
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444440,
+      "Dhuhr": 1768469460,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768493820
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768444980,
+      "Dhuhr": 1768469460,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768493580
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768445040,
+      "Dhuhr": 1768469460,
+      "Asr": 1768480680,
+      "Maghrib": 1768489140,
+      "Isha": 1768492740
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1768444980,
+      "Dhuhr": 1768469460,
+      "Asr": 1768483440,
+      "Maghrib": 1768489140,
+      "Isha": 1768493820
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972660,
+      "Dhuhr": 1773998940,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774024860
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972300,
+      "Dhuhr": 1773998940,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774025040
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972660,
+      "Dhuhr": 1773998940,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774025160
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972540,
+      "Dhuhr": 1773998880,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774026120
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972600,
+      "Dhuhr": 1773999060,
+      "Asr": 1774011360,
+      "Maghrib": 1774020900,
+      "Isha": 1774025220
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972660,
+      "Dhuhr": 1773999180,
+      "Asr": 1774011180,
+      "Maghrib": 1774020900,
+      "Isha": 1774025160
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773973440,
+      "Dhuhr": 1773998940,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774024380
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972660,
+      "Dhuhr": 1773998880,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774025040
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972660,
+      "Dhuhr": 1773998880,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774026120
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972120,
+      "Dhuhr": 1773998940,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774025160
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972660,
+      "Dhuhr": 1773998940,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774024860
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773972720,
+      "Dhuhr": 1773998940,
+      "Asr": 1774011180,
+      "Maghrib": 1774020720,
+      "Isha": 1774024080
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1773972660,
+      "Dhuhr": 1773998940,
+      "Asr": 1774014600,
+      "Maghrib": 1774020720,
+      "Isha": 1774025160
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004440,
+      "Dhuhr": 1782033780,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782062760
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782003960,
+      "Dhuhr": 1782033780,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782062880
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004440,
+      "Dhuhr": 1782033780,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782063060
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004260,
+      "Dhuhr": 1782033720,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782063360
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004380,
+      "Dhuhr": 1782033900,
+      "Asr": 1782045900,
+      "Maghrib": 1782058140,
+      "Isha": 1782063120
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004440,
+      "Dhuhr": 1782034020,
+      "Asr": 1782045720,
+      "Maghrib": 1782058140,
+      "Isha": 1782062580
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782005340,
+      "Dhuhr": 1782033780,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782062160
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004440,
+      "Dhuhr": 1782033720,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782062880
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004440,
+      "Dhuhr": 1782033720,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782063360
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782003780,
+      "Dhuhr": 1782033780,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782063060
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004440,
+      "Dhuhr": 1782033780,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782062760
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004500,
+      "Dhuhr": 1782033780,
+      "Asr": 1782045720,
+      "Maghrib": 1782057960,
+      "Isha": 1782061800
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1782004440,
+      "Dhuhr": 1782033780,
+      "Asr": 1782050520,
+      "Maghrib": 1782057960,
+      "Isha": 1782063060
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029720,
+      "Dhuhr": 1792055220,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792080360
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029360,
+      "Dhuhr": 1792055220,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792080480
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029720,
+      "Dhuhr": 1792055220,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792080600
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029600,
+      "Dhuhr": 1792055160,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792081560
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029660,
+      "Dhuhr": 1792055340,
+      "Asr": 1792067400,
+      "Maghrib": 1792076340,
+      "Isha": 1792080660
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029720,
+      "Dhuhr": 1792055460,
+      "Asr": 1792067220,
+      "Maghrib": 1792076340,
+      "Isha": 1792080600
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792030500,
+      "Dhuhr": 1792055220,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792079880
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029720,
+      "Dhuhr": 1792055160,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792080480
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029720,
+      "Dhuhr": 1792055160,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792081560
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029240,
+      "Dhuhr": 1792055220,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792080600
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029720,
+      "Dhuhr": 1792055220,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792080360
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792029780,
+      "Dhuhr": 1792055220,
+      "Asr": 1792067220,
+      "Maghrib": 1792076160,
+      "Isha": 1792079580
+    }
+  },
+  {
+    "city": "Makkah",
+    "latitude": 21.4225,
+    "longitude": 39.8262,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1792029720,
+      "Dhuhr": 1792055220,
+      "Asr": 1792070340,
+      "Maghrib": 1792076160,
+      "Isha": 1792080600
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768449000,
+      "Dhuhr": 1768472040,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768494720
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768448520,
+      "Dhuhr": 1768472040,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768494900
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768449000,
+      "Dhuhr": 1768472040,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768495080
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768448820,
+      "Dhuhr": 1768471980,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768494600
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768448940,
+      "Dhuhr": 1768472160,
+      "Asr": 1768481100,
+      "Maghrib": 1768489380,
+      "Isha": 1768495140
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768449120,
+      "Dhuhr": 1768472280,
+      "Asr": 1768480920,
+      "Maghrib": 1768489380,
+      "Isha": 1768494600
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768449960,
+      "Dhuhr": 1768472040,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768494060
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768449000,
+      "Dhuhr": 1768471980,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768494900
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768449000,
+      "Dhuhr": 1768471980,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768494600
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768448340,
+      "Dhuhr": 1768472040,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768495080
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768449000,
+      "Dhuhr": 1768472040,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768494720
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768449060,
+      "Dhuhr": 1768472040,
+      "Asr": 1768480920,
+      "Maghrib": 1768489200,
+      "Isha": 1768493760
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1768449000,
+      "Dhuhr": 1768472040,
+      "Asr": 1768483200,
+      "Maghrib": 1768489200,
+      "Isha": 1768495080
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974160,
+      "Dhuhr": 1774001580,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774028580
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773973620,
+      "Dhuhr": 1774001580,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774028760
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974160,
+      "Dhuhr": 1774001580,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774028880
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773973980,
+      "Dhuhr": 1774001520,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774028760
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974100,
+      "Dhuhr": 1774001700,
+      "Asr": 1774014000,
+      "Maghrib": 1774023540,
+      "Isha": 1774029000
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974280,
+      "Dhuhr": 1774001820,
+      "Asr": 1774013820,
+      "Maghrib": 1774023540,
+      "Isha": 1774027980
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773975120,
+      "Dhuhr": 1774001580,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774027920
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974160,
+      "Dhuhr": 1774001520,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774028760
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974160,
+      "Dhuhr": 1774001520,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774028760
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773973500,
+      "Dhuhr": 1774001580,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774028880
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974160,
+      "Dhuhr": 1774001580,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774028580
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974220,
+      "Dhuhr": 1774001580,
+      "Asr": 1774013820,
+      "Maghrib": 1774023360,
+      "Isha": 1774027560
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1773974160,
+      "Dhuhr": 1774001580,
+      "Asr": 1774016880,
+      "Maghrib": 1774023360,
+      "Isha": 1774028880
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782001440,
+      "Dhuhr": 1782036420,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782070680
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000540,
+      "Dhuhr": 1782036420,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782070980
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782001440,
+      "Dhuhr": 1782036420,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782071280
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782001140,
+      "Dhuhr": 1782036360,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782069000
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782001320,
+      "Dhuhr": 1782036540,
+      "Asr": 1782051000,
+      "Maghrib": 1782063780,
+      "Isha": 1782071400
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782002460,
+      "Dhuhr": 1782036660,
+      "Asr": 1782050820,
+      "Maghrib": 1782063780,
+      "Isha": 1782068340
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782003060,
+      "Dhuhr": 1782036420,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782069660
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782001440,
+      "Dhuhr": 1782036360,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782070980
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782001440,
+      "Dhuhr": 1782036360,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782069000
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000240,
+      "Dhuhr": 1782036420,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782071280
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782001440,
+      "Dhuhr": 1782036420,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782070680
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782001620,
+      "Dhuhr": 1782036420,
+      "Asr": 1782050820,
+      "Maghrib": 1782063600,
+      "Isha": 1782069120
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1782001440,
+      "Dhuhr": 1782036420,
+      "Asr": 1782055260,
+      "Maghrib": 1782063600,
+      "Isha": 1782071280
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792032240,
+      "Dhuhr": 1792057860,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792083000
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792031760,
+      "Dhuhr": 1792057860,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792083120
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792032240,
+      "Dhuhr": 1792057860,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792083300
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792032060,
+      "Dhuhr": 1792057800,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792083240
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792032180,
+      "Dhuhr": 1792057980,
+      "Asr": 1792069020,
+      "Maghrib": 1792078020,
+      "Isha": 1792083360
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792032240,
+      "Dhuhr": 1792058100,
+      "Asr": 1792068840,
+      "Maghrib": 1792078020,
+      "Isha": 1792082700
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792033200,
+      "Dhuhr": 1792057860,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792082340
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792032240,
+      "Dhuhr": 1792057800,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792083120
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792032240,
+      "Dhuhr": 1792057800,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792083240
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792031580,
+      "Dhuhr": 1792057860,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792083300
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792032240,
+      "Dhuhr": 1792057860,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792083000
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792032300,
+      "Dhuhr": 1792057860,
+      "Asr": 1792068840,
+      "Maghrib": 1792077840,
+      "Isha": 1792082040
+    }
+  },
+  {
+    "city": "Istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "utcOffsetHours": 3,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1792032240,
+      "Dhuhr": 1792057860,
+      "Asr": 1792071600,
+      "Maghrib": 1792077840,
+      "Isha": 1792083300
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426440,
+      "Dhuhr": 1768453380,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768479960
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426020,
+      "Dhuhr": 1768453380,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768480080
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426440,
+      "Dhuhr": 1768453380,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768480200
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426260,
+      "Dhuhr": 1768453320,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768481100
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426380,
+      "Dhuhr": 1768453500,
+      "Asr": 1768465800,
+      "Maghrib": 1768475880,
+      "Isha": 1768480260
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426440,
+      "Dhuhr": 1768453620,
+      "Asr": 1768465620,
+      "Maghrib": 1768475880,
+      "Isha": 1768480200
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768427220,
+      "Dhuhr": 1768453380,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768479420
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426440,
+      "Dhuhr": 1768453320,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768480080
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426440,
+      "Dhuhr": 1768453320,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768481100
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768425900,
+      "Dhuhr": 1768453380,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768480200
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426440,
+      "Dhuhr": 1768453380,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768479960
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768426500,
+      "Dhuhr": 1768453380,
+      "Asr": 1768465620,
+      "Maghrib": 1768475700,
+      "Isha": 1768479180
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1768426440,
+      "Dhuhr": 1768453380,
+      "Asr": 1768469340,
+      "Maghrib": 1768475700,
+      "Isha": 1768480200
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956880,
+      "Dhuhr": 1773982860,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774008480
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956520,
+      "Dhuhr": 1773982860,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774008660
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956880,
+      "Dhuhr": 1773982860,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774008780
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956760,
+      "Dhuhr": 1773982800,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774009980
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956820,
+      "Dhuhr": 1773982980,
+      "Asr": 1773994380,
+      "Maghrib": 1774004760,
+      "Isha": 1774008780
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956880,
+      "Dhuhr": 1773983100,
+      "Asr": 1773994200,
+      "Maghrib": 1774004760,
+      "Isha": 1774008780
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773957600,
+      "Dhuhr": 1773982860,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774008000
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956880,
+      "Dhuhr": 1773982800,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774008660
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956880,
+      "Dhuhr": 1773982800,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774009980
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956400,
+      "Dhuhr": 1773982860,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774008780
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956880,
+      "Dhuhr": 1773982860,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774008480
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773956940,
+      "Dhuhr": 1773982860,
+      "Asr": 1773994200,
+      "Maghrib": 1774004580,
+      "Isha": 1774007760
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1773956880,
+      "Dhuhr": 1773982860,
+      "Asr": 1773998280,
+      "Maghrib": 1774004580,
+      "Isha": 1774008780
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991960,
+      "Dhuhr": 1782017700,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782043080
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991600,
+      "Dhuhr": 1782017700,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782043200
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991960,
+      "Dhuhr": 1782017700,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782043320
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991840,
+      "Dhuhr": 1782017640,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782044220
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991960,
+      "Dhuhr": 1782017820,
+      "Asr": 1782029940,
+      "Maghrib": 1782039000,
+      "Isha": 1782043380
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991960,
+      "Dhuhr": 1782017940,
+      "Asr": 1782029760,
+      "Maghrib": 1782039000,
+      "Isha": 1782043320
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781992800,
+      "Dhuhr": 1782017700,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782042540
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991960,
+      "Dhuhr": 1782017640,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782043200
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991960,
+      "Dhuhr": 1782017640,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782044220
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991480,
+      "Dhuhr": 1782017700,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782043320
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781991960,
+      "Dhuhr": 1782017700,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782043080
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781992080,
+      "Dhuhr": 1782017700,
+      "Asr": 1782029760,
+      "Maghrib": 1782038820,
+      "Isha": 1782042300
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1781991960,
+      "Dhuhr": 1782017700,
+      "Asr": 1782032940,
+      "Maghrib": 1782038820,
+      "Isha": 1782043320
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012860,
+      "Dhuhr": 1792039140,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792065120
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012500,
+      "Dhuhr": 1792039140,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792065240
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012860,
+      "Dhuhr": 1792039140,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792065360
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012740,
+      "Dhuhr": 1792039080,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792066560
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012860,
+      "Dhuhr": 1792039260,
+      "Asr": 1792050420,
+      "Maghrib": 1792061340,
+      "Isha": 1792065420
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012860,
+      "Dhuhr": 1792039380,
+      "Asr": 1792050240,
+      "Maghrib": 1792061340,
+      "Isha": 1792065360
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792013640,
+      "Dhuhr": 1792039140,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792064580
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012860,
+      "Dhuhr": 1792039080,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792065240
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012860,
+      "Dhuhr": 1792039080,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792066560
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012380,
+      "Dhuhr": 1792039140,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792065360
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012860,
+      "Dhuhr": 1792039140,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792065120
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792012980,
+      "Dhuhr": 1792039140,
+      "Asr": 1792050240,
+      "Maghrib": 1792061160,
+      "Isha": 1792064340
+    }
+  },
+  {
+    "city": "Jakarta",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "utcOffsetHours": 7,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1792012860,
+      "Dhuhr": 1792039140,
+      "Asr": 1792054560,
+      "Maghrib": 1792061160,
+      "Isha": 1792065360
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473660,
+      "Dhuhr": 1768496820,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768519500
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473180,
+      "Dhuhr": 1768496820,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768519620
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473660,
+      "Dhuhr": 1768496820,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768519800
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473540,
+      "Dhuhr": 1768496760,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768519380
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473600,
+      "Dhuhr": 1768496940,
+      "Asr": 1768505880,
+      "Maghrib": 1768514160,
+      "Isha": 1768519860
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473840,
+      "Dhuhr": 1768497060,
+      "Asr": 1768505700,
+      "Maghrib": 1768514160,
+      "Isha": 1768519380
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768474680,
+      "Dhuhr": 1768496820,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768518840
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473660,
+      "Dhuhr": 1768496760,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768519620
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473660,
+      "Dhuhr": 1768496760,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768519380
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473000,
+      "Dhuhr": 1768496820,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768519800
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473660,
+      "Dhuhr": 1768496820,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768519500
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768473780,
+      "Dhuhr": 1768496820,
+      "Asr": 1768505700,
+      "Maghrib": 1768513980,
+      "Isha": 1768518480
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1768473660,
+      "Dhuhr": 1768496820,
+      "Asr": 1768507980,
+      "Maghrib": 1768513980,
+      "Isha": 1768519800
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998880,
+      "Dhuhr": 1774026240,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774053300
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998340,
+      "Dhuhr": 1774026240,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774053420
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998880,
+      "Dhuhr": 1774026240,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774053600
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998700,
+      "Dhuhr": 1774026180,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774053480
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998760,
+      "Dhuhr": 1774026360,
+      "Asr": 1774038780,
+      "Maghrib": 1774048260,
+      "Isha": 1774053660
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773999000,
+      "Dhuhr": 1774026480,
+      "Asr": 1774038600,
+      "Maghrib": 1774048260,
+      "Isha": 1774052700
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773999840,
+      "Dhuhr": 1774026240,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774052640
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998880,
+      "Dhuhr": 1774026180,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774053420
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998880,
+      "Dhuhr": 1774026180,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774053480
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998220,
+      "Dhuhr": 1774026240,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774053600
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998880,
+      "Dhuhr": 1774026240,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774053300
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773998940,
+      "Dhuhr": 1774026240,
+      "Asr": 1774038600,
+      "Maghrib": 1774048080,
+      "Isha": 1774052280
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1773998880,
+      "Dhuhr": 1774026240,
+      "Asr": 1774041660,
+      "Maghrib": 1774048080,
+      "Isha": 1774053600
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782026340,
+      "Dhuhr": 1782061140,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782095280
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782025440,
+      "Dhuhr": 1782061140,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782095580
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782026340,
+      "Dhuhr": 1782061140,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782095820
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782026040,
+      "Dhuhr": 1782061080,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782093660
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782026220,
+      "Dhuhr": 1782061260,
+      "Asr": 1782075660,
+      "Maghrib": 1782088440,
+      "Isha": 1782095940
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782027300,
+      "Dhuhr": 1782061380,
+      "Asr": 1782075480,
+      "Maghrib": 1782088440,
+      "Isha": 1782093000
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782027900,
+      "Dhuhr": 1782061140,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782094260
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782026340,
+      "Dhuhr": 1782061080,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782095580
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782026340,
+      "Dhuhr": 1782061080,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782093660
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782025080,
+      "Dhuhr": 1782061140,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782095820
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782026340,
+      "Dhuhr": 1782061140,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782095280
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782026460,
+      "Dhuhr": 1782061140,
+      "Asr": 1782075480,
+      "Maghrib": 1782088260,
+      "Isha": 1782093720
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1782026340,
+      "Dhuhr": 1782061140,
+      "Asr": 1782079920,
+      "Maghrib": 1782088260,
+      "Isha": 1782095820
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056960,
+      "Dhuhr": 1792082580,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792107660
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056480,
+      "Dhuhr": 1792082580,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792107840
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056960,
+      "Dhuhr": 1792082580,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792107960
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056840,
+      "Dhuhr": 1792082520,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792107960
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056900,
+      "Dhuhr": 1792082700,
+      "Asr": 1792093740,
+      "Maghrib": 1792102740,
+      "Isha": 1792108080
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056960,
+      "Dhuhr": 1792082820,
+      "Asr": 1792093560,
+      "Maghrib": 1792102740,
+      "Isha": 1792107420
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792057920,
+      "Dhuhr": 1792082580,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792107060
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056960,
+      "Dhuhr": 1792082520,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792107840
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056960,
+      "Dhuhr": 1792082520,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792107960
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056360,
+      "Dhuhr": 1792082580,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792107960
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792056960,
+      "Dhuhr": 1792082580,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792107660
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792057080,
+      "Dhuhr": 1792082580,
+      "Asr": 1792093560,
+      "Maghrib": 1792102560,
+      "Isha": 1792106700
+    }
+  },
+  {
+    "city": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "utcOffsetHours": -5,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1792056960,
+      "Dhuhr": 1792082580,
+      "Asr": 1792096320,
+      "Maghrib": 1792102560,
+      "Isha": 1792107960
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456740,
+      "Dhuhr": 1768479060,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768500900
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456140,
+      "Dhuhr": 1768479060,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768501080
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456740,
+      "Dhuhr": 1768479060,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768501260
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456560,
+      "Dhuhr": 1768479000,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768499460
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456680,
+      "Dhuhr": 1768479180,
+      "Asr": 1768485900,
+      "Maghrib": 1768494240,
+      "Isha": 1768501380
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768458000,
+      "Dhuhr": 1768479300,
+      "Asr": 1768485720,
+      "Maghrib": 1768494240,
+      "Isha": 1768499640
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768457940,
+      "Dhuhr": 1768479060,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768500060
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456740,
+      "Dhuhr": 1768479000,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768501080
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456740,
+      "Dhuhr": 1768479000,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768499460
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768455960,
+      "Dhuhr": 1768479060,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768501260
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456740,
+      "Dhuhr": 1768479060,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768500900
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456860,
+      "Dhuhr": 1768479060,
+      "Asr": 1768485720,
+      "Maghrib": 1768494060,
+      "Isha": 1768499700
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1768456740,
+      "Dhuhr": 1768479060,
+      "Asr": 1768487640,
+      "Maghrib": 1768494060,
+      "Isha": 1768501260
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773979800,
+      "Dhuhr": 1774008540,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774036860
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773979140,
+      "Dhuhr": 1774008540,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774037040
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773979800,
+      "Dhuhr": 1774008540,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774037280
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773979560,
+      "Dhuhr": 1774008480,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774035840
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773979740,
+      "Dhuhr": 1774008660,
+      "Asr": 1774020600,
+      "Maghrib": 1774030620,
+      "Isha": 1774037340
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981000,
+      "Dhuhr": 1774008780,
+      "Asr": 1774020420,
+      "Maghrib": 1774030620,
+      "Isha": 1774035060
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773981060,
+      "Dhuhr": 1774008540,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774036020
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773979800,
+      "Dhuhr": 1774008480,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774037040
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773979800,
+      "Dhuhr": 1774008480,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774035840
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773978960,
+      "Dhuhr": 1774008540,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774037280
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773979800,
+      "Dhuhr": 1774008540,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774036860
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773979920,
+      "Dhuhr": 1774008540,
+      "Asr": 1774020420,
+      "Maghrib": 1774030440,
+      "Isha": 1774035600
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1773979800,
+      "Dhuhr": 1774008540,
+      "Asr": 1774023360,
+      "Maghrib": 1774030440,
+      "Isha": 1774037280
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043380,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782086520
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043380,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782086520
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043380,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782086520
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043320,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782078720
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043500,
+      "Asr": 1782059280,
+      "Maghrib": 1782073500,
+      "Isha": 1782086520
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782006180,
+      "Dhuhr": 1782043620,
+      "Asr": 1782059100,
+      "Maghrib": 1782073500,
+      "Isha": 1782078120
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000900,
+      "Dhuhr": 1782043380,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782085740
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043320,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782086520
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043320,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782078720
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043380,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782086520
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043380,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782086520
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043380,
+      "Asr": 1782059100,
+      "Maghrib": 1782073320,
+      "Isha": 1782083100
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1782000120,
+      "Dhuhr": 1782043380,
+      "Asr": 1782063600,
+      "Maghrib": 1782073320,
+      "Isha": 1782086520
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038780,
+      "Dhuhr": 1792064820,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792090320
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038180,
+      "Dhuhr": 1792064820,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792090500
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038780,
+      "Dhuhr": 1792064820,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792090680
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038600,
+      "Dhuhr": 1792064760,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792089420
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038720,
+      "Dhuhr": 1792064940,
+      "Asr": 1792074840,
+      "Maghrib": 1792084200,
+      "Isha": 1792090740
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792039740,
+      "Dhuhr": 1792065060,
+      "Asr": 1792074660,
+      "Maghrib": 1792084200,
+      "Isha": 1792089000
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792039980,
+      "Dhuhr": 1792064820,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792089540
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038780,
+      "Dhuhr": 1792064760,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792090500
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038780,
+      "Dhuhr": 1792064760,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792089420
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038000,
+      "Dhuhr": 1792064820,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792090680
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038780,
+      "Dhuhr": 1792064820,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792090320
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792038900,
+      "Dhuhr": 1792064820,
+      "Asr": 1792074660,
+      "Maghrib": 1792084020,
+      "Isha": 1792089120
+    }
+  },
+  {
+    "city": "London",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "utcOffsetHours": 0,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1792038780,
+      "Dhuhr": 1792064820,
+      "Asr": 1792077300,
+      "Maghrib": 1792084020,
+      "Isha": 1792090680
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768454880,
+      "Dhuhr": 1768476420,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768497480
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768454100,
+      "Dhuhr": 1768476420,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768497720
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768454880,
+      "Dhuhr": 1768476420,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768497960
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768454640,
+      "Dhuhr": 1768476360,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768493940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768454760,
+      "Dhuhr": 1768476540,
+      "Asr": 1768480860,
+      "Maghrib": 1768488720,
+      "Isha": 1768498020
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768458060,
+      "Dhuhr": 1768476660,
+      "Asr": 1768480680,
+      "Maghrib": 1768488720,
+      "Isha": 1768494300
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768456320,
+      "Dhuhr": 1768476420,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768496460
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768454880,
+      "Dhuhr": 1768476360,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768497720
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768454880,
+      "Dhuhr": 1768476360,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768493940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768453860,
+      "Dhuhr": 1768476420,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768497960
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768454880,
+      "Dhuhr": 1768476420,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768497480
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1768455000,
+      "Dhuhr": 1768476420,
+      "Asr": 1768480680,
+      "Maghrib": 1768488540,
+      "Isha": 1768495980
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-01-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1768454880,
+      "Dhuhr": 1768476420,
+      "Asr": 1768482000,
+      "Maghrib": 1768488540,
+      "Isha": 1768497960
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773975240,
+      "Dhuhr": 1774005900,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774036080
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974340,
+      "Dhuhr": 1774005900,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774036380
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773975240,
+      "Dhuhr": 1774005900,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774036620
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974940,
+      "Dhuhr": 1774005840,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774033260
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773975120,
+      "Dhuhr": 1774006020,
+      "Asr": 1774017300,
+      "Maghrib": 1774028040,
+      "Isha": 1774036740
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773978180,
+      "Dhuhr": 1774006140,
+      "Asr": 1774017120,
+      "Maghrib": 1774028040,
+      "Isha": 1774032540
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773976920,
+      "Dhuhr": 1774005900,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774034940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773975240,
+      "Dhuhr": 1774005840,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774036380
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773975240,
+      "Dhuhr": 1774005840,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774033260
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773974040,
+      "Dhuhr": 1774005900,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774036620
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773975240,
+      "Dhuhr": 1774005900,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774036080
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1773975420,
+      "Dhuhr": 1774005900,
+      "Asr": 1774017120,
+      "Maghrib": 1774027860,
+      "Isha": 1774034400
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-03-20",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1773975240,
+      "Dhuhr": 1774005900,
+      "Asr": 1774020060,
+      "Maghrib": 1774027860,
+      "Isha": 1774036620
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040800,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040800,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040800,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040740,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782080040
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040920,
+      "Asr": 1782057780,
+      "Maghrib": 1782074820,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1782004140,
+      "Dhuhr": 1782041040,
+      "Asr": 1782057600,
+      "Maghrib": 1782074820,
+      "Isha": 1782077281
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040800,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040740,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040740,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782080040
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040800,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040800,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040800,
+      "Asr": 1782057600,
+      "Maghrib": 1782074640,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-06-21",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1781997540,
+      "Dhuhr": 1782040800,
+      "Asr": 1782062340,
+      "Maghrib": 1782074640,
+      "Isha": 1782083940
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "MuslimWorldLeague",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792035420,
+      "Dhuhr": 1792062240,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792088340
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Egyptian",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792034700,
+      "Dhuhr": 1792062240,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792088580
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792035420,
+      "Dhuhr": 1792062240,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792088820
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "UmmAlQura",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792035180,
+      "Dhuhr": 1792062180,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792085880
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Dubai",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792035300,
+      "Dhuhr": 1792062360,
+      "Asr": 1792070880,
+      "Maghrib": 1792080660,
+      "Isha": 1792088880
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "MoonsightingCommittee",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792037820,
+      "Dhuhr": 1792062480,
+      "Asr": 1792070700,
+      "Maghrib": 1792080660,
+      "Isha": 1792085520
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "NorthAmerica",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792036920,
+      "Dhuhr": 1792062240,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792087320
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Kuwait",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792035420,
+      "Dhuhr": 1792062180,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792088580
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Qatar",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792035420,
+      "Dhuhr": 1792062180,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792085880
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Singapore",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792034400,
+      "Dhuhr": 1792062240,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792088820
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Turkey",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792035420,
+      "Dhuhr": 1792062240,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792088340
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Tehran",
+    "asrSchool": "Standard",
+    "expected": {
+      "Fajr": 1792035600,
+      "Dhuhr": 1792062240,
+      "Asr": 1792070700,
+      "Maghrib": 1792080480,
+      "Isha": 1792086840
+    }
+  },
+  {
+    "city": "Oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "utcOffsetHours": 1,
+    "date": "2026-10-15",
+    "method": "Karachi",
+    "asrSchool": "Hanafi",
+    "expected": {
+      "Fajr": 1792035420,
+      "Dhuhr": 1792062240,
+      "Asr": 1792073100,
+      "Maghrib": 1792080480,
+      "Isha": 1792088820
+    }
+  }
+]

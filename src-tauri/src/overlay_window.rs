@@ -754,6 +754,12 @@ struct OverlaySession {
     prayer: String,
     emergency_exhausted: bool,
     is_test: bool,
+    /// Unix ms when this overlay generation first went up. Passed to every
+    /// window as `started_at` so the forced pause counts down against the wall
+    /// clock: each monitor's webview agrees, a window added for a new monitor
+    /// does not restart the pause, and WebKit's throttling of timers in
+    /// occluded windows cannot stretch it.
+    started_at_ms: i64,
 }
 
 /// Source of truth for the live overlay.
@@ -816,12 +822,12 @@ pub fn spawn_overlay_windows(
     // ── Step 0: decide whether this is the overlay already on screen (a
     //    re-show or a monitor re-sync) or a different one.
     let current = ACTIVE_OVERLAY.lock().ok().and_then(|guard| guard.clone());
-    let generation = if needs_new_generation(
-        current.as_ref(),
-        prayer_name,
-        emergency_exhausted,
-        is_test,
-    ) {
+    let is_new = needs_new_generation(current.as_ref(), prayer_name, emergency_exhausted, is_test);
+    let started_at_ms = match (&current, is_new) {
+        (Some(session), false) => session.started_at_ms,
+        _ => chrono::Utc::now().timestamp_millis(),
+    };
+    let generation = if is_new {
         // Retire the old windows rather than calling `.show()` on them: the
         // reused window would still be rendering the previous prayer.
         // `close_overlay_windows_only` deliberately leaves the desktop cleared
@@ -857,6 +863,7 @@ pub fn spawn_overlay_windows(
     if is_test {
         query.push("is_test=true".to_string());
     }
+    query.push(format!("started_at={started_at_ms}"));
     let url = format!("index.html?{}", query.join("&"));
 
     let outcome = build_overlay_windows(app, &url, generation);
@@ -870,6 +877,7 @@ pub fn spawn_overlay_windows(
                 prayer: prayer_name.to_string(),
                 emergency_exhausted,
                 is_test,
+                started_at_ms,
             });
         }
     }
@@ -1038,6 +1046,8 @@ pub fn close_all_overlays(app: &AppHandle) {
     }
 
     release_lockdown(app);
+    #[cfg(target_os = "macos")]
+    YIELDED_TO_FORCE_QUIT.store(false, Ordering::SeqCst);
 
     // Replaces the old NSWorkspace `unhide()` loop, which reversed Cmd+H
     // hiding — something the app never did — and left every window it
@@ -1086,7 +1096,13 @@ fn activate_app(app: &AppHandle) {
             ns_app.setPresentationOptions(lockdown_presentation_options());
         });
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        // A low-level hook must live on a thread that pumps messages: the
+        // main (event loop) thread does.
+        let _ = app.run_on_main_thread(win_keyboard::install);
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = app;
     }
@@ -1103,9 +1119,91 @@ fn release_lockdown(app: &AppHandle) {
                 .setPresentationOptions(NSApplicationPresentationOptions::Default);
         });
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        let _ = app.run_on_main_thread(win_keyboard::uninstall);
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = app;
+    }
+}
+
+/// Windows counterpart of macOS kiosk mode: a low-level keyboard hook that
+/// swallows the shell's switching shortcuts while an overlay is live. The
+/// webview's own key interceptor never sees these — the shell handles them
+/// before any window gets the keystroke.
+///
+/// Blocked: both Windows keys (Start, Win+Tab, Win+D, Win+Ctrl+←/→ virtual
+/// desktop switching, …), Alt+Tab, Alt+Esc, Ctrl+Esc and Alt+F4.
+///
+/// Deliberately **not** blocked, as the Windows equivalent of macOS Force
+/// Quit (AGENTS.md §1.2): Ctrl+Shift+Esc (Task Manager) — and Ctrl+Alt+Del,
+/// which Windows never lets an app intercept anyway.
+#[cfg(target_os = "windows")]
+mod win_keyboard {
+    use std::sync::atomic::{AtomicIsize, Ordering};
+    use windows_sys::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
+    use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
+        GetAsyncKeyState, VK_CONTROL, VK_ESCAPE, VK_F4, VK_LWIN, VK_RWIN, VK_SHIFT, VK_TAB,
+    };
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        CallNextHookEx, SetWindowsHookExW, UnhookWindowsHookEx, HC_ACTION, KBDLLHOOKSTRUCT,
+        LLKHF_ALTDOWN, WH_KEYBOARD_LL,
+    };
+
+    static HOOK: AtomicIsize = AtomicIsize::new(0);
+
+    pub fn install() {
+        if HOOK.load(Ordering::SeqCst) != 0 {
+            return;
+        }
+        // SAFETY: plain Win32 calls; `hook_proc` matches HOOKPROC.
+        let hook = unsafe {
+            SetWindowsHookExW(WH_KEYBOARD_LL, Some(hook_proc), GetModuleHandleW(std::ptr::null()), 0)
+        };
+        if hook.is_null() {
+            eprintln!("[Waqt] Could not install the overlay keyboard hook.");
+        } else {
+            HOOK.store(hook as isize, Ordering::SeqCst);
+        }
+    }
+
+    pub fn uninstall() {
+        let hook = HOOK.swap(0, Ordering::SeqCst);
+        if hook != 0 {
+            // SAFETY: `hook` came from SetWindowsHookExW and is unhooked once.
+            unsafe { UnhookWindowsHookEx(hook as _) };
+        }
+    }
+
+    fn key_down(vk: u16) -> bool {
+        // SAFETY: no preconditions.
+        unsafe { (GetAsyncKeyState(vk as i32) as u16 & 0x8000) != 0 }
+    }
+
+    /// Pure policy, so it can be reasoned about apart from the hook plumbing.
+    pub(super) fn should_block(vk: u32, alt: bool, ctrl: bool, shift: bool) -> bool {
+        let vk = vk as u16;
+        vk == VK_LWIN
+            || vk == VK_RWIN
+            || (vk == VK_TAB && alt)
+            || (vk == VK_F4 && alt)
+            || (vk == VK_ESCAPE && alt)
+            // Ctrl+Esc opens Start; Ctrl+Shift+Esc (Task Manager) stays open.
+            || (vk == VK_ESCAPE && ctrl && !shift)
+    }
+
+    unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+        if code == HC_ACTION as i32 {
+            let info = &*(lparam as *const KBDLLHOOKSTRUCT);
+            let alt = info.flags & LLKHF_ALTDOWN != 0;
+            if should_block(info.vkCode, alt, key_down(VK_CONTROL), key_down(VK_SHIFT)) {
+                return 1;
+            }
+        }
+        CallNextHookEx(std::ptr::null_mut(), code, wparam, lparam)
     }
 }
 
@@ -1187,14 +1285,109 @@ fn harden_windows(win: &tauri::WebviewWindow) {
     }
 }
 
+// NSWindowLevel: i32::MAX (2147483647) = Maximum Window Level (CGShieldingWindowLevel)
+#[cfg(target_os = "macos")]
+const MAXIMUM_WINDOW_LEVEL: isize = i32::MAX as isize;
+
+#[cfg(target_os = "macos")]
+const NORMAL_WINDOW_LEVEL: isize = 0;
+
+/// Owner of the ⌘⌥Esc "Force Quit Applications" panel.
+#[cfg(target_os = "macos")]
+const FORCE_QUIT_OWNER: &str = "com.apple.loginwindow";
+
+/// True while the overlay has stepped down to normal level so the Force Quit
+/// panel can be seen. Read by `harden_macos`, so the scheduler's per-tick
+/// `sync_overlay_monitors` does not slam the level back up over the panel.
+#[cfg(target_os = "macos")]
+static YIELDED_TO_FORCE_QUIT: AtomicBool = AtomicBool::new(false);
+
+#[cfg(target_os = "macos")]
+fn current_overlay_level() -> isize {
+    if YIELDED_TO_FORCE_QUIT.load(Ordering::SeqCst) {
+        NORMAL_WINDOW_LEVEL
+    } else {
+        MAXIMUM_WINDOW_LEVEL
+    }
+}
+
+/// Whether the overlay should step aside for the app that just took focus.
+#[cfg(target_os = "macos")]
+fn should_yield_to(frontmost_bundle_id: Option<&str>) -> bool {
+    frontmost_bundle_id == Some(FORCE_QUIT_OWNER)
+}
+
+/// Keeps Force Quit — the documented escape hatch on the re-lock overlay
+/// (AGENTS.md §1.2) — usable. At `i32::MAX` the overlay sits above the
+/// ⌘⌥Esc panel, which then opens invisibly behind it. When an overlay window
+/// loses focus to loginwindow (the panel's owner) every overlay window drops
+/// to normal level, still covering the desktop but under the panel; regaining
+/// focus restores the maximum level.
+///
+/// Called from the overlay webview's `blur` / `focus` events. On blur the
+/// frontmost-app switch can land a beat after the window resigns key, so it
+/// is checked a few times.
+pub fn overlay_focus_changed(app: &AppHandle, focused: bool) {
+    #[cfg(target_os = "macos")]
+    {
+        if focused {
+            if YIELDED_TO_FORCE_QUIT.swap(false, Ordering::SeqCst) {
+                set_overlay_levels(app, MAXIMUM_WINDOW_LEVEL);
+            }
+            return;
+        }
+        let app = app.clone();
+        std::thread::spawn(move || {
+            for delay_ms in [0u64, 150, 400, 1000] {
+                std::thread::sleep(Duration::from_millis(delay_ms));
+                let (tx, rx) = std::sync::mpsc::channel();
+                let _ = app.run_on_main_thread(move || {
+                    use objc2_app_kit::NSWorkspace;
+                    let front = NSWorkspace::sharedWorkspace()
+                        .frontmostApplication()
+                        .and_then(|a| a.bundleIdentifier())
+                        .map(|s| s.to_string());
+                    let _ = tx.send(front);
+                });
+                let front = rx.recv_timeout(Duration::from_secs(1)).ok().flatten();
+                if should_yield_to(front.as_deref()) {
+                    YIELDED_TO_FORCE_QUIT.store(true, Ordering::SeqCst);
+                    set_overlay_levels(&app, NORMAL_WINDOW_LEVEL);
+                    return;
+                }
+            }
+        });
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (app, focused);
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn set_overlay_levels(app: &AppHandle, level: isize) {
+    for (label, win) in app.webview_windows() {
+        if !label.starts_with("overlay-") {
+            continue;
+        }
+        let w = win.clone();
+        let _ = win.run_on_main_thread(move || {
+            if let Ok(ptr) = w.ns_window() {
+                let ns_win = ptr as *mut objc2_app_kit::NSWindow;
+                if !ns_win.is_null() {
+                    // SAFETY: main thread (run_on_main_thread), non-null NSWindow.
+                    unsafe { (*ns_win).setLevel(level) };
+                }
+            }
+        });
+    }
+}
+
 /// Called exclusively from within `run_on_main_thread`, so the main-thread
 /// invariant required by AppKit is always satisfied.
 #[cfg(target_os = "macos")]
 fn harden_macos(win: &tauri::WebviewWindow, bring_to_front: bool) {
     use objc2_app_kit::NSWindow;
-
-    // NSWindowLevel: i32::MAX (2147483647) = Maximum Window Level (CGShieldingWindowLevel)
-    const MAXIMUM_WINDOW_LEVEL: isize = i32::MAX as isize;
 
     // CanJoinAllSpaces (1) | Stationary (16) | IgnoresCycle (64) | FullScreenAuxiliary (256)
     const COLLECTION_BEHAVIOR: usize = 1 | 16 | 64 | 256;
@@ -1218,7 +1411,7 @@ fn harden_macos(win: &tauri::WebviewWindow, bring_to_front: bool) {
         }
         let ns_win_ref = &*ns_win;
 
-        ns_win_ref.setLevel(MAXIMUM_WINDOW_LEVEL);
+        ns_win_ref.setLevel(current_overlay_level());
         ns_win_ref.setCollectionBehavior(objc2_app_kit::NSWindowCollectionBehavior(
             COLLECTION_BEHAVIOR,
         ));
@@ -1338,6 +1531,13 @@ mod tests {
             );
         }
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn yields_only_to_the_force_quit_panel() {
+        assert!(should_yield_to(Some("com.apple.loginwindow")));
+        assert!(!should_yield_to(Some("com.apple.Safari")));
+        assert!(!should_yield_to(None));
     }
 
     #[test]
@@ -1461,6 +1661,7 @@ mod overlay_session_tests {
             prayer: prayer.to_string(),
             emergency_exhausted: emergency,
             is_test: test,
+            started_at_ms: 0,
         }
     }
 

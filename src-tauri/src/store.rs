@@ -1,6 +1,17 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use std::sync::Mutex;
+
+/// Serializes every read-modify-write of `store.json` in this process.
+///
+/// Sync Tauri commands run on the main thread and the scheduler on a tokio
+/// worker; each did load → mutate → save with nothing in between, so a
+/// confirmation landing between the scheduler's load and its save was
+/// silently overwritten. The atomic rename only ever prevented torn files,
+/// not lost updates. All saves also shared one `store.json.tmp.{pid}` path,
+/// so two concurrent writers could clobber each other's temp file.
+static STORE_WRITE_LOCK: Mutex<()> = Mutex::new(());
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -175,7 +186,25 @@ impl StoreManager {
         WaqtStore::default()
     }
 
+    /// Loads, applies `f`, and saves, holding `STORE_WRITE_LOCK` throughout.
+    /// Every mutation goes through here; `f` must not call back into
+    /// `StoreManager` writes (the lock is not reentrant).
+    pub fn modify<R>(&self, f: impl FnOnce(&mut WaqtStore) -> R) -> Result<R, String> {
+        let _guard = STORE_WRITE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+        let mut store = self.load_store();
+        let out = f(&mut store);
+        self.write_store(&store)?;
+        Ok(out)
+    }
+
+    /// Replaces the whole store. Prefer `modify` for anything that starts from
+    /// the current contents.
     pub fn save_store(&self, store: &WaqtStore) -> Result<(), String> {
+        let _guard = STORE_WRITE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+        self.write_store(store)
+    }
+
+    fn write_store(&self, store: &WaqtStore) -> Result<(), String> {
         let path = self.get_store_path();
         if let Some(parent) = path.parent() {
             let _ = fs::create_dir_all(parent);
@@ -191,17 +220,17 @@ impl StoreManager {
     }
 
     pub fn save_settings(&self, settings: &AppSettings) -> Result<(), String> {
-        let mut store = self.load_store();
-        let mut updated = settings.clone();
-        if updated.created_at.is_none() {
-            if store.settings.created_at.is_some() {
-                updated.created_at = store.settings.created_at.clone();
-            } else {
-                updated.created_at = Some(chrono::Local::now().format("%Y-%m-%d").to_string());
+        self.modify(|store| {
+            let mut updated = settings.clone();
+            if updated.created_at.is_none() {
+                if store.settings.created_at.is_some() {
+                    updated.created_at = store.settings.created_at.clone();
+                } else {
+                    updated.created_at = Some(chrono::Local::now().format("%Y-%m-%d").to_string());
+                }
             }
-        }
-        store.settings = updated;
-        self.save_store(&store)
+            store.settings = updated;
+        })
     }
 
     pub fn load_logs(&self) -> Vec<PrayerLogItem> {
@@ -223,17 +252,17 @@ impl StoreManager {
     /// weaker one, a weaker status is discarded, and an equal status refreshes
     /// the record (so repeat confirmations stay idempotent).
     pub fn add_log_entry(&self, entry: PrayerLogItem) -> Result<Vec<PrayerLogItem>, String> {
-        let mut store = self.load_store();
-        upsert_log_entry(&mut store.log, entry);
-        self.save_store(&store)?;
-        Ok(store.log)
+        self.modify(|store| {
+            upsert_log_entry(&mut store.log, entry);
+            store.log.clone()
+        })
     }
 
     pub fn clear_logs(&self) -> Result<(), String> {
-        let mut store = self.load_store();
-        store.log.clear();
-        store.emergency_extensions.clear();
-        self.save_store(&store)
+        self.modify(|store| {
+            store.log.clear();
+            store.emergency_extensions.clear();
+        })
     }
 
     pub fn has_logged_prayer(&self, date: &str, prayer: &str) -> bool {
@@ -241,10 +270,9 @@ impl StoreManager {
         logs.iter().any(|item| item.date == date && item.prayer == prayer)
     }
 
+    /// The "already logged?" check happens under the write lock, so a
+    /// confirmation that lands concurrently is never overwritten by `missed`.
     pub fn mark_missed_prayer(&self, date: &str, prayer: &str, scheduled_time: &str) -> Result<(), String> {
-        if self.has_logged_prayer(date, prayer) {
-            return Ok(());
-        }
         let entry = PrayerLogItem {
             id: format!("missed-{}-{}", date, prayer),
             date: date.to_string(),
@@ -253,15 +281,18 @@ impl StoreManager {
             status: "missed".to_string(),
             confirmed_at: None,
         };
-        self.add_log_entry(entry)?;
-        Ok(())
+        self.modify(|store| {
+            if !store.log.iter().any(|item| item.date == date && item.prayer == prayer) {
+                upsert_log_entry(&mut store.log, entry);
+            }
+        })
     }
 
     pub fn add_emergency_extension(&self, ext: EmergencyExtension) -> Result<(), String> {
-        let mut store = self.load_store();
-        store.emergency_extensions.retain(|e| !(e.date == ext.date && e.prayer == ext.prayer));
-        store.emergency_extensions.push(ext);
-        self.save_store(&store)
+        self.modify(|store| {
+            store.emergency_extensions.retain(|e| !(e.date == ext.date && e.prayer == ext.prayer));
+            store.emergency_extensions.push(ext);
+        })
     }
 
     pub fn load_emergency_extensions(&self) -> Vec<EmergencyExtension> {
@@ -269,12 +300,11 @@ impl StoreManager {
     }
 
     pub fn update_emergency_extension(&self, ext: &EmergencyExtension) -> Result<(), String> {
-        let mut store = self.load_store();
-        if let Some(pos) = store.emergency_extensions.iter().position(|e| e.id == ext.id) {
-            store.emergency_extensions[pos] = ext.clone();
-            self.save_store(&store)?;
-        }
-        Ok(())
+        self.modify(|store| {
+            if let Some(pos) = store.emergency_extensions.iter().position(|e| e.id == ext.id) {
+                store.emergency_extensions[pos] = ext.clone();
+            }
+        })
     }
 
     pub fn has_used_emergency_dismiss(&self, date: &str, prayer: &str) -> bool {
@@ -320,6 +350,36 @@ pub fn is_emergency_exhausted(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn concurrent_writers_do_not_lose_updates() {
+        let dir = std::env::temp_dir().join(format!(
+            "waqt_race_{}",
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
+        ));
+        let handles: Vec<_> = (0..16)
+            .map(|i| {
+                let dir = dir.clone();
+                std::thread::spawn(move || {
+                    let mgr = StoreManager::new(dir);
+                    mgr.add_log_entry(PrayerLogItem {
+                        id: i.to_string(),
+                        date: format!("2026-10-{:02}", i + 1),
+                        prayer: "Dhuhr".into(),
+                        scheduled_time: String::new(),
+                        status: "confirmed".into(),
+                        confirmed_at: None,
+                    })
+                    .unwrap();
+                })
+            })
+            .collect();
+        for h in handles {
+            h.join().unwrap();
+        }
+        assert_eq!(StoreManager::new(dir.clone()).load_logs().len(), 16);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     #[test]
     fn test_emergency_extension_store_and_check() {

@@ -479,6 +479,18 @@ export async function snoozeOverlayCommand(prayerName: string, emergencyExhauste
   }
 }
 
+/** Lets the backend step the overlay aside for the Force Quit panel. */
+export async function reportOverlayFocus(focused: boolean): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("overlay_focus_changed", { focused });
+    } catch (err) {
+      console.error("Failed to report overlay focus IPC:", err);
+    }
+  }
+}
+
 export async function triggerToastCommand(prayerName: string, isTest?: boolean): Promise<void> {
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     try {

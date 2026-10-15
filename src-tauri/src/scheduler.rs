@@ -369,21 +369,19 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
                     let pre_ts = item.timestamp - seconds_before;
                     let key = format!("{}:{}:pre:{}", today_str, p_name, label);
 
-                    if !notified_events.contains(&key) {
-                        if now_ts >= pre_ts && now_ts < item.lock_timestamp {
-                            notified_events.insert(key);
-                            let title = format!("Upcoming Prayer: {}", p_name);
-                            let body = format!("{} is in {} minutes.", p_name, label.trim_end_matches('m'));
-                            println!("[Waqt Scheduler] Triggering pre-notification ({}) for {}", label, p_name);
-                            if let Err(e) = app_handle
-                                .notification()
-                                .builder()
-                                .title(title)
-                                .body(body)
-                                .show()
-                            {
-                                println!("[Waqt Scheduler] Pre-notification error for {}: {:?}", p_name, e);
-                            }
+                    if !notified_events.contains(&key) && now_ts >= pre_ts && now_ts < item.lock_timestamp {
+                        notified_events.insert(key);
+                        let title = format!("Upcoming Prayer: {}", p_name);
+                        let body = format!("{} is in {} minutes.", p_name, label.trim_end_matches('m'));
+                        println!("[Waqt Scheduler] Triggering pre-notification ({}) for {}", label, p_name);
+                        if let Err(e) = app_handle
+                            .notification()
+                            .builder()
+                            .title(title)
+                            .body(body)
+                            .show()
+                        {
+                            println!("[Waqt Scheduler] Pre-notification error for {}: {:?}", p_name, e);
                         }
                     }
                 }
@@ -394,14 +392,15 @@ pub async fn start_background_scheduler(app_handle: AppHandle) {
             if !notified_events.contains(&toast_key) {
                 if now_ts >= item.lock_timestamp {
                     notified_events.insert(toast_key);
-                } else if now_ts >= (item.lock_timestamp - 10) && now_ts < item.lock_timestamp {
-                    if !is_logged(&store.log, &today_str, p_name) {
-                        notified_events.insert(toast_key);
-                        use tauri::Emitter;
-                        let _ = app_handle.emit("waqt:trigger-toast", p_name.clone());
-                        println!("[Waqt Scheduler] Emitted waqt:trigger-toast event and spawning floating toast window for {}", p_name);
-                        let _ = overlay_window::spawn_toast_window(&app_handle, p_name, false);
-                    }
+                } else if now_ts >= (item.lock_timestamp - 10)
+                    && now_ts < item.lock_timestamp
+                    && !is_logged(&store.log, &today_str, p_name)
+                {
+                    notified_events.insert(toast_key);
+                    use tauri::Emitter;
+                    let _ = app_handle.emit("waqt:trigger-toast", p_name.clone());
+                    println!("[Waqt Scheduler] Emitted waqt:trigger-toast event and spawning floating toast window for {}", p_name);
+                    let _ = overlay_window::spawn_toast_window(&app_handle, p_name, false);
                 }
             }
 
