@@ -468,6 +468,17 @@ export async function dismissOverlayCommand(): Promise<void> {
   }
 }
 
+export async function snoozeOverlayCommand(prayerName: string, emergencyExhausted?: boolean, isTest?: boolean): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("snooze_overlay", { prayerName, emergencyExhausted: emergencyExhausted || false, isTest: isTest || false });
+    } catch (err) {
+      console.error("Failed to snooze overlay IPC:", err);
+    }
+  }
+}
+
 export async function triggerToastCommand(prayerName: string, isTest?: boolean): Promise<void> {
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     try {

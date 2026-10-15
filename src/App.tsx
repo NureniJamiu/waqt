@@ -14,6 +14,7 @@ import {
   subscribeDesktopPrep,
   subscribeScheduleRefreshed,
   dismissOverlayCommand,
+  snoozeOverlayCommand,
   triggerOverlayCommand,
   triggerToastCommand,
   dismissToastCommand,
@@ -38,13 +39,14 @@ function getLocalDateString(d: Date = new Date()): string {
 }
 
 // ── URL-based window detection ──────────────────────────────────────────────
-function getUrlParams(): { screen: string | null; prayer: string | null; emergencyExhausted: boolean; isTest: boolean } {
+function getUrlParams(): { screen: string | null; prayer: string | null; emergencyExhausted: boolean; isTest: boolean; snoozed: boolean } {
   const params = new URLSearchParams(window.location.search);
   return {
     screen: params.get("screen"),
     prayer: params.get("prayer"),
     emergencyExhausted: params.get("emergency_exhausted") === "true",
     isTest: params.get("is_test") === "true",
+    snoozed: params.get("snoozed") === "true",
   };
 }
 
@@ -321,29 +323,21 @@ export function App() {
     saveSettings(updated);
   };
 
+  // The 5-minute timer runs in the backend: dismissing the overlay destroys
+  // this webview, so a setTimeout here would never fire.
   const handleSnooze = () => {
-    dismissOverlayCommand();
-    dismissToastCommand();
-    const todayStr = getLocalDateString();
-    const snoozeKey = `${todayStr}:${activePrayer}`;
-
+    const snoozeKey = `${getLocalDateString()}:${activePrayer}`;
     setSnoozedPrayers((prev) => new Set(prev).add(snoozeKey));
-    setCurrentScreen("dashboard");
-
-    setTimeout(() => {
-      const currentLogs = loadLogsFromStorage();
-      const isAlreadyLogged = currentLogs.some(
-        (entry) => entry.date === todayStr && entry.prayer === activePrayer
-      );
-      if (!isAlreadyLogged) {
-        triggerOverlayCommand(activePrayer, isEmergencyExhausted);
-      }
-    }, 5 * 60 * 1000);
+    dismissToastCommand();
+    snoozeOverlayCommand(activePrayer, isEmergencyExhausted, isTestOverlay || urlParams.isTest);
+    if (!isOverlayWindow) {
+      setCurrentScreen("dashboard");
+    }
   };
 
   const todayStr = getLocalDateString();
   const activeSnoozeKey = `${todayStr}:${activePrayer}`;
-  const hasSnoozedForCurrentPrayer = snoozedPrayers.has(activeSnoozeKey);
+  const hasSnoozedForCurrentPrayer = urlParams.snoozed || snoozedPrayers.has(activeSnoozeKey);
 
   return (
     <div className={`w-full min-h-screen ${isToastWindow ? "bg-transparent overflow-hidden flex items-center justify-center p-2" : "bg-[#070a11] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200"}`}>

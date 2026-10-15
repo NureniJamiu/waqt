@@ -72,6 +72,60 @@ fn dismiss_overlay(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// Hides the overlay for `SNOOZE_SECS`, then brings it back unless the prayer
+/// has been logged in the meantime. Single use per prayer.
+///
+/// The timer lives here rather than in the overlay webview because dismissing
+/// the overlay destroys that webview — and any `setTimeout` inside it.
+#[tauri::command(async)]
+fn snooze_overlay(
+    app: AppHandle,
+    prayer_name: String,
+    emergency_exhausted: Option<bool>,
+    is_test: Option<bool>,
+) -> Result<(), String> {
+    let now = chrono::Local::now();
+    if overlay_window::was_snoozed(&prayer_name, now.timestamp()) {
+        return Err(format!("{prayer_name} has already been snoozed"));
+    }
+    overlay_window::record_snooze(&prayer_name, now.timestamp());
+    overlay_window::close_all_overlays(&app);
+
+    let exhausted = emergency_exhausted.unwrap_or(false);
+    let test_mode = is_test.unwrap_or(false);
+    let snooze_date = now.date_naive();
+
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_secs(
+            overlay_window::SNOOZE_SECS as u64,
+        ))
+        .await;
+
+        if !test_mode {
+            let logs = StoreManager::new(get_config_dir(&app)).load_logs();
+            // The frontend dates an after-midnight Isha to the previous day.
+            let prev = (snooze_date - chrono::Duration::days(1)).format("%Y-%m-%d").to_string();
+            let today = snooze_date.format("%Y-%m-%d").to_string();
+            let logged = logs.iter().any(|l| {
+                l.prayer == prayer_name
+                    && (l.date == today || (prayer_name == "Isha" && l.date == prev))
+            });
+            if logged {
+                return;
+            }
+        }
+        if overlay_window::has_active_overlay(&app) {
+            return;
+        }
+        let _ = tauri::async_runtime::spawn_blocking(move || {
+            overlay_window::spawn_overlay_windows(&app, &prayer_name, exhausted, test_mode)
+        })
+        .await;
+    });
+
+    Ok(())
+}
+
 #[tauri::command]
 fn trigger_toast(app: AppHandle, prayer_name: String, is_test: Option<bool>) -> Result<(), String> {
     let test_mode = is_test.unwrap_or(false);
@@ -141,6 +195,7 @@ pub fn run() {
             has_used_emergency_dismiss,
             trigger_overlay,
             dismiss_overlay,
+            snooze_overlay,
             trigger_toast,
             dismiss_toast,
             send_test_notification,
@@ -225,6 +280,23 @@ pub fn run() {
                 }
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| match event {
+            // ⌘Q (and any other exit nobody asked for explicitly) must not
+            // tear down a live prayer overlay. `code` is `None` for those;
+            // `app.exit(n)` from the tray passes `Some`. A genuine emergency
+            // still has Force Quit, which no app can intercept.
+            tauri::RunEvent::ExitRequested { api, code: None, .. } => {
+                let live_prayer_overlay = overlay_window::get_active_overlay_info(app)
+                    .is_some_and(|(_, _, is_test)| !is_test);
+                if live_prayer_overlay {
+                    api.prevent_exit();
+                }
+            }
+            // Put back whatever the desktop sweep minimized, or the user's
+            // windows stay in the Dock after Waqt goes away.
+            tauri::RunEvent::Exit => overlay_window::restore_desktop_on_exit(),
+            _ => {}
+        });
 }

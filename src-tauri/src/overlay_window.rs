@@ -60,8 +60,76 @@ static RESTORE_TARGETS: Mutex<Vec<RestoreTarget>> = Mutex::new(Vec::new());
 #[cfg(target_os = "macos")]
 const SWEEP_TIMEOUT: Duration = Duration::from_secs(15);
 
+/// Extra budget per off-Space fullscreen app: switching to its Space, waiting
+/// for AX to see the window, and the fullscreen-exit animation.
+#[cfg(target_os = "macos")]
+const SWEEP_TIMEOUT_PER_OFFSPACE_APP: Duration = Duration::from_secs(3);
+
+#[cfg(target_os = "macos")]
+const SWEEP_TIMEOUT_MAX: Duration = Duration::from_secs(30);
+
 #[cfg(target_os = "macos")]
 const RESTORE_TIMEOUT: Duration = Duration::from_secs(20);
+
+#[cfg(target_os = "macos")]
+fn sweep_timeout_for(offspace_apps: usize) -> Duration {
+    (SWEEP_TIMEOUT + SWEEP_TIMEOUT_PER_OFFSPACE_APP * offspace_apps as u32).min(SWEEP_TIMEOUT_MAX)
+}
+
+/// PIDs of apps that own a screen-sized, normal-layer window that is not on
+/// the current Space — i.e. almost certainly a native fullscreen window.
+///
+/// CoreGraphics' window list covers every Space, unlike AX, and reading
+/// bounds/PID/layer needs no Screen Recording permission (only window *titles*
+/// do). Run through JXA so no CoreFoundation bindings are needed here. A false
+/// positive costs one extra Space switch; the sweep itself still checks
+/// `AXFullScreen` before changing anything.
+#[cfg(target_os = "macos")]
+fn find_offspace_fullscreen_pids(own_pid: u32) -> Vec<u32> {
+    const SCRIPT: &str = r#"
+ObjC.import("CoreGraphics");
+ObjC.import("AppKit");
+const list = ObjC.deepUnwrap(ObjC.castRefToObject(
+    $.CGWindowListCopyWindowInfo($.kCGWindowListOptionAll, $.kCGNullWindowID)));
+const screens = $.NSScreen.screens;
+const sizes = [];
+for (let i = 0; i < screens.count; i++) {
+    const f = screens.objectAtIndex(i).frame;
+    sizes.push([f.size.width, f.size.height]);
+}
+const pids = new Set();
+for (const w of (list || [])) {
+    const b = w.kCGWindowBounds;
+    if (w.kCGWindowLayer !== 0 || w.kCGWindowIsOnscreen || !b) continue;
+    if ((w.kCGWindowAlpha || 0) <= 0) continue;
+    if (sizes.some(s => Math.abs(s[0] - b.Width) <= 1 && Math.abs(s[1] - b.Height) <= 1)) {
+        pids.add(w.kCGWindowOwnerPID);
+    }
+}
+Array.from(pids).join(",");
+"#;
+
+    match run_osascript_lang("JavaScript", SCRIPT, Duration::from_secs(3)) {
+        Ok(stdout) => parse_pid_list(&stdout, own_pid),
+        Err(e) => {
+            eprintln!("[Waqt] Could not list off-Space windows: {e:?}");
+            Vec::new()
+        }
+    }
+}
+
+/// Parses the comma-separated PID list from `find_offspace_fullscreen_pids`,
+/// dropping our own PID, junk, and duplicates while keeping order.
+#[cfg(target_os = "macos")]
+fn parse_pid_list(stdout: &str, own_pid: u32) -> Vec<u32> {
+    let mut out = Vec::new();
+    for pid in stdout.trim().split(',').filter_map(|s| s.trim().parse::<u32>().ok()) {
+        if pid != own_pid && pid != 0 && !out.contains(&pid) {
+            out.push(pid);
+        }
+    }
+    out
+}
 
 /// Minimizes every other application's windows, taking fullscreen windows out
 /// of their Space first.
@@ -95,7 +163,7 @@ fn prepare_desktop_inner(is_test: bool) -> DesktopPrepOutcome {
     }
 
     // Cheap, non-prompting, in-process check. Unlike the old System Events
-    // probe this tests Accessibility (which `set miniaturized` needs), not
+    // probe this tests Accessibility (which `AXMinimized` needs), not
     // Automation.
     if !has_accessibility_permission() {
         eprintln!(
@@ -104,9 +172,16 @@ fn prepare_desktop_inner(is_test: bool) -> DesktopPrepOutcome {
         return DesktopPrepOutcome::PermissionDenied;
     }
 
-    let script = build_minimize_script(std::process::id());
+    // The Accessibility API only enumerates windows on the *current* Space, so
+    // a fullscreen app parked on another Space is invisible to the AX sweep and
+    // stays reachable by a three-finger swipe. Find those apps through
+    // CoreGraphics (which sees every Space) and let the sweep visit each one.
+    let own_pid = std::process::id();
+    let offspace_pids = find_offspace_fullscreen_pids(own_pid);
+    let script = build_minimize_script(own_pid, &offspace_pids);
+    let timeout = sweep_timeout_for(offspace_pids.len());
 
-    match run_osascript(&script, SWEEP_TIMEOUT) {
+    match run_osascript(&script, timeout) {
         Ok(stdout) => {
             let targets = parse_sweep_output(&stdout);
             let count = targets.len();
@@ -117,7 +192,7 @@ fn prepare_desktop_inner(is_test: bool) -> DesktopPrepOutcome {
             DesktopPrepOutcome::Completed { windows: count }
         }
         Err(OsaError::TimedOut) => {
-            eprintln!("[Waqt] Desktop sweep exceeded {SWEEP_TIMEOUT:?} and was killed.");
+            eprintln!("[Waqt] Desktop sweep exceeded {timeout:?} and was killed.");
             DesktopPrepOutcome::TimedOut
         }
         Err(OsaError::PermissionDenied(msg)) => {
@@ -178,65 +253,115 @@ pub fn restore_desktop_after_overlay() {
 
 /// Builds the sweep script.
 ///
-/// Three things the previous version got wrong, fixed here:
+/// What it has to get right:
 ///
 /// 1. **Fullscreen windows are not miniaturizable.** A window in a native
-///    fullscreen Space rejects `set miniaturized to true`. It has to leave
-///    fullscreen first via the `AXFullScreen` accessibility attribute, and the
-///    Space-collapse animation has to finish before the miniaturize will take.
-/// 2. **`every application process` includes agents and daemons**, most of
-///    which throw on `windows`. `whose background only is false` skips them and
-///    makes the sweep several times faster.
-/// 3. **Only genuine changes are recorded.** A window the user had already
-///    minimized is left out of the restore list, so dismissing the overlay
-///    never un-minimizes something they minimized themselves.
+///    fullscreen Space rejects minimizing. It has to leave fullscreen first via
+///    the `AXFullScreen` accessibility attribute, and the Space-collapse
+///    animation has to finish before the minimize will take — so the script
+///    polls `AXFullScreen` rather than sleeping a fixed amount.
+/// 2. **AX only sees the current Space.** Fullscreen apps on other Spaces
+///    (`offspace_pids`, found via CoreGraphics) are made frontmost first, which
+///    switches to their Space so their windows become visible to AX.
+/// 3. **Minimize through `AXMinimized`.** `miniaturized` is a Cocoa-scripting
+///    property that System Events' UI-element windows only inherit by
+///    class-extension; whether it is backed is undocumented, and any failure
+///    was swallowed by its `try`. `AXMinimized` is the attribute the
+///    Accessibility API actually exposes.
+/// 4. **`every application process` includes agents and daemons**, most of
+///    which throw on `windows`. `whose background only is false` skips them.
+/// 5. **Only genuine changes are recorded.** A window the user had already
+///    minimized is left out of the restore list.
 ///
 /// Output is one line per changed window: `OP \t process \t index \t title`.
 /// `OP` comes first so the title (which may itself contain a tab) can be the
 /// unbounded final field.
 #[cfg(target_os = "macos")]
-fn build_minimize_script(own_pid: u32) -> String {
+fn build_minimize_script(own_pid: u32, offspace_pids: &[u32]) -> String {
+    let offspace = offspace_pids
+        .iter()
+        .map(|p| p.to_string())
+        .collect::<Vec<_>>()
+        .join(", ");
     format!(
         r#"
+global changedList
 set changedList to {{}}
 set myPid to {own_pid}
-tell application "System Events"
-    repeat with proc in (every application process whose background only is false)
+set offspacePids to {{{offspace}}}
+
+on sweepWindows(proc)
+    global changedList
+    tell application "System Events"
+        set procName to name of proc
+        set winCount to 0
         try
-            if (unix id of proc) is not myPid then
-                set procName to name of proc
-                set winCount to 0
-                try
-                    set winCount to count of windows of proc
-                end try
-                repeat with i from 1 to winCount
-                    set wTitle to ""
-                    try
-                        set wTitle to name of window i of proc
-                    end try
-
-                    -- 1. Leave the fullscreen Space, if any. Must happen before
-                    --    the miniaturize below or the miniaturize is rejected.
-                    try
-                        if (value of attribute "AXFullScreen" of window i of proc) is true then
-                            set value of attribute "AXFullScreen" of window i of proc to false
-                            set end of changedList to "F" & tab & procName & tab & i & tab & wTitle
-                            delay 0.5
-                        end if
-                    end try
-
-                    -- 2. Miniaturize, but only if the user had not already done so.
-                    try
-                        if (miniaturized of window i of proc) is false then
-                            set miniaturized of window i of proc to true
-                            set end of changedList to "M" & tab & procName & tab & i & tab & wTitle
-                        end if
-                    end try
-                end repeat
-            end if
+            set winCount to count of windows of proc
         end try
-    end repeat
+        repeat with i from 1 to winCount
+            set wTitle to ""
+            try
+                set wTitle to name of window i of proc
+            end try
+
+            -- 1. Leave the fullscreen Space, if any. Must finish before the
+            --    minimize below or the minimize is rejected.
+            try
+                if (value of attribute "AXFullScreen" of window i of proc) is true then
+                    set value of attribute "AXFullScreen" of window i of proc to false
+                    set end of changedList to "F" & tab & procName & tab & i & tab & wTitle
+                    repeat 20 times
+                        delay 0.1
+                        try
+                            if (value of attribute "AXFullScreen" of window i of proc) is false then exit repeat
+                        end try
+                    end repeat
+                    delay 0.4
+                end if
+            end try
+
+            -- 2. Minimize, but only if the user had not already done so.
+            try
+                if (value of attribute "AXMinimized" of window i of proc) is false then
+                    set value of attribute "AXMinimized" of window i of proc to true
+                    set end of changedList to "M" & tab & procName & tab & i & tab & wTitle
+                end if
+            end try
+        end repeat
+    end tell
+end sweepWindows
+
+-- Pass 1: fullscreen apps on other Spaces. Bringing one frontmost switches to
+-- its Space, after which AX can see (and un-fullscreen) its window.
+repeat with targetPid in offspacePids
+    try
+        tell application "System Events"
+            set proc to first application process whose unix id is (targetPid as integer)
+            set frontmost of proc to true
+        end tell
+        repeat 15 times
+            delay 0.1
+            tell application "System Events"
+                try
+                    if (count of windows of proc) > 0 then exit repeat
+                end try
+            end tell
+        end repeat
+        delay 0.3
+        sweepWindows(proc)
+    end try
+end repeat
+
+-- Pass 2: everything visible on the Space we ended up on.
+tell application "System Events"
+    set procList to every application process whose background only is false
 end tell
+repeat with proc in procList
+    try
+        tell application "System Events" to set procPid to unix id of proc
+        if procPid is not myPid then sweepWindows(contents of proc)
+    end try
+end repeat
 
 set AppleScript's text item delimiters to linefeed
 set outText to changedList as text
@@ -271,7 +396,7 @@ fn build_restore_script(targets: &[RestoreTarget]) -> String {
                 )
             };
             let action = if op == 'M' {
-                "set miniaturized of _w to false"
+                "set value of attribute \"AXMinimized\" of _w to false"
             } else {
                 "set value of attribute \"AXFullScreen\" of _w to true"
             };
@@ -342,9 +467,16 @@ enum OsaError {
 /// rather than relying on osascript to return.
 #[cfg(target_os = "macos")]
 fn run_osascript(script: &str, timeout: Duration) -> Result<String, OsaError> {
+    run_osascript_lang("AppleScript", script, timeout)
+}
+
+#[cfg(target_os = "macos")]
+fn run_osascript_lang(language: &str, script: &str, timeout: Duration) -> Result<String, OsaError> {
     use std::process::{Command, Stdio};
 
     let mut child = Command::new("/usr/bin/osascript")
+        .arg("-l")
+        .arg(language)
         .arg("-e")
         .arg(script)
         .stdin(Stdio::null())
@@ -462,6 +594,89 @@ fn open_accessibility_settings() {
     let _ = std::process::Command::new("open")
         .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
         .status();
+}
+
+/// Exit-path variant of `restore_desktop_after_overlay`.
+///
+/// The process is about to die, so a worker thread that waits on osascript
+/// would be killed mid-restore and the user's windows would stay minimized.
+/// Instead the osascript child is spawned and *not* waited on: it outlives us.
+pub fn restore_desktop_on_exit() {
+    #[cfg(target_os = "macos")]
+    {
+        if !SWEEP_ACTIVE.swap(false, Ordering::SeqCst) {
+            return;
+        }
+        let targets = match RESTORE_TARGETS.lock() {
+            Ok(mut guard) => std::mem::take(&mut *guard),
+            Err(_) => return,
+        };
+        if targets.is_empty() {
+            return;
+        }
+        let _ = std::process::Command::new("/usr/bin/osascript")
+            .arg("-e")
+            .arg(build_restore_script(&targets))
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn();
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Snooze
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// How long a snooze hides the overlay.
+pub const SNOOZE_SECS: i64 = 5 * 60;
+
+/// How long a snooze counts as "used" for its prayer. Comfortably longer than
+/// any prayer's active lock window, so the single snooze cannot be renewed.
+const SNOOZE_MEMORY_SECS: i64 = 3 * 60 * 60;
+
+/// `(prayer, snoozed_at)` for recent snoozes.
+///
+/// The snooze used to live in the overlay webview's React state with a
+/// `setTimeout` to bring the overlay back — but dismissing the overlay closes
+/// that very webview, so the timer died with it and a snooze was a permanent
+/// dismiss. It is owned by the backend now.
+static SNOOZES: Mutex<Vec<(String, i64)>> = Mutex::new(Vec::new());
+
+fn snooze_age(snoozes: &[(String, i64)], prayer: &str, now_ts: i64) -> Option<i64> {
+    snoozes
+        .iter()
+        .filter(|(p, _)| p == prayer)
+        .map(|(_, at)| now_ts - at)
+        .filter(|age| *age >= 0)
+        .min()
+}
+
+pub fn record_snooze(prayer: &str, now_ts: i64) {
+    if let Ok(mut guard) = SNOOZES.lock() {
+        guard.retain(|(_, at)| now_ts - at < SNOOZE_MEMORY_SECS);
+        guard.push((prayer.to_string(), now_ts));
+    }
+}
+
+/// True if this prayer's single snooze has already been spent.
+pub fn was_snoozed(prayer: &str, now_ts: i64) -> bool {
+    SNOOZES
+        .lock()
+        .ok()
+        .and_then(|g| snooze_age(&g, prayer, now_ts))
+        .is_some_and(|age| age < SNOOZE_MEMORY_SECS)
+}
+
+/// True while a snooze is counting down (plus a minute of slack for the
+/// re-show). The missed-prayer scan must leave the prayer alone meanwhile,
+/// exactly as it does for a live overlay.
+pub fn snooze_pending(prayer: &str, now_ts: i64) -> bool {
+    SNOOZES
+        .lock()
+        .ok()
+        .and_then(|g| snooze_age(&g, prayer, now_ts))
+        .is_some_and(|age| age < SNOOZE_SECS + 60)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -635,6 +850,9 @@ pub fn spawn_overlay_windows(
     let mut query = vec![format!("screen=overlay"), format!("prayer={}", prayer_name)];
     if emergency_exhausted {
         query.push("emergency_exhausted=true".to_string());
+    }
+    if was_snoozed(prayer_name, chrono::Local::now().timestamp()) {
+        query.push("snoozed=true".to_string());
     }
     if is_test {
         query.push("is_test=true".to_string());
@@ -819,6 +1037,8 @@ pub fn close_all_overlays(app: &AppHandle) {
         *guard = None;
     }
 
+    release_lockdown(app);
+
     // Replaces the old NSWorkspace `unhide()` loop, which reversed Cmd+H
     // hiding — something the app never did — and left every window it
     // minimized sitting in the Dock. It also ran AppKit calls on whatever
@@ -853,19 +1073,68 @@ fn harden_window(win: &tauri::WebviewWindow, bring_to_front: bool) {
     }
 }
 
+/// Activates the app and puts it into kiosk presentation mode for as long as
+/// an overlay is up. See `lockdown_presentation_options`.
 fn activate_app(app: &AppHandle) {
     #[cfg(target_os = "macos")]
     {
         let _ = app.run_on_main_thread(|| unsafe {
             use objc2_app_kit::NSApplication;
             let mtm = objc2::MainThreadMarker::new_unchecked();
-            NSApplication::sharedApplication(mtm).activate();
+            let ns_app = NSApplication::sharedApplication(mtm);
+            force_activate(&ns_app);
+            ns_app.setPresentationOptions(lockdown_presentation_options());
         });
     }
     #[cfg(not(target_os = "macos"))]
     {
         let _ = app;
     }
+}
+
+/// Drops kiosk presentation mode. Called when the last overlay is dismissed.
+fn release_lockdown(app: &AppHandle) {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app.run_on_main_thread(|| unsafe {
+            use objc2_app_kit::{NSApplication, NSApplicationPresentationOptions};
+            let mtm = objc2::MainThreadMarker::new_unchecked();
+            NSApplication::sharedApplication(mtm)
+                .setPresentationOptions(NSApplicationPresentationOptions::Default);
+        });
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+    }
+}
+
+/// Kiosk options applied while an overlay is live.
+///
+/// `DisableProcessSwitching` turns off ⌘Tab *and* Mission Control / Spaces
+/// switching (including the three-finger swipe) while Waqt is the active app —
+/// the window level alone cannot stop the user swiping to another Space.
+/// AppKit throws on invalid combinations: `HideMenuBar` and
+/// `DisableProcessSwitching` both require `HideDock`, which is present.
+///
+/// `DisableForceQuit` is deliberately **absent**: ⌘⌥Esc is the documented
+/// escape hatch on the re-lock overlay (AGENTS.md §1.2).
+#[cfg(target_os = "macos")]
+fn lockdown_presentation_options() -> objc2_app_kit::NSApplicationPresentationOptions {
+    use objc2_app_kit::NSApplicationPresentationOptions as O;
+    O::HideDock | O::HideMenuBar | O::DisableProcessSwitching | O::DisableHideApplication
+}
+
+/// Activates regardless of what the user is doing in another app.
+///
+/// `-[NSApplication activate]` only exists on macOS 14+; calling it on an
+/// older system is an unrecognized-selector crash, and `minimumSystemVersion`
+/// is 10.15. It is also cooperative, so it can decline to activate. The
+/// deprecated `activateIgnoringOtherApps:` works on every supported version.
+#[cfg(target_os = "macos")]
+fn force_activate(ns_app: &objc2_app_kit::NSApplication) {
+    #[allow(deprecated)]
+    ns_app.activateIgnoringOtherApps(true);
 }
 
 fn harden_toast_window(win: &tauri::WebviewWindow) {
@@ -968,7 +1237,7 @@ fn harden_macos(win: &tauri::WebviewWindow, bring_to_front: bool) {
         if bring_to_front {
             use objc2_app_kit::NSApplication;
             let mtm = objc2::MainThreadMarker::new_unchecked();
-            NSApplication::sharedApplication(mtm).activate();
+            force_activate(&NSApplication::sharedApplication(mtm));
         }
     }
 }
@@ -983,15 +1252,15 @@ mod tests {
 
     #[test]
     fn sweep_script_exits_fullscreen_before_miniaturizing() {
-        let script = build_minimize_script(4242);
+        let script = build_minimize_script(4242, &[]);
 
-        // The bug this replaces: `set miniaturized` alone cannot touch a window
-        // in a native fullscreen Space.
+        // The bug this replaces: minimizing alone cannot touch a window in a
+        // native fullscreen Space.
         let fullscreen_at = script
             .find("set value of attribute \"AXFullScreen\"")
             .expect("script must clear AXFullScreen");
         let miniaturize_at = script
-            .find("set miniaturized of window i of proc to true")
+            .find("set value of attribute \"AXMinimized\" of window i of proc to true")
             .expect("script must miniaturize");
         assert!(
             fullscreen_at < miniaturize_at,
@@ -1001,18 +1270,88 @@ mod tests {
 
     #[test]
     fn sweep_script_skips_daemons_and_our_own_process() {
-        let script = build_minimize_script(4242);
+        let script = build_minimize_script(4242, &[]);
         assert!(script.contains("whose background only is false"));
         assert!(script.contains("set myPid to 4242"));
-        assert!(script.contains("(unix id of proc) is not myPid"));
+        assert!(script.contains("if procPid is not myPid then"));
     }
 
     #[test]
     fn sweep_script_only_records_windows_it_changed() {
-        let script = build_minimize_script(1);
+        let script = build_minimize_script(1, &[]);
         // Already-minimized windows must not enter the restore list, or
         // dismissing the overlay would un-minimize the user's own windows.
-        assert!(script.contains("if (miniaturized of window i of proc) is false then"));
+        assert!(script
+            .contains("if (value of attribute \"AXMinimized\" of window i of proc) is false then"));
+    }
+
+    #[test]
+    fn sweep_script_never_uses_the_unimplemented_miniaturized_property() {
+        // Stick to the AX attribute; a `miniaturized` failure would be
+        // swallowed by the surrounding `try` and minimize nothing.
+        assert!(!build_minimize_script(1, &[7]).contains("miniaturized"));
+        assert!(!build_restore_script(&[RestoreTarget {
+            op: 'M',
+            process: "Safari".into(),
+            index: 1,
+            title: "x".into(),
+        }])
+        .contains("miniaturized"));
+    }
+
+    #[test]
+    fn sweep_script_visits_offspace_fullscreen_apps_first() {
+        let script = build_minimize_script(1, &[501, 777]);
+        assert!(script.contains("set offspacePids to {501, 777}"));
+        let pass1 = script.find("repeat with targetPid in offspacePids").unwrap();
+        let pass2 = script.find("set procList to every application process").unwrap();
+        assert!(pass1 < pass2);
+        assert!(build_minimize_script(1, &[]).contains("set offspacePids to {}"));
+    }
+
+    #[test]
+    fn generated_applescript_compiles() {
+        // Catches syntax errors that would otherwise only surface as a
+        // `Failed` sweep at prayer time. osacompile only parses; nothing runs.
+        let dir = std::env::temp_dir().join(format!("waqt-osacompile-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let restore = build_restore_script(&[
+            RestoreTarget { op: 'M', process: "Safari".into(), index: 1, title: "A \"b\"".into() },
+            RestoreTarget { op: 'F', process: "Code".into(), index: 2, title: String::new() },
+        ]);
+        for (name, script) in [
+            ("sweep", build_minimize_script(42, &[501, 777])),
+            ("sweep_empty", build_minimize_script(42, &[])),
+            ("restore", restore),
+        ] {
+            let out = std::process::Command::new("/usr/bin/osacompile")
+                .arg("-o")
+                .arg(dir.join(format!("{name}.scpt")))
+                .arg("-e")
+                .arg(&script)
+                .output()
+                .unwrap();
+            assert!(
+                out.status.success(),
+                "{name} failed to compile: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn parses_offspace_pid_list() {
+        assert_eq!(parse_pid_list("414,9,414, 12\n", 9), vec![414, 12]);
+        assert!(parse_pid_list("", 1).is_empty());
+        assert!(parse_pid_list("abc,0", 1).is_empty());
+    }
+
+    #[test]
+    fn sweep_timeout_scales_with_offspace_apps_but_is_capped() {
+        assert_eq!(sweep_timeout_for(0), SWEEP_TIMEOUT);
+        assert_eq!(sweep_timeout_for(2), SWEEP_TIMEOUT + Duration::from_secs(6));
+        assert_eq!(sweep_timeout_for(50), SWEEP_TIMEOUT_MAX);
     }
 
     #[test]
@@ -1057,7 +1396,7 @@ mod tests {
             },
         ];
         let script = build_restore_script(&targets);
-        let unmin = script.find("set miniaturized of _w to false").unwrap();
+        let unmin = script.find("AXMinimized\" of _w to false").unwrap();
         let refull = script.find("AXFullScreen\" of _w to true").unwrap();
         assert!(
             unmin < refull,
@@ -1106,6 +1445,15 @@ mod tests {
 #[cfg(test)]
 mod overlay_session_tests {
     use super::*;
+
+    #[test]
+    fn snooze_age_tracks_the_latest_snooze_for_that_prayer_only() {
+        let snoozes = vec![("Dhuhr".to_string(), 1_000), ("Asr".to_string(), 5_000)];
+        assert_eq!(snooze_age(&snoozes, "Dhuhr", 1_300), Some(300));
+        assert_eq!(snooze_age(&snoozes, "Maghrib", 1_300), None);
+        // A snooze recorded "in the future" (clock moved back) is ignored.
+        assert_eq!(snooze_age(&snoozes, "Asr", 1_300), None);
+    }
 
     fn session(prayer: &str, emergency: bool, test: bool) -> OverlaySession {
         OverlaySession {

@@ -1,6 +1,7 @@
 # Waqt — Open Work
 
-Updated 2026-08-28. **Nothing is open.** Everything tracked as of 2026-08-24 —
+Updated 2026-10-15 — see "Open items (added 2026-10-15)" below. Before that:
+updated 2026-08-28, **nothing was open.** Everything tracked as of 2026-08-24 —
 the emergency-hatch decision, the updater key, Google Fonts, and (as of today)
 the last remaining item, the GitHub Actions secrets — is resolved. See "What
 changed on 2026-08-24" and "What changed on 2026-08-28" below. This file is
@@ -91,8 +92,43 @@ Accessibility before the first run, so you get a clean grant.
 
 ---
 
-*(No open numbered items right now — the last one, the GitHub Actions signing
-secrets, was resolved 2026-08-28. See "What changed on 2026-08-28" below.)*
+## Open items (added 2026-10-15)
+
+The fullscreen/Spaces bypass fix landed 2026-10-15 (see AGENTS.md §4.2). Its
+two halves still need a hand check on a packaged, Accessibility-trusted build:
+(a) kiosk `DisableProcessSwitching` actually blocks the three-finger swipe on
+the macOS versions you ship to, and (b) the off-Space sweep exits fullscreen
+apps on other Spaces. (a) can be checked with the dev Test Overlay (kiosk
+applies to test overlays; the sweep does not).
+
+1. **Developer ID signing + notarization.** An unsigned or ad-hoc app gets a new
+   TCC identity every build, so each update silently drops the Accessibility
+   grant and the sweep returns `PermissionDenied`. This is the biggest blocker
+   for distributing the macOS build.
+2. **Force Quit may be hidden under the overlay.** The overlay sits at
+   `i32::MAX`; the ⌘⌥Esc window is very likely drawn below that, so the
+   documented escape hatch on the re-lock overlay may open invisibly. Verify; if
+   so, drop the level to `kCGScreenSaverWindowLevel` (1000) or lower the overlay
+   level while Force Quit is frontmost.
+3. **`store.json` read-modify-write races.** Sync Tauri commands (main thread)
+   and the scheduler (tokio) each load → mutate → save with no lock. The atomic
+   rename prevents corruption but not lost updates (e.g. a confirm landing
+   between the scheduler's load and its `mark_missed_prayer` save). Put a
+   process-wide `Mutex` around `StoreManager` writes.
+4. **Forced-pause timer drift.** `Overlay.tsx` decrements state on
+   `setInterval`; WebKit throttles timers in occluded / non-key windows (every
+   secondary monitor), so the pause runs long and differs per monitor, and a
+   rebuilt window restarts it. Count down to a wall-clock end time instead,
+   ideally one the backend owns.
+5. **Two prayer-time engines** (`adhanCalc.ts` / `prayer_calc.rs`) have no
+   shared fixture test. Add a table of (lat, lon, method, school, date) →
+   expected times checked by both `cargo test` and vitest.
+6. **Windows has no equivalent hardening**: Alt+Tab, Win+Tab and virtual
+   desktops are only blocked inside the webview. Either document it as
+   best-effort or add a low-level keyboard hook scoped to the overlay.
+7. **Two clippy warnings** (`collapsible_if`, `scheduler.rs` ~372 and ~397) —
+   §7.4 says clippy-clean.
+8. **Updater never exercised end to end** against a tagged release.
 
 ---
 
@@ -111,9 +147,9 @@ rather than at T-0.
 index as fallback, because indices shift as windows minimize. Untitled windows
 are restored by index only and may be missed.
 
-**`SWEEP_ACTIVE` is never released if the app quits with an overlay open.** The
-user's windows stay minimized until they restore them by hand. A cleanup on the
-exit path would close this.
+**Quitting with an overlay open** — closed 2026-10-15: `RunEvent::Exit` now
+calls `restore_desktop_on_exit`, and ⌘Q is refused while a prayer overlay is
+live. Force Quit (SIGKILL) still skips the restore; nothing can hook that.
 
 **Overlay replacement keeps the desktop cleared.** When one prayer's overlay
 replaces another, `close_overlay_windows_only` runs instead of

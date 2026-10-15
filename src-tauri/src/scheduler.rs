@@ -127,8 +127,11 @@ pub fn check_and_mark_missed_prayers_in(
 
             let grace_secs = std::cmp::max(settings.forced_pause_seconds, 15 * 60) as i64;
             for item in &prayers {
-                // An overlay is on screen for this prayer: it owns the outcome.
-                if overlay_prayer.as_deref() == Some(item.name.as_str()) {
+                // An overlay is on screen for this prayer, or snoozed and about
+                // to come back: it owns the outcome.
+                if overlay_prayer.as_deref() == Some(item.name.as_str())
+                    || overlay_window::snooze_pending(&item.name, now_ts)
+                {
                     continue;
                 }
 

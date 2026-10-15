@@ -174,11 +174,38 @@ At `lock_timestamp` the Rust backend:
    synchronous AppleScript sweep that takes every other application's windows out
    of fullscreen and minimizes them. This **must complete before any overlay
    window is built**; that ordering is the whole point and is easy to break.
-   Bounded by a 15-second deadline.
+   Bounded by a 15-second deadline, plus 3 s per off-Space fullscreen app
+   (capped at 30 s).
+
+   **The Accessibility API only sees windows on the current Space.** A
+   fullscreen app on another Space is invisible to it, so the sweep first asks
+   CoreGraphics (via a JXA `CGWindowListCopyWindowInfo` call, which sees every
+   Space and needs no Screen Recording permission for bounds/PIDs) for apps that
+   own an off-screen, screen-sized, layer-0 window, makes each one frontmost to
+   switch to its Space, and un-fullscreens it there. Minimizing goes through the
+   `AXMinimized` attribute, never the Cocoa-scripting `miniaturized` property.
 2. **Builds one borderless, always-on-top window per monitor** from
    `app.available_monitors()`, so the overlay cannot be bypassed on a second
    screen.
-3. **Activates the app once** for the whole set — not once per window.
+3. **Activates the app once** for the whole set — not once per window — via
+   `activateIgnoringOtherApps:` (`-activate` is macOS 14+ only and would crash
+   on the 10.15+ systems the bundle supports), and enters **kiosk presentation
+   mode**: `HideDock | HideMenuBar | DisableProcessSwitching |
+   DisableHideApplication`. `DisableProcessSwitching` is what blocks ⌘Tab and
+   Mission Control / Spaces switching, including the three-finger swipe.
+   `DisableForceQuit` is deliberately never set (§1.2). `close_all_overlays`
+   resets the options to default; `close_overlay_windows_only` leaves them.
+
+**Quitting**: `RunEvent::ExitRequested` with `code: None` (⌘Q and other
+unrequested exits) is prevented while a non-test overlay is live. On
+`RunEvent::Exit`, `restore_desktop_on_exit` spawns the restore osascript
+without waiting, so the child outlives the process.
+
+**Snooze** is owned by the backend (`snooze_overlay` command, `SNOOZES` in
+`overlay_window.rs`): the overlay webview that used to hold the 5-minute
+`setTimeout` is destroyed by the dismiss. A spent snooze is passed to the
+rebuilt overlay as `snoozed=true`, and `snooze_pending` keeps the missed-prayer
+scan off the prayer while it counts down.
 
 **Window labels carry a generation**: `overlay-{generation}-{monitor}`. A window
 is only reused when the prayer, `emergency_exhausted`, and `is_test` all match the
@@ -349,7 +376,14 @@ dev and be completely dead in the `.app`. Always verify against
 Recorded here so they are not mistaken for the intended design. Full detail and
 suggested fixes are in `HANDOFF.md`.
 
-None currently open. The one item on this list as of 2026-08-24 — the
+**Unverified (2026-10-15):** §4.2's claim that kiosk
+`DisableProcessSwitching` blocks the Spaces three-finger swipe rests on
+Apple's "all Exposé functionality is also disabled" wording, not on a
+hand test; and §1.2's claim that Force Quit is usable on the re-lock overlay
+may not hold while the overlay sits at `i32::MAX`. Both are tracked in
+`HANDOFF.md` "Open items (added 2026-10-15)".
+
+Before 2026-10-15: none open. The one item on this list as of 2026-08-24 — the
 updater's release workflow not having its signing secrets — was closed
 2026-08-28: `TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
 are now set on the `NureniJamiu/waqt` repo's GitHub Actions secrets (`gh
