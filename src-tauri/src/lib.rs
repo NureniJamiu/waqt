@@ -54,16 +54,93 @@ fn has_used_emergency_dismiss(app: AppHandle, date: String, prayer: String) -> R
     Ok(mgr.has_used_emergency_dismiss(&date, &prayer))
 }
 
-#[tauri::command]
+/// Declared `async` so Tauri runs it on the worker pool instead of the main
+/// thread. `spawn_overlay_windows` now blocks while the desktop is cleared, and
+/// blocking the main thread would freeze the UI and stall the very AppleScript
+/// sweep we are waiting on.
+#[tauri::command(async)]
 fn trigger_overlay(app: AppHandle, prayer_name: String, emergency_exhausted: Option<bool>, is_test: Option<bool>) -> Result<(), String> {
     let exhausted = emergency_exhausted.unwrap_or(false);
     let test_mode = is_test.unwrap_or(false);
     overlay_window::spawn_overlay_windows(&app, &prayer_name, exhausted, test_mode)
 }
 
-#[tauri::command]
+/// Also off the main thread: dismissing now kicks off the window-restore sweep.
+#[tauri::command(async)]
 fn dismiss_overlay(app: AppHandle) -> Result<(), String> {
     overlay_window::close_all_overlays(&app);
+    Ok(())
+}
+
+/// Hides the overlay for `SNOOZE_SECS`, then brings it back unless the prayer
+/// has been logged in the meantime. Single use per prayer.
+///
+/// The timer lives here rather than in the overlay webview because dismissing
+/// the overlay destroys that webview — and any `setTimeout` inside it.
+#[tauri::command(async)]
+fn snooze_overlay(
+    app: AppHandle,
+    prayer_name: String,
+    emergency_exhausted: Option<bool>,
+    is_test: Option<bool>,
+) -> Result<(), String> {
+    let now = chrono::Local::now();
+    if overlay_window::was_snoozed(&prayer_name, now.timestamp()) {
+        return Err(format!("{prayer_name} has already been snoozed"));
+    }
+    overlay_window::record_snooze(&prayer_name, now.timestamp());
+    overlay_window::close_all_overlays(&app);
+
+    let exhausted = emergency_exhausted.unwrap_or(false);
+    let test_mode = is_test.unwrap_or(false);
+    let snooze_date = now.date_naive();
+
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_secs(
+            overlay_window::SNOOZE_SECS as u64,
+        ))
+        .await;
+
+        if !test_mode {
+            let logs = StoreManager::new(get_config_dir(&app)).load_logs();
+            // The frontend dates an after-midnight Isha to the previous day.
+            let prev = (snooze_date - chrono::Duration::days(1)).format("%Y-%m-%d").to_string();
+            let today = snooze_date.format("%Y-%m-%d").to_string();
+            let logged = logs.iter().any(|l| {
+                l.prayer == prayer_name
+                    && (l.date == today || (prayer_name == "Isha" && l.date == prev))
+            });
+            if logged {
+                return;
+            }
+        }
+        if overlay_window::has_active_overlay(&app) {
+            return;
+        }
+        let _ = tauri::async_runtime::spawn_blocking(move || {
+            overlay_window::spawn_overlay_windows(&app, &prayer_name, exhausted, test_mode)
+        })
+        .await;
+    });
+
+    Ok(())
+}
+
+/// Overlay webview `blur` / `focus`. See `overlay_window::overlay_focus_changed`.
+#[tauri::command]
+fn overlay_focus_changed(app: AppHandle, focused: bool) {
+    overlay_window::overlay_focus_changed(&app, focused);
+}
+
+#[tauri::command]
+fn trigger_toast(app: AppHandle, prayer_name: String, is_test: Option<bool>) -> Result<(), String> {
+    let test_mode = is_test.unwrap_or(false);
+    overlay_window::spawn_toast_window(&app, &prayer_name, test_mode)
+}
+
+#[tauri::command]
+fn dismiss_toast(app: AppHandle) -> Result<(), String> {
+    overlay_window::close_toast_window(&app);
     Ok(())
 }
 
@@ -88,9 +165,21 @@ fn check_accessibility_permission() -> bool {
     overlay_window::has_accessibility_permission()
 }
 
-#[tauri::command]
+/// Opens System Settings and registers the app in the Accessibility list.
+/// `async` because it shells out to `open` and a probe script.
+#[tauri::command(async)]
 fn request_accessibility_permission() -> bool {
     overlay_window::request_accessibility_permission()
+}
+
+/// The flag `tauri_plugin_autostart` passes to the login item it installs.
+/// Must stay in step with the argument registered in `run()`.
+const AUTOSTART_FLAG: &str = "--autostart";
+
+/// True when this process was started by the login item rather than by the user
+/// opening the app.
+pub fn launched_by_autostart() -> bool {
+    std::env::args().any(|arg| arg == AUTOSTART_FLAG)
 }
 
 pub fn run() {
@@ -99,7 +188,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec!["--autostart"]),
+            Some(vec![AUTOSTART_FLAG]),
         ))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
@@ -112,12 +201,33 @@ pub fn run() {
             has_used_emergency_dismiss,
             trigger_overlay,
             dismiss_overlay,
+            snooze_overlay,
+            overlay_focus_changed,
+            trigger_toast,
+            dismiss_toast,
             send_test_notification,
             check_accessibility_permission,
             request_accessibility_permission
         ])
         .setup(|app| {
             let handle = app.handle().clone();
+
+            // ── Tray-first launch ──────────────────────────────────────────
+            // The autostart plugin is registered with `--autostart`, but until
+            // now nothing read it, and the main window was configured
+            // `visible: true` — so logging in popped the dashboard every boot.
+            // The window is now created hidden and shown here, except when the
+            // login item is what launched us. Creating it hidden (rather than
+            // hiding it after the fact) also avoids a frame of dashboard
+            // flashing on screen at login.
+            if !launched_by_autostart() {
+                if let Some(win) = app.get_webview_window("main") {
+                    let _ = win.show();
+                    let _ = win.set_focus();
+                }
+            } else {
+                println!("[Waqt] Launched at login — staying in the tray.");
+            }
 
             if let Ok(show_item) = tauri::menu::MenuItemBuilder::with_id("show_dashboard", "Show Waqt Dashboard").build(app) {
                 if let Ok(quit_item) = tauri::menu::MenuItemBuilder::with_id("quit", "Quit Waqt").build(app) {
@@ -177,6 +287,23 @@ pub fn run() {
                 }
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| match event {
+            // ⌘Q (and any other exit nobody asked for explicitly) must not
+            // tear down a live prayer overlay. `code` is `None` for those;
+            // `app.exit(n)` from the tray passes `Some`. A genuine emergency
+            // still has Force Quit, which no app can intercept.
+            tauri::RunEvent::ExitRequested { api, code: None, .. } => {
+                let live_prayer_overlay = overlay_window::get_active_overlay_info(app)
+                    .is_some_and(|(_, _, is_test)| !is_test);
+                if live_prayer_overlay {
+                    api.prevent_exit();
+                }
+            }
+            // Put back whatever the desktop sweep minimized, or the user's
+            // windows stay in the Dock after Waqt goes away.
+            tauri::RunEvent::Exit => overlay_window::restore_desktop_on_exit(),
+            _ => {}
+        });
 }

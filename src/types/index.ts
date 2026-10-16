@@ -30,6 +30,7 @@ export interface AppSettings {
   notificationsEnabled: boolean;
   launchAtLogin: boolean;
   onboardingCompleted: boolean;
+  demoModeEnabled?: boolean;
 }
 
 export type PrayerName = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
@@ -55,6 +56,21 @@ export interface PrayerTime {
   isPassed: boolean;
   fireableUntil: Date;
 }
+
+/**
+ * Result of the backend's "clear the desktop before the overlay appears" sweep,
+ * emitted on `waqt:desktop-prep`.
+ *
+ * Mirrors `DesktopPrepOutcome` in `src-tauri/src/overlay_window.rs`, which
+ * serialises with `#[serde(tag = "status", rename_all = "snake_case")]`. The
+ * backend suppresses `skipped`, but it is part of the enum.
+ */
+export type DesktopPrepOutcome =
+  | { status: "skipped" }
+  | { status: "permission_denied" }
+  | { status: "timed_out" }
+  | { status: "failed"; message: string }
+  | { status: "completed"; windows: number };
 
 export interface EmergencyExtension {
   id: string;

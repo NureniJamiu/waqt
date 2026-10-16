@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { AppSettings, PrayerName } from "../../types";
 import { CheckCircle2, AlertTriangle, Moon, ShieldAlert, AlarmClock, Clock, Lock, Volume2, VolumeX } from "lucide-react";
 import { playSound, stopSound } from "../../lib/sound";
+import { reportOverlayFocus } from "../../lib/store";
 
 interface OverlayProps {
   prayerName: PrayerName;
@@ -12,6 +13,8 @@ interface OverlayProps {
   hasSnoozed?: boolean;
   isEmergencyExhausted?: boolean;
   isTest?: boolean;
+  /** Unix ms the overlay went up (backend-owned); defaults to mount time. */
+  startedAt?: number;
 }
 
 export const Overlay: React.FC<OverlayProps> = ({
@@ -23,11 +26,17 @@ export const Overlay: React.FC<OverlayProps> = ({
   hasSnoozed = false,
   isEmergencyExhausted = false,
   isTest = false,
+  startedAt,
 }) => {
   const isTestMode = Boolean(isTest);
   const initialSeconds = isTestMode ? 60 : settings.forcedPauseSeconds;
 
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(initialSeconds);
+  // Count down against the wall clock, not by decrementing per interval tick:
+  // WebKit throttles timers in occluded / non-key windows (every secondary
+  // monitor), which used to stretch the pause and desync the screens.
+  const [pauseEndsAt] = useState<number>(() => (startedAt ?? Date.now()) + initialSeconds * 1000);
+  const computeRemaining = () => Math.max(0, Math.ceil((pauseEndsAt - Date.now()) / 1000));
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(computeRemaining);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState<boolean>(false);
   const [snoozed, setSnoozed] = useState<boolean>(hasSnoozed);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
@@ -60,11 +69,23 @@ export const Overlay: React.FC<OverlayProps> = ({
 
   useEffect(() => {
     if (secondsRemaining <= 0) return;
-    const timer = setInterval(() => {
-      setSecondsRemaining((prev) => Math.max(0, prev - 1));
-    }, 1000);
+    const timer = setInterval(() => setSecondsRemaining(computeRemaining()), 500);
     return () => clearInterval(timer);
-  }, [secondsRemaining]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondsRemaining <= 0]);
+
+  // Lets the backend drop the overlay under the ⌘⌥Esc Force Quit panel, which
+  // otherwise opens invisibly behind a window at the maximum level.
+  useEffect(() => {
+    const onBlur = () => reportOverlayFocus(false);
+    const onFocus = () => reportOverlayFocus(true);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
 
   // ─── Keyboard bypass interceptor ───────────────────────────────────────────
   useEffect(() => {
@@ -255,6 +276,11 @@ export const Overlay: React.FC<OverlayProps> = ({
               ? "Your 30-minute emergency extension has ended. Please step away from your screen and perform prayer."
               : "Take a respectful pause from your screen, perform wudu, and prepare for prayer."}
           </p>
+          {isEmergencyExhausted && (
+            <p className="text-slate-600 text-[10px] leading-relaxed">
+              Genuine emergency? Force Quit Waqt (⌘⌥Esc) from the system menu.
+            </p>
+          )}
         </div>
 
         <div className="pt-2 flex flex-col items-center gap-3 w-full">

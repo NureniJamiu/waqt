@@ -1,0 +1,16 @@
+{
+  "recording": "waqt-voice.mp3",
+  "note": "from/to: the phrase inside the recording (s). at: where it starts in the film (s). html: the caption shown while it plays.",
+  "cues": [
+    { "from": 0.04, "to": 1.48, "at": 0.8, "html": "This is your workday." },
+    { "from": 1.92, "to": 4.90, "at": 2.8, "html": "Meetings stack up, and <em>prayer keeps slipping later.</em>" },
+    { "from": 5.40, "to": 8.78, "at": 9.4, "html": "Waqt gives you a quiet heads-up, <em>fifteen minutes before.</em>" },
+    { "from": 9.14, "to": 10.84, "at": 15.0, "html": "Then <em>ten seconds</em> of notice." },
+    { "from": 11.18, "to": 13.34, "at": 20.6, "html": "And every screen <em>pauses for prayer.</em>" },
+    { "from": 13.66, "to": 15.38, "at": 23.3, "html": "Even one you plug in <em>mid-pause.</em>" },
+    { "from": 15.82, "to": 18.04, "at": 47.7, "html": "The button opens after <em>fifteen minutes.</em>" },
+    { "from": 18.34, "to": 20.60, "at": 50.22, "html": "The rest is between <em>you and Allah.</em>" },
+    { "from": 21.16, "to": 21.68, "at": 53.2, "html": "" },
+    { "from": 21.98, "to": 24.60, "at": 54.02, "html": "" }
+  ]
+}

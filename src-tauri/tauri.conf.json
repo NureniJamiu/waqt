@@ -17,7 +17,7 @@
         "height": 680,
         "resizable": true,
         "center": true,
-        "visible": true,
+        "visible": false,
         "decorations": true,
         "closable": true,
         "minimizable": true,
@@ -25,24 +25,29 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; media-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; object-src 'none'; worker-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'",
+      "devCsp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; media-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost ws://localhost:1420 http://localhost:1420; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "createUpdaterArtifacts": "v1Compatible",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "macOS": {
+      "entitlements": "Entitlements.plist",
+      "minimumSystemVersion": "10.15"
+    }
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IGF1dG9tYXRlZCB0YXVyaSB1cGRhdGVyIHB1YmxpYyBrZXkK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVBODY5REQ1NTMwRkVGRkEKUldUNjd3OVQxWjJHNnZCL0E0dFNlTFhvbzYrdm5YSkx5VkVGRGZDSlFTcFJtZ0xvUmtpT045WUoK",
       "endpoints": [
         "https://github.com/NureniJamiu/waqt/releases/latest/download/latest.json"
       ]

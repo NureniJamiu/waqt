@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { AppSettings, CalculationMethodName, AsrSchool } from "../../types";
 import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock, Sparkles, CheckCircle2, Play } from "lucide-react";
 import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
-import { sendTestNotificationCommand } from "../../lib/store";
+import { sendTestNotificationCommand, seedDemoLogs } from "../../lib/store";
 import { playSound } from "../../lib/sound";
 
 interface SettingsProps {
@@ -480,6 +480,58 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                 onChange={(e) => handleFormChange("launchAtLogin", e.target.checked)}
                 className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
               />
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-amber-500/30 bg-amber-500/5 -mx-6 px-6 py-4 mt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <div>
+                    <div className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>Demo Mode (Marketing Video Capture)</span>
+                      <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300">
+                        Product Demo
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-300 mt-0.5">
+                      Forces prayer arrival countdown to 10 seconds, followed by 10s pre-lock toast and authentic overlay lock screen.
+                    </div>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.demoModeEnabled)}
+                  onChange={async (e) => {
+                    const enabled = e.target.checked;
+                    handleFormChange("demoModeEnabled", enabled);
+                    if (enabled) {
+                      await seedDemoLogs();
+                    }
+                  }}
+                  className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                />
+              </div>
+
+              {form.demoModeEnabled && (
+                <div className="pl-7 pt-1 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await seedDemoLogs();
+                      setTestNotifToast("Seeded 7-day demo logs!");
+                      setTimeout(() => setTestNotifToast(null), 3000);
+                    }}
+                    className="line-button px-3 py-1.5 text-xs font-bold rounded-md text-amber-300 transition active:scale-95 flex items-center gap-1.5 border border-amber-500/40"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Seed / Refresh Dummy Prayer Logs
+                  </button>
+                  {testNotifToast && (
+                    <span className="text-xs text-amber-300 font-semibold animate-fade-in">
+                      {testNotifToast}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </section>

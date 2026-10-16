@@ -1,0 +1,206 @@
+/* Waqt marketing page (src/screens/Landing).
+   Colours and type are the app's own (tailwind.config.js, src/index.css):
+   #070a11 ground, slate lines, emerald accent, amber only for lock/emergency,
+   Plus Jakarta Sans + Inter. This file adds the page's finish: the spotlight,
+   blueprint guide lines, glass cards and glowing titles. */
+
+.lp {
+  --ak-line: rgba(148, 163, 184, 0.09);
+  --ak-line-strong: rgba(148, 163, 184, 0.16);
+  --ak-dot: rgba(226, 232, 240, 0.85);
+  position: relative;
+  background-color: #05080e;
+  user-select: text;
+  -webkit-user-select: text;
+  overflow-x: clip;
+}
+
+/* Faint star-dust across the whole page. */
+.lp::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1px 1px at 7% 12%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1px 1px at 23% 41%, rgba(255, 255, 255, 0.35), transparent 60%),
+    radial-gradient(1px 1px at 37% 8%, rgba(255, 255, 255, 0.4), transparent 60%),
+    radial-gradient(1px 1px at 52% 63%, rgba(255, 255, 255, 0.3), transparent 60%),
+    radial-gradient(1px 1px at 68% 22%, rgba(255, 255, 255, 0.45), transparent 60%),
+    radial-gradient(1px 1px at 81% 77%, rgba(255, 255, 255, 0.3), transparent 60%),
+    radial-gradient(1px 1px at 93% 35%, rgba(255, 255, 255, 0.4), transparent 60%),
+    radial-gradient(1px 1px at 14% 88%, rgba(255, 255, 255, 0.3), transparent 60%);
+  background-size: 620px 620px;
+}
+
+/* Two vertical guide rails, the page's spine. */
+.ak-rails {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  max-width: 72rem;
+  margin: 0 auto;
+  border-left: 1px solid var(--ak-line);
+  border-right: 1px solid var(--ak-line);
+}
+
+/* A horizontal guide line across the rails, with a dot where they cross. */
+.ak-hr {
+  position: relative;
+  height: 1px;
+  background: var(--ak-line);
+}
+.ak-hr::before,
+.ak-hr::after {
+  content: "";
+  position: absolute;
+  top: -1.5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ak-dot);
+}
+.ak-hr::before { left: max(calc(50% - 36rem - 2px), -2px); }
+.ak-hr::after { right: max(calc(50% - 36rem - 2px), -2px); }
+
+/* Tiny dots on the four corners of a framed element. */
+.ak-corners { position: relative; }
+.ak-corners::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, var(--ak-dot) 1.2px, transparent 1.6px) top left / 4px 4px no-repeat,
+    radial-gradient(circle, var(--ak-dot) 1.2px, transparent 1.6px) top right / 4px 4px no-repeat,
+    radial-gradient(circle, var(--ak-dot) 1.2px, transparent 1.6px) bottom left / 4px 4px no-repeat,
+    radial-gradient(circle, var(--ak-dot) 1.2px, transparent 1.6px) bottom right / 4px 4px no-repeat;
+}
+
+/* The spotlight that falls on the wordmark. */
+.ak-beam {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1100px;
+  height: 900px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 30% 55% at 50% 0%, rgba(167, 243, 208, 0.16), transparent 70%),
+    conic-gradient(from 180deg at 50% -8%, transparent 158deg, rgba(110, 231, 183, 0.1) 172deg, rgba(110, 231, 183, 0.14) 180deg, rgba(110, 231, 183, 0.1) 188deg, transparent 202deg);
+  -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 30%, transparent 92%);
+}
+
+/* A soft emerald pool of light behind a section. */
+.ak-pool {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(16, 185, 129, 0.12), transparent);
+}
+
+/* Glowing gradient headline. */
+.ak-title {
+  background: linear-gradient(180deg, #ffffff 15%, #c7f9e2 60%, #6ee7b7 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 28px rgba(16, 185, 129, 0.28));
+}
+
+/* Eyebrow with a fading line either side. */
+.ak-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.ak-eyebrow::before,
+.ak-eyebrow::after {
+  content: "";
+  width: 72px;
+  height: 1px;
+}
+.ak-eyebrow::before { background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.45)); }
+.ak-eyebrow::after { background: linear-gradient(90deg, rgba(148, 163, 184, 0.45), transparent); }
+
+/* Frosted product card. */
+.ak-glass {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.5), rgba(10, 15, 26, 0.72));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 40px 90px -30px rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-radius: 16px;
+}
+
+/* Raised icon tile for the capability rail. */
+.ak-tile {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  color: #a7f3d0;
+  background: linear-gradient(180deg, #1c2638, #0b111d);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.35),
+    0 10px 24px -8px rgba(0, 0, 0, 0.7);
+  transition: transform 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+.ak-tile:hover,
+.ak-tile[data-on="true"] {
+  transform: translateY(-2px);
+  color: #ecfdf5;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(16, 185, 129, 0.35),
+    0 12px 30px -8px rgba(16, 185, 129, 0.35);
+}
+
+/* Circuit traces in the offline diagram. */
+.ak-trace {
+  stroke: rgba(148, 163, 184, 0.28);
+  stroke-width: 1;
+  fill: none;
+}
+.ak-trace--live {
+  stroke: #34d399;
+  stroke-width: 1.5;
+  stroke-dasharray: 6 10;
+  animation: ak-flow 1.6s linear infinite;
+}
+@keyframes ak-flow { to { stroke-dashoffset: -32; } }
+
+/* Floating control cards around the customizer. */
+.ak-float {
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+/* Entrances. */
+@media (prefers-reduced-motion: no-preference) {
+  .lp.js [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--i, 0) * 90ms);
+  }
+  .lp.js [data-reveal][data-in] { opacity: 1; transform: none; }
+  .ak-rise { animation: ak-rise 1200ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--d, 0ms); }
+  .ak-fade { animation: ak-fade 1600ms ease both; animation-delay: var(--d, 0ms); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ak-trace--live { animation: none; }
+}
+@keyframes ak-rise { from { opacity: 0; transform: translateY(48px); } to { opacity: 1; transform: none; } }
+@keyframes ak-fade { from { opacity: 0; } to { opacity: 1; } }

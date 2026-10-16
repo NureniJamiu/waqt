@@ -290,6 +290,77 @@ export function subscribeTimezoneChanged(callback: () => void): () => void {
   };
 }
 
+/**
+ * Subscribes to the backend's desktop-sweep result (`waqt:desktop-prep`).
+ *
+ * The backend has always emitted this — `prepare_desktop_for_overlay` reports
+ * whether it managed to clear the desktop before the overlay appeared — but
+ * nothing listened, so a denied Accessibility permission only ever reached a
+ * stderr the user never sees: the overlay simply landed on top of their
+ * unminimized windows with no explanation.
+ */
+export function subscribeDesktopPrep(
+  callback: (outcome: import("../types").DesktopPrepOutcome) => void
+): () => void {
+  let unlistenTauri: (() => void) | null = null;
+  let cancelled = false;
+
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    import("@tauri-apps/api/event")
+      .then(({ listen }) =>
+        listen<import("../types").DesktopPrepOutcome>("waqt:desktop-prep", (event) => {
+          if (event.payload) callback(event.payload);
+        })
+      )
+      .then((unlistenFn) => {
+        // The window may have unmounted while the dynamic import was in flight.
+        if (cancelled) {
+          unlistenFn();
+        } else {
+          unlistenTauri = unlistenFn;
+        }
+      })
+      .catch((err) => console.warn("Failed to listen for waqt:desktop-prep event:", err));
+  }
+
+  return () => {
+    cancelled = true;
+    if (unlistenTauri) {
+      unlistenTauri();
+    }
+  };
+}
+
+/**
+ * Subscribes to `waqt:schedule-refreshed`, which the background scheduler emits
+ * once it detects the OS slept through one or more ticks. Everything the UI
+ * derives from wall-clock time is stale across that gap.
+ */
+export function subscribeScheduleRefreshed(callback: () => void): () => void {
+  let unlistenTauri: (() => void) | null = null;
+  let cancelled = false;
+
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    import("@tauri-apps/api/event")
+      .then(({ listen }) => listen("waqt:schedule-refreshed", () => callback()))
+      .then((unlistenFn) => {
+        if (cancelled) {
+          unlistenFn();
+        } else {
+          unlistenTauri = unlistenFn;
+        }
+      })
+      .catch((err) => console.warn("Failed to listen for waqt:schedule-refreshed event:", err));
+  }
+
+  return () => {
+    cancelled = true;
+    if (unlistenTauri) {
+      unlistenTauri();
+    }
+  };
+}
+
 export async function addLogEntry(entry: PrayerLogItem): Promise<PrayerLogItem[]> {
   const updated = addLogEntryToStorage(entry);
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
@@ -397,6 +468,51 @@ export async function dismissOverlayCommand(): Promise<void> {
   }
 }
 
+export async function snoozeOverlayCommand(prayerName: string, emergencyExhausted?: boolean, isTest?: boolean): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("snooze_overlay", { prayerName, emergencyExhausted: emergencyExhausted || false, isTest: isTest || false });
+    } catch (err) {
+      console.error("Failed to snooze overlay IPC:", err);
+    }
+  }
+}
+
+/** Lets the backend step the overlay aside for the Force Quit panel. */
+export async function reportOverlayFocus(focused: boolean): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("overlay_focus_changed", { focused });
+    } catch (err) {
+      console.error("Failed to report overlay focus IPC:", err);
+    }
+  }
+}
+
+export async function triggerToastCommand(prayerName: string, isTest?: boolean): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("trigger_toast", { prayerName, isTest: isTest || false });
+    } catch (err) {
+      console.error("Failed to trigger toast IPC:", err);
+    }
+  }
+}
+
+export async function dismissToastCommand(): Promise<void> {
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("dismiss_toast");
+    } catch (err) {
+      console.error("Failed to dismiss toast IPC:", err);
+    }
+  }
+}
+
 export async function sendTestNotificationCommand(prayerName?: string, minutes?: number): Promise<void> {
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     try {
@@ -458,3 +574,79 @@ export async function requestAccessibilityPermission(): Promise<boolean> {
   }
   return true;
 }
+
+/**
+ * Generates a realistic set of prayer log entries for the past 7 days
+ * for marketing demo displays.
+ */
+export function generateDemoLogs(): PrayerLogItem[] {
+  const prayers: ("Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha")[] = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+  const logs: PrayerLogItem[] = [];
+  const now = new Date();
+
+  for (let i = 0; i <= 6; i++) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
+
+    const timesMap: Record<string, string> = {
+      Fajr: "05:15:00",
+      Dhuhr: "13:05:00",
+      Asr: "16:20:00",
+      Maghrib: "19:10:00",
+      Isha: "20:30:00",
+    };
+
+    prayers.forEach((prayer) => {
+      const schedDate = new Date(`${dateStr}T${timesMap[prayer]}`);
+      if (i === 0 && schedDate > now) return;
+
+      let status: "confirmed" | "emergency_dismissed" | "missed" = "confirmed";
+      if ((i === 1 && prayer === "Asr") || (i === 4 && prayer === "Dhuhr")) {
+        status = "emergency_dismissed";
+      } else if ((i === 3 && prayer === "Fajr") || (i === 5 && prayer === "Isha")) {
+        status = "missed";
+      }
+
+      const confirmedDate = new Date(schedDate.getTime() + (status === "confirmed" ? 8 * 60 * 1000 : 2 * 60 * 1000));
+
+      logs.push({
+        id: `demo-${dateStr}-${prayer}`,
+        date: dateStr,
+        prayer,
+        scheduledTime: schedDate.toISOString(),
+        status,
+        confirmedAt: status !== "missed" ? confirmedDate.toISOString() : undefined,
+      });
+    });
+  }
+
+  return logs.sort((a, b) => new Date(b.scheduledTime).getTime() - new Date(a.scheduledTime).getTime());
+}
+
+export async function seedDemoLogs(): Promise<PrayerLogItem[]> {
+  const demoLogs = generateDemoLogs();
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(LOGS_KEY, JSON.stringify(demoLogs));
+    }
+  } catch (err) {
+    console.error("Failed to save demo logs to localStorage:", err);
+  }
+
+  const store = await getTauriStore();
+  if (store) {
+    try {
+      await store.set("log", demoLogs);
+      await store.save();
+    } catch (err) {
+      console.error("Failed to seed demo logs in Tauri Store:", err);
+    }
+  }
+
+  notifyLogUpdated();
+  return demoLogs;
+}
+
