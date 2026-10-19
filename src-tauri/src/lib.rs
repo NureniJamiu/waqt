@@ -220,13 +220,14 @@ pub fn run() {
             // login item is what launched us. Creating it hidden (rather than
             // hiding it after the fact) also avoids a frame of dashboard
             // flashing on screen at login.
-            if !launched_by_autostart() {
-                if let Some(win) = app.get_webview_window("main") {
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.set_background_color(Some(tauri::window::Color(7, 10, 17, 255)));
+                if !launched_by_autostart() {
                     let _ = win.show();
                     let _ = win.set_focus();
+                } else {
+                    println!("[Waqt] Launched at login — staying in the tray.");
                 }
-            } else {
-                println!("[Waqt] Launched at login — staying in the tray.");
             }
 
             if let Ok(show_item) = tauri::menu::MenuItemBuilder::with_id("show_dashboard", "Show Waqt Dashboard").build(app) {

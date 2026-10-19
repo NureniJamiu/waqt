@@ -1,4 +1,5 @@
 use serde::Serialize;
+use tauri::window::Color;
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -722,12 +723,16 @@ pub fn spawn_toast_window(app: &AppHandle, prayer_name: &str, is_test: bool) -> 
         .decorations(false)
         .always_on_top(true)
         .skip_taskbar(true)
+        .background_color(Color(12, 16, 23, 255))
         .fullscreen(false)
         .minimizable(false)
         .maximizable(false)
         .closable(false)
         .resizable(false)
         .shadow(false);
+
+    #[cfg(target_os = "windows")]
+    let builder = builder.transparent(true);
 
     let win = builder.build().map_err(|e| e.to_string())?;
     let _ = win.set_focus();
@@ -920,6 +925,7 @@ fn build_overlay_windows(app: &AppHandle, url: &str, generation: u64) -> Result<
                 .decorations(false)
                 .always_on_top(true)
                 .skip_taskbar(true)
+                .background_color(Color(5, 8, 14, 255))
                 .fullscreen(false)
                 .minimizable(false)
                 .maximizable(false)
@@ -959,6 +965,7 @@ fn spawn_single_overlay(app: &AppHandle, label: &str, url: &str) -> Result<(), S
         .decorations(false)
         .always_on_top(true)
         .skip_taskbar(true)
+        .background_color(Color(5, 8, 14, 255))
         .fullscreen(false)
         .minimizable(false)
         .maximizable(false)
@@ -1253,25 +1260,22 @@ fn harden_toast_window(win: &tauri::WebviewWindow) {
     }
 }
 
-/// Applies Win32 top-most Z-order elevation and toolwindow style flags on Windows.
+/// Applies Win32 top-most Z-order elevation on Windows without mutating styles that break WebView2 rendering.
 #[cfg(target_os = "windows")]
 fn harden_windows(win: &tauri::WebviewWindow) {
     use windows_sys::Win32::Foundation::HWND;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        GetWindowLongPtrW, SetWindowLongPtrW, SetWindowPos, GWL_EXSTYLE, HWND_TOPMOST, SWP_NOMOVE,
-        SWP_NOSIZE, SWP_SHOWWINDOW, WS_EX_TOOLWINDOW, WS_EX_TOPMOST,
+        SetWindowPos, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
     };
 
     if let Ok(hwnd_raw) = win.hwnd() {
         let hwnd = hwnd_raw.0 as HWND;
         unsafe {
-            let ex_style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-            SetWindowLongPtrW(
-                hwnd,
-                GWL_EXSTYLE,
-                ex_style | (WS_EX_TOOLWINDOW | WS_EX_TOPMOST) as isize,
-            );
-
+            // Note: Mutating GWL_EXSTYLE via SetWindowLongPtrW on a WebView2 window
+            // after creation detaches WebView2's DirectComposition visual tree and causes
+            // the window to render as an unresponsive, blank white canvas.
+            // Tauri's WebviewWindowBuilder already sets WS_EX_TOOLWINDOW via .skip_taskbar(true)
+            // and HWND_TOPMOST via .always_on_top(true) at window creation time.
             SetWindowPos(
                 hwnd,
                 HWND_TOPMOST,
@@ -1279,7 +1283,7 @@ fn harden_windows(win: &tauri::WebviewWindow) {
                 0,
                 0,
                 0,
-                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
             );
         }
     }
@@ -1421,6 +1425,14 @@ fn harden_macos(win: &tauri::WebviewWindow, bring_to_front: bool) {
             current_mask.0 & !(MASK_MINIATURIZABLE | MASK_RESIZABLE),
         );
         ns_win_ref.setStyleMask(new_mask);
+
+        let (r, g, b) = if win.label().starts_with("toast") {
+            (12.0 / 255.0, 16.0 / 255.0, 23.0 / 255.0)
+        } else {
+            (5.0 / 255.0, 8.0 / 255.0, 14.0 / 255.0)
+        };
+        let bg_color = objc2_app_kit::NSColor::colorWithSRGBRed_green_blue_alpha(r, g, b, 1.0);
+        ns_win_ref.setBackgroundColor(Some(&bg_color));
 
         ns_win_ref.setCanHide(false);
         ns_win_ref.setHidesOnDeactivate(false);

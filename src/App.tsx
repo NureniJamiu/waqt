@@ -341,7 +341,7 @@ export function App() {
   const hasSnoozedForCurrentPrayer = urlParams.snoozed || snoozedPrayers.has(activeSnoozeKey);
 
   return (
-    <div className={`w-full min-h-screen ${isToastWindow ? "bg-transparent overflow-hidden flex items-center justify-center p-2" : "bg-[#070a11] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200"}`}>
+    <div className={`w-full min-h-screen ${isToastWindow ? "bg-[#0c1017] overflow-hidden flex items-center justify-center p-2" : "bg-[#070a11] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200"}`}>
       {showSplash && (
         <SplashScreen durationMs={1800} onFinish={() => setShowSplash(false)} />
       )}

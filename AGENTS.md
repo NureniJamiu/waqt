@@ -239,8 +239,12 @@ to parsing the window URL.
   drops to normal level so the panel is visible; regaining focus restores
   `i32::MAX`. `YIELDED_TO_FORCE_QUIT` makes `harden_macos` honor this, so the
   per-tick `sync_overlay_monitors` does not cover the panel again.
-- **Windows**: `HWND_TOPMOST` Z-order plus `WS_EX_TOOLWINDOW` / `WS_EX_TOPMOST`
-  extended styles via `windows-sys`, and while an overlay is live a
+- **Windows**: `HWND_TOPMOST` Z-order elevation via `windows-sys` without mutating
+  `GWL_EXSTYLE` (modifying `GWL_EXSTYLE` post-creation detaches WebView2's
+  DirectComposition tree, causing blank white screen freezes). `skip_taskbar(true)`
+  and `always_on_top(true)` safely configure styles at window builder creation.
+  All window builders set native dark background colors (`#070a11` for main, `#05080e`
+  for overlay, `#0c1017` for toast), and while an overlay is live a
   `WH_KEYBOARD_LL` hook (`win_keyboard` in `overlay_window.rs`) swallows the
   Windows keys, Alt+Tab, Alt+Esc, Ctrl+Esc and Alt+F4. Ctrl+Shift+Esc (Task
   Manager) and Ctrl+Alt+Del stay open as the Windows escape hatch. There is no
