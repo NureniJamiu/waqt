@@ -1,0 +1,26 @@
+# Rust backend & build artifacts (desktop app only)
+src-tauri/
+
+# Marketing raw assets & video frames
+marketing/
+
+# Git & CI
+.git/
+.github/
+
+# Editor & local tooling
+.vscode/
+.idea/
+.claude/
+.taste-skill/
+.gemini/
+
+# Build outputs & dependencies
+node_modules/
+dist/
+dist-isolation/
+
+# Logs & temp files
+*.log
+.DS_Store
+*.DS_Store

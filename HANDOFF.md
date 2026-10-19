@@ -119,6 +119,25 @@ release. The code-side items from this morning's list are fixed — see
    Manager.
 4. **Updater never exercised end to end** against a tagged release.
 
+## What changed on 2026-10-19
+
+- **White screen on overlay & countdown toast notifications fixed (macOS & Windows)**:
+  - **macOS WKWebView/AppKit white canvas**:
+    Tauri v2 runtime defaults webviews without an explicit `background_color` to `(255, 255, 255, 255)` (pure white).
+    On macOS:
+    1. The toast window was created with `decorations(false)` and rendered with `bg-transparent` in CSS; because macOS webviews are opaque by default, the transparent CSS revealed WKWebView's white canvas, turning the countdown toast into a solid white box.
+    2. The overlay window was ordered front with `CGShieldingWindowLevel` (`2147483647`) before the CSS bundle was evaluated, exposing WKWebView's default white drawing buffer.
+    3. Now, `WebviewWindowBuilder::background_color` is configured on all windows (`#070a11` for main, `#05080e` for overlay, `#0c1017` for toast), `harden_macos` explicitly applies `[NSColor colorWithSRGBRed:green:blue:alpha:]` to the native `NSWindow`, and `isToastWindow` has `bg-[#0c1017]`.
+  - **Windows DirectComposition detachment**:
+    `harden_windows` was mutating `GWL_EXSTYLE` post-creation via `SetWindowLongPtrW`,
+    which detaches WebView2's DirectComposition DComp visual tree and permanently freezes
+    it into an unresponsive blank white canvas. Now only safely elevates `HWND_TOPMOST`
+    with `SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE`.
+  - Added inline dark styling to `index.html` to eliminate pre-load white flashing.
+  - Added React `ErrorBoundary` in `main.tsx` with immediate URL-based dark background
+    matching (`overlay`, `toast`, `dashboard`) so unexpected component crashes never
+    unmount into a white screen.
+
 ## What changed on 2026-10-15
 
 - **Fullscreen / Spaces bypass** — off-Space fullscreen apps found via

@@ -33,7 +33,11 @@ Thumbs.db
 *.swp
 *.swo
 .gemini/
+.claude/
 
 # Tauri generated schemas
 src-tauri/gen/
+
+.vercel
+marketing/*.mp4
 
