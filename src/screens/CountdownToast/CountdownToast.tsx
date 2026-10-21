@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PrayerName } from "../../types";
 import { Sparkles } from "lucide-react";
 import { playSound } from "../../lib/sound";
@@ -17,6 +17,10 @@ export const CountdownToast: React.FC<CountdownToastProps> = ({
   isToastWindow = false,
 }) => {
   const [seconds, setSeconds] = useState<number>(10);
+  // `onComplete` is a fresh closure on every parent render, so without this
+  // the effect re-ran it — and re-triggered the overlay — on each re-render
+  // after the countdown hit zero.
+  const completedRef = useRef(false);
 
   useEffect(() => {
     playSound("chime", soundEnabled);
@@ -24,7 +28,10 @@ export const CountdownToast: React.FC<CountdownToastProps> = ({
 
   useEffect(() => {
     if (seconds <= 0) {
-      onComplete();
+      if (!completedRef.current) {
+        completedRef.current = true;
+        onComplete();
+      }
       return;
     }
     const timer = setTimeout(() => setSeconds((prev) => prev - 1), 1000);

@@ -780,6 +780,23 @@ static ACTIVE_OVERLAY: Mutex<Option<OverlaySession>> = Mutex::new(None);
 /// collides with labels still being torn down.
 static OVERLAY_GENERATION: AtomicU64 = AtomicU64::new(0);
 
+/// Serializes every operation that builds, retires or closes overlay windows.
+///
+/// `spawn_overlay_windows` reads `ACTIVE_OVERLAY`, runs the desktop sweep (up
+/// to 30s), builds windows, and only then records the session. Two callers
+/// used to interleave in that gap — the scheduler at `lock_timestamp` and the
+/// countdown toast finishing at the same moment both saw "no overlay", both
+/// built a generation, and the slower one overwrote `ACTIVE_OVERLAY` with the
+/// *older* generation. `sync_overlay_monitors` then closed the visible windows
+/// (generation ≠ counter), uncovering a stacked window whose webview WebKit had
+/// suspended while occluded — a frozen countdown — and rebuilt and closed the
+/// stale generation every tick. A dismiss racing a tick could likewise
+/// resurrect `ACTIVE_OVERLAY` after `close_all_overlays` cleared it.
+///
+/// Never taken on the main thread: building a window from a worker blocks on
+/// the main thread, so a main-thread waiter here would deadlock.
+static OVERLAY_OP_LOCK: Mutex<()> = Mutex::new(());
+
 fn overlay_label(generation: u64, monitor_index: usize) -> String {
     format!("overlay-{}-{}", generation, monitor_index)
 }
@@ -819,6 +836,17 @@ fn needs_new_generation(
 /// it are declared `#[tauri::command(async)]` so they run on the worker pool,
 /// and the scheduler wraps its calls in `spawn_blocking`.
 pub fn spawn_overlay_windows(
+    app: &AppHandle,
+    prayer_name: &str,
+    emergency_exhausted: bool,
+    is_test: bool,
+) -> Result<(), String> {
+    let _op = OVERLAY_OP_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    spawn_overlay_windows_locked(app, prayer_name, emergency_exhausted, is_test)
+}
+
+/// `spawn_overlay_windows` with `OVERLAY_OP_LOCK` already held.
+fn spawn_overlay_windows_locked(
     app: &AppHandle,
     prayer_name: &str,
     emergency_exhausted: bool,
@@ -1009,13 +1037,21 @@ pub fn get_active_overlay_info(app: &AppHandle) -> Option<(String, bool, bool)> 
 }
 
 pub fn sync_overlay_monitors(app: &AppHandle) {
+    // Runs inline on the scheduler's tick, so never wait: if a spawn or a
+    // dismiss is in flight, the next tick will see its result.
+    let _op = match OVERLAY_OP_LOCK.try_lock() {
+        Ok(guard) => guard,
+        Err(std::sync::TryLockError::Poisoned(p)) => p.into_inner(),
+        Err(std::sync::TryLockError::WouldBlock) => return,
+    };
+
     let Some((prayer_name, emergency_exhausted, is_test)) = get_active_overlay_info(app) else {
         return;
     };
 
     // Params match the live session by construction, so this reuses the current
     // generation: no desktop sweep, no rebuild, no re-activation.
-    let _ = spawn_overlay_windows(app, &prayer_name, emergency_exhausted, is_test);
+    let _ = spawn_overlay_windows_locked(app, &prayer_name, emergency_exhausted, is_test);
 
     let current_generation = OVERLAY_GENERATION.load(Ordering::SeqCst);
     if let Ok(monitors) = app.available_monitors() {
@@ -1046,6 +1082,7 @@ fn close_overlay_windows_only(app: &AppHandle) {
 }
 
 pub fn close_all_overlays(app: &AppHandle) {
+    let _op = OVERLAY_OP_LOCK.lock().unwrap_or_else(|p| p.into_inner());
     close_overlay_windows_only(app);
 
     if let Ok(mut guard) = ACTIVE_OVERLAY.lock() {

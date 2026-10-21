@@ -232,6 +232,18 @@ else retires the old windows and builds a new generation. `ACTIVE_OVERLAY` in
 `overlay_window.rs` is the source of truth for what is on screen — do not go back
 to parsing the window URL.
 
+**Overlay operations are serialized** by `OVERLAY_OP_LOCK`: `spawn_overlay_windows`
+and `close_all_overlays` take it, and the per-tick `sync_overlay_monitors` only
+`try_lock`s it and skips the tick when busy. Without it, the scheduler and the
+countdown toast both spawning at `lock_timestamp` built two generations and left
+`ACTIVE_OVERLAY` on the older one, which surfaced as a frozen countdown. Never
+take the lock on the main thread (building a window waits on it).
+
+**An overlay window's mode is URL-owned.** `App.tsx` does not re-query
+`has_used_emergency_dismiss` in overlay windows; a re-lock is always a new
+generation built with `emergency_exhausted=true`, never an existing window
+flipping to "Re-locked Pause" in place.
+
 **Platform hardening**:
 - **macOS**: window level `i32::MAX` (2147483647, the maximum window level /
   `CGShieldingWindowLevel`), which sits above the Dock, menu bar, Mission Control
