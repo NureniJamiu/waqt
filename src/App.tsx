@@ -97,7 +97,14 @@ export function App() {
       setLogs(hydratedLogs);
     });
 
-    if (!urlParams.isTest) {
+    // An overlay window's mode is fixed by the backend in its URL; re-lock
+    // means a new window generation, never this one changing in place. Asking
+    // the store here flipped a live "Forced Pause" overlay to "Re-locked
+    // Pause" (on mount, on every focus via subscribeLogUpdated) whenever the
+    // prayer's grace period had ended — while keeping its old pause clock.
+    const derivesEmergencyState = !urlParams.isTest && !isOverlayWindow;
+
+    if (derivesEmergencyState) {
       const effectiveDateStr = getEffectivePrayerDateString(activePrayer);
       hasUsedEmergencyDismiss(effectiveDateStr, activePrayer).then((used) => {
         if (used || urlParams.emergencyExhausted) {
@@ -108,7 +115,7 @@ export function App() {
 
     const unsubscribeLog = subscribeLogUpdated(() => {
       loadLogs().then((updated) => setLogs(updated));
-      if (!urlParams.isTest) {
+      if (derivesEmergencyState) {
         const currentEffectiveDateStr = getEffectivePrayerDateString(activePrayer);
         hasUsedEmergencyDismiss(currentEffectiveDateStr, activePrayer).then((used) => {
           if (used || urlParams.emergencyExhausted) {
