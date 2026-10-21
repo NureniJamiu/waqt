@@ -33,8 +33,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [prayers, setPrayers] = useState<PrayerTime[]>([]);
 
-  const [demoTargetTime, setDemoTargetTime] = useState<Date>(() => new Date(Date.now() + 10000));
-
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -46,18 +44,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const nextPrayer = getUpcomingPrayer(settings, currentTime);
 
-  useEffect(() => {
-    if (!settings.demoModeEnabled) return;
-    if (currentTime >= demoTargetTime) {
-      setDemoTargetTime(new Date(Date.now() + 15000));
-      onNavigate("toast");
-    }
-  }, [settings.demoModeEnabled, currentTime, demoTargetTime, onNavigate]);
-
   const getTimeRemainingMs = (target: Date) => {
-    if (settings.demoModeEnabled) {
-      return Math.max(0, demoTargetTime.getTime() - currentTime.getTime());
-    }
     return Math.max(0, target.getTime() - currentTime.getTime());
   };
 
@@ -271,7 +258,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </span>
           </div>
 
-          {isDevelopment && !settings.demoModeEnabled && (
+          {isDevelopment && (
             <div className="flex items-center gap-2">
               {onTriggerTestToast && (
                 <button

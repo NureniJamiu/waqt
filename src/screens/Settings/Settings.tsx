@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { AppSettings, CalculationMethodName, AsrSchool } from "../../types";
-import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock, Sparkles, CheckCircle2, Play } from "lucide-react";
+import { ArrowLeft, Save, MapPin, Sliders, Bell, Volume2, Moon, Power, AlarmClock, Sparkles, CheckCircle2 } from "lucide-react";
 import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
-import { sendTestNotificationCommand, seedDemoLogs } from "../../lib/store";
-import { playSound } from "../../lib/sound";
 
 interface SettingsProps {
   settings: AppSettings;
@@ -32,36 +30,7 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
   const isDevelopment = import.meta.env.DEV;
   const [form, setForm] = useState<AppSettings>({ ...settings });
   const [savedToast, setSavedToast] = useState(false);
-  const [testNotifToast, setTestNotifToast] = useState<string | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<{ title: string; body: string } | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<string>("Custom / Manual Input");
-
-  const handleSendTestNotif = async (mins: number) => {
-    playSound(form.soundOption ?? "chime", form.soundEnabled);
-    const title = "Upcoming Prayer: Dhuhr";
-    const body = `Dhuhr is in ${mins} minutes.`;
-    setBannerPreview({ title, body });
-    setTimeout(() => setBannerPreview(null), 4500);
-
-    try {
-      let granted = await isPermissionGranted();
-      if (!granted) {
-        const perm = await requestPermission();
-        granted = perm === "granted";
-      }
-      if (!granted) {
-        setTestNotifToast("macOS permission not granted");
-        setTimeout(() => setTestNotifToast(null), 4000);
-        return;
-      }
-      await sendTestNotificationCommand("Dhuhr", mins);
-      setTestNotifToast(`Sent T-${mins}m test notification!`);
-      setTimeout(() => setTestNotifToast(null), 3000);
-    } catch {
-      setTestNotifToast("Error triggering notification");
-      setTimeout(() => setTestNotifToast(null), 3000);
-    }
-  };
 
   const handleFormChange = async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     if (key === "notificationsEnabled" && value === true) {
@@ -122,21 +91,6 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
         <div className="line-surface border-emerald-400/40 text-emerald-300 p-3.5 rounded-full text-xs font-semibold text-center flex items-center justify-center gap-2">
           <CheckCircle2 className="w-4 h-4" />
           <span>Settings saved successfully!</span>
-        </div>
-      )}
-
-      {bannerPreview && (
-        <div className="fixed top-6 right-6 z-50 animate-float">
-          <div className="line-surface p-4 rounded-full border border-emerald-500/40 max-w-sm flex items-start gap-3.5">
-            <div className="p-2 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
-              <Bell className="w-5 h-5 animate-pulse" />
-            </div>
-            <div className="flex-1">
-              <div className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest">Notification Banner Sent</div>
-              <div className="text-sm font-bold text-white mt-0.5">{bannerPreview.title}</div>
-              <div className="text-xs text-slate-300 mt-0.5 font-medium">{bannerPreview.body}</div>
-            </div>
-          </div>
         </div>
       )}
 
@@ -368,43 +322,6 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                   className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
                 />
               </div>
-
-              {isDevelopment && form.notificationsEnabled && (
-                <div className="pl-7 pt-1 space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-slate-400 mr-1">Test Reminders:</span>
-                    <button
-                      type="button"
-                      onClick={() => handleSendTestNotif(30)}
-                      className="line-button px-2.5 py-1 text-xs font-semibold rounded-full text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
-                    >
-                      <Sparkles className="w-3 h-3" /> Test 30m
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSendTestNotif(15)}
-                      className="line-button px-2.5 py-1 text-xs font-semibold rounded-full text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
-                    >
-                      <Sparkles className="w-3 h-3" /> Test 15m
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSendTestNotif(5)}
-                      className="line-button px-2.5 py-1 text-xs font-semibold rounded-full text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
-                    >
-                      <Sparkles className="w-3 h-3" /> Test 5m
-                    </button>
-                    {testNotifToast && (
-                      <span className="text-xs text-emerald-400 font-semibold animate-fade-in ml-1">
-                        {testNotifToast}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-400/90 leading-relaxed italic">
-                    macOS note: when Waqt is focused, banners route to Notification Center (top-right date/time). Switch apps or open Notification Center to view native popups.
-                  </p>
-                </div>
-              )}
             </div>
 
             <div className="space-y-3 border-t border-slate-800/80 pt-3.5">
@@ -424,25 +341,6 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                 />
               </div>
 
-              {form.soundEnabled && (
-                <div className="pl-7 pt-1 flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => playSound("chime", true)}
-                    className="line-button px-3 py-1.5 text-xs font-bold rounded-md text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
-                  >
-                    <Play className="w-3.5 h-3.5" /> Test Notification Chime
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => playSound("takbeer", true)}
-                    className="line-button px-3 py-1.5 text-xs font-bold rounded-md text-emerald-300 transition active:scale-95 flex items-center gap-1.5"
-                  >
-                    <Play className="w-3.5 h-3.5" /> Test Overlay Takbir
-                  </button>
-                </div>
-              )}
             </div>
 
             <div className="flex items-center justify-between border-t border-slate-800/80 pt-3.5">
@@ -480,58 +378,6 @@ export const Settings: React.FC<SettingsProps> = ({ settings, onSave, onBack, on
                 onChange={(e) => handleFormChange("launchAtLogin", e.target.checked)}
                 className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
               />
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-amber-500/30 bg-amber-500/5 -mx-6 px-6 py-4 mt-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <div>
-                    <div className="text-sm font-bold text-white flex items-center gap-2">
-                      <span>Demo Mode (Marketing Video Capture)</span>
-                      <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300">
-                        Product Demo
-                      </span>
-                    </div>
-                    <div className="text-xs text-slate-300 mt-0.5">
-                      Forces prayer arrival countdown to 10 seconds, followed by 10s pre-lock toast and authentic overlay lock screen.
-                    </div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={Boolean(form.demoModeEnabled)}
-                  onChange={async (e) => {
-                    const enabled = e.target.checked;
-                    handleFormChange("demoModeEnabled", enabled);
-                    if (enabled) {
-                      await seedDemoLogs();
-                    }
-                  }}
-                  className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
-                />
-              </div>
-
-              {form.demoModeEnabled && (
-                <div className="pl-7 pt-1 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      await seedDemoLogs();
-                      setTestNotifToast("Seeded 7-day demo logs!");
-                      setTimeout(() => setTestNotifToast(null), 3000);
-                    }}
-                    className="line-button px-3 py-1.5 text-xs font-bold rounded-md text-amber-300 transition active:scale-95 flex items-center gap-1.5 border border-amber-500/40"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Seed / Refresh Dummy Prayer Logs
-                  </button>
-                  {testNotifToast && (
-                    <span className="text-xs text-amber-300 font-semibold animate-fade-in">
-                      {testNotifToast}
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </section>
