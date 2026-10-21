@@ -54,6 +54,13 @@ fn has_used_emergency_dismiss(app: AppHandle, date: String, prayer: String) -> R
     Ok(mgr.has_used_emergency_dismiss(&date, &prayer))
 }
 
+/// The dashboard's test overlay / toast buttons exist only in dev builds. A
+/// release build ignores the flag, so a test overlay (60 s pause, no desktop
+/// sweep, nothing logged) can never ship.
+fn dev_only(is_test: Option<bool>) -> bool {
+    cfg!(debug_assertions) && is_test.unwrap_or(false)
+}
+
 /// Declared `async` so Tauri runs it on the worker pool instead of the main
 /// thread. `spawn_overlay_windows` now blocks while the desktop is cleared, and
 /// blocking the main thread would freeze the UI and stall the very AppleScript
@@ -61,7 +68,7 @@ fn has_used_emergency_dismiss(app: AppHandle, date: String, prayer: String) -> R
 #[tauri::command(async)]
 fn trigger_overlay(app: AppHandle, prayer_name: String, emergency_exhausted: Option<bool>, is_test: Option<bool>) -> Result<(), String> {
     let exhausted = emergency_exhausted.unwrap_or(false);
-    let test_mode = is_test.unwrap_or(false);
+    let test_mode = dev_only(is_test);
     overlay_window::spawn_overlay_windows(&app, &prayer_name, exhausted, test_mode)
 }
 
@@ -92,7 +99,7 @@ fn snooze_overlay(
     overlay_window::close_all_overlays(&app);
 
     let exhausted = emergency_exhausted.unwrap_or(false);
-    let test_mode = is_test.unwrap_or(false);
+    let test_mode = dev_only(is_test);
     let snooze_date = now.date_naive();
 
     tauri::async_runtime::spawn(async move {
@@ -134,7 +141,7 @@ fn overlay_focus_changed(app: AppHandle, focused: bool) {
 
 #[tauri::command]
 fn trigger_toast(app: AppHandle, prayer_name: String, is_test: Option<bool>) -> Result<(), String> {
-    let test_mode = is_test.unwrap_or(false);
+    let test_mode = dev_only(is_test);
     overlay_window::spawn_toast_window(&app, &prayer_name, test_mode)
 }
 
@@ -142,22 +149,6 @@ fn trigger_toast(app: AppHandle, prayer_name: String, is_test: Option<bool>) -> 
 fn dismiss_toast(app: AppHandle) -> Result<(), String> {
     overlay_window::close_toast_window(&app);
     Ok(())
-}
-
-#[tauri::command]
-fn send_test_notification(app: AppHandle, prayer_name: Option<String>, minutes: Option<u32>) -> Result<(), String> {
-    use tauri_plugin_notification::NotificationExt;
-    let p_name = prayer_name.unwrap_or_else(|| "Dhuhr".to_string());
-    let mins = minutes.unwrap_or(15);
-    let title = format!("Upcoming Prayer: {}", p_name);
-    let body = format!("{} is in {} minutes.", p_name, mins);
-
-    app.notification()
-        .builder()
-        .title(title)
-        .body(body)
-        .show()
-        .map_err(|e| format!("Notification error: {:?}", e))
 }
 
 #[tauri::command]
@@ -205,7 +196,6 @@ pub fn run() {
             overlay_focus_changed,
             trigger_toast,
             dismiss_toast,
-            send_test_notification,
             check_accessibility_permission,
             request_accessibility_permission
         ])

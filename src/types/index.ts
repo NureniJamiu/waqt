@@ -30,7 +30,6 @@ export interface AppSettings {
   notificationsEnabled: boolean;
   launchAtLogin: boolean;
   onboardingCompleted: boolean;
-  demoModeEnabled?: boolean;
 }
 
 export type PrayerName = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";

@@ -219,6 +219,12 @@ without waiting, so the child outlives the process.
 rebuilt overlay as `snoozed=true`, and `snooze_pending` keeps the missed-prayer
 scan off the prayer while it counts down.
 
+**Test overlays are dev-only**: the dashboard's "Test Countdown Toast" / "Test
+Overlay Screen" buttons render only under `import.meta.env.DEV`, and the
+`trigger_overlay`, `snooze_overlay` and `trigger_toast` commands pass `is_test`
+through `dev_only` in `lib.rs`, which is `false` in any release build. Release
+builds have no demo mode, test notifications or sound-preview buttons.
+
 **Window labels carry a generation**: `overlay-{generation}-{monitor}`. A window
 is only reused when the prayer, `emergency_exhausted`, and `is_test` all match the
 live overlay, because a reused window keeps the URL it was built with. Anything
@@ -314,8 +320,7 @@ secondary monitor).
     "notificationsEnabled": true,
     "launchAtLogin": true,
     "onboardingCompleted": false,
-    "createdAt": "2026-08-17",
-    "demoModeEnabled": false
+    "createdAt": "2026-08-17"
   },
   "log": [
     {

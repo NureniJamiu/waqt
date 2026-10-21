@@ -33,8 +33,6 @@ pub struct AppSettings {
     pub onboarding_completed: bool,
     #[serde(default)]
     pub created_at: Option<String>,
-    #[serde(default)]
-    pub demo_mode_enabled: bool,
 }
 
 fn default_pre_lock_minutes() -> u64 {
@@ -62,7 +60,6 @@ impl Default for AppSettings {
             launch_at_login: true,
             onboarding_completed: false,
             created_at: None,
-            demo_mode_enabled: false,
         }
     }
 }
